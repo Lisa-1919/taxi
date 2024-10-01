@@ -9,6 +9,7 @@ import com.example.driver_service.repo.CarRepository;
 import com.example.driver_service.repo.DriverRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -63,6 +64,9 @@ public class DriverServiceImpl implements DriverService {
     public DriverDTO getById(Long id) {
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
+
+        Hibernate.initialize(driver.getCar());
+
         return driverMapper.driverToDriverDTO(driver);
     }
 
