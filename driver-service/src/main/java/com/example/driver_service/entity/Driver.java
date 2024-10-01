@@ -16,6 +16,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLSelect;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,6 +25,7 @@ import org.hibernate.annotations.SQLDelete;
 @Entity
 @Table(name = "driver")
 @SQLDelete(sql = "UPDATE driver SET is_deleted = true WHERE id = ?")
+@SQLSelect(sql = "SELECT * FROM driver WHERE is_deleted = false")
 public class Driver {
 
     @Id

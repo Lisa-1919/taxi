@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLSelect;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,6 +22,7 @@ import org.hibernate.annotations.SQLDelete;
 @Entity
 @Table(name = "car")
 @SQLDelete(sql = "UPDATE car SET is_deleted = true WHERE id = ?")
+@SQLSelect(sql = "SELECT * FROM car WHERE is_deleted = false")
 public class Car {
 
     @Id
