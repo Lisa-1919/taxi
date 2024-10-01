@@ -61,7 +61,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public DriverDTO getById(Long id) {
+    public DriverDTO getDriverById(Long id) {
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
 
@@ -71,7 +71,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public List<DriverDTO> getAll() {
+    public List<DriverDTO> getAllDrivers() {
         List<Driver> drivers = driverRepository.findAll();
         return drivers.stream()
                 .map(driverMapper::driverToDriverDTO)

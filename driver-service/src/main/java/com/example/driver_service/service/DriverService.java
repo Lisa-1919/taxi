@@ -12,7 +12,7 @@ public interface DriverService {
 
     void deleteDriver(Long id);
 
-    DriverDTO getById(Long id);
+    DriverDTO getDriverById(Long id);
 
-    List<DriverDTO> getAll();
+    List<DriverDTO> getAllDrivers();
 }
