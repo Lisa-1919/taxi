@@ -7,6 +7,6 @@ import org.mapstruct.Mapper;
 @Mapper
 public interface DriverMapper {
 
-    Driver DriverDTOToDriver(DriverDTO driverDTO);
-    DriverDTO DriverToDriverDTO(Driver driver);
+    Driver driverDTOToDriver(DriverDTO driverDTO);
+    DriverDTO driverToDriverDTO(Driver driver);
 }

@@ -7,6 +7,6 @@ import org.mapstruct.Mapper;
 @Mapper
 public interface CarMapper {
 
-    Car CarDTOToCar(CarDTO carDTO);
-    CarDTO CarToCarDTO(Car car);
+    Car carDTOToCar(CarDTO carDTO);
+    CarDTO carToCarDTO(Car car);
 }
