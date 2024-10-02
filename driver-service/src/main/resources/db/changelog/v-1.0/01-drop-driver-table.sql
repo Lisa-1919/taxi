@@ -1,0 +1,6 @@
+ALTER TABLE IF EXISTS public.driver
+    DROP CONSTRAINT IF EXISTS driver_car_id_fkey
+GO
+
+DROP TABLE IF EXISTS public.driver CASCADE
+GO
