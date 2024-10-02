@@ -11,7 +11,5 @@ public interface CarMapper {
 
     Car carDTOToCar(CarDTO carDTO);
     CarDTO carToCarDTO(Car car);
-
-    @Mapping(target = "id", ignore = true)
     void updateCarFromCarDTO(CarDTO carDTO, @MappingTarget Car car);
 }

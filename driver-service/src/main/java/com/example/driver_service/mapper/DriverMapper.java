@@ -11,7 +11,5 @@ public interface DriverMapper {
 
     Driver driverDTOToDriver(DriverDTO driverDTO);
     DriverDTO driverToDriverDTO(Driver driver);
-
-    @Mapping(target = "id", ignore = true)
     void updateDriverFromDriverDTO(DriverDTO driverDTO, @MappingTarget Driver driver);
 }
