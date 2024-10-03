@@ -22,7 +22,6 @@ import org.hibernate.annotations.SQLSelect;
 @Entity
 @Table(name = "car")
 @SQLDelete(sql = "UPDATE car SET is_deleted = true WHERE id = ?")
-@SQLSelect(sql = "SELECT * FROM car WHERE is_deleted = false")
 public class Car {
 
     @Id

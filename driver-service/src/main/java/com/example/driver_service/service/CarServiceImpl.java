@@ -2,10 +2,13 @@ package com.example.driver_service.service;
 
 import com.example.driver_service.dto.CarDTO;
 import com.example.driver_service.entity.Car;
+import com.example.driver_service.entity.Driver;
 import com.example.driver_service.mapper.CarMapper;
 import com.example.driver_service.repo.CarRepository;
+import com.example.driver_service.repo.DriverRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,16 +16,29 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class CarServiceImpl implements CarService{
+public class CarServiceImpl implements CarService {
 
     private final CarRepository carRepository;
     private final CarMapper carMapper;
+    private final DriverRepository driverRepository;
 
 
     @Override
     public CarDTO addCar(CarDTO carDTO) {
         Car car = carMapper.carDTOToCar(carDTO);
-        car = carRepository.save(car);
+
+        Driver driver = driverRepository.findById(carDTO.getDriverId())
+                .orElseThrow(() -> new EntityNotFoundException("Driver not found with ID: " + carDTO.getDriverId()));
+
+        car.setDriver(driver);
+        try {
+            car = carRepository.save(car);
+        } catch (DataIntegrityViolationException ex) {
+            throw new IllegalArgumentException("A car with that license plate already exists: " + carDTO.getLicensePlate());
+        }
+        driver.setCar(car);
+        driverRepository.save(driver);
+
         return carMapper.carToCarDTO(car);
     }
 
@@ -33,7 +49,11 @@ public class CarServiceImpl implements CarService{
 
         carMapper.updateCarFromCarDTO(carDTO, carFromDB);
 
-        return carMapper.carToCarDTO(carRepository.save(carFromDB));
+        try {
+            return carMapper.carToCarDTO(carRepository.save(carFromDB));
+        } catch (DataIntegrityViolationException ex) {
+            throw new IllegalArgumentException("A car with that license plate already exists: " + carDTO.getLicensePlate());
+        }
     }
 
     @Override

@@ -26,11 +26,11 @@ import org.hibernate.annotations.SQLSelect;
 @Entity
 @Table(name = "driver")
 @SQLDelete(sql = "UPDATE driver SET is_deleted = true WHERE id = ?")
-@SQLSelect(sql = "SELECT * FROM driver WHERE is_deleted = false")
 public class Driver {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
     @Column(name = "first_name")
@@ -39,10 +39,10 @@ public class Driver {
     @Column(name = "last_name")
     private String lastName;
 
-    @Column(name = "email")
+    @Column(name = "email", unique = true)
     private String email;
 
-    @Column(name = "phone_number")
+    @Column(name = "phone_number", unique = true)
     private String phoneNumber;
 
     @Column(name = "sex")

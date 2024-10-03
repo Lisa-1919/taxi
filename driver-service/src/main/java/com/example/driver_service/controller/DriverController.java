@@ -17,32 +17,32 @@ public class DriverController {
     private final DriverService driverService;
 
     @GetMapping("/{id}")
-    private ResponseEntity<?> getDriverById(@PathVariable Long id){
+    public ResponseEntity<DriverDTO> getDriverById(@PathVariable Long id){
         DriverDTO driverDTO = driverService.getDriverById(id);
         return ResponseEntity.ok(driverDTO);
     }
 
     @GetMapping
-    private ResponseEntity<?> getAllDrivers(){
+    public ResponseEntity<List<DriverDTO>> getAllDrivers(){
         List<DriverDTO> driverDTOList = driverService.getAllDrivers();
         return ResponseEntity.of(Optional.ofNullable(driverDTOList));
     }
 
     @PostMapping
-    private ResponseEntity<?> addDriver(@RequestBody DriverDTO driverDTO){
+    public ResponseEntity<DriverDTO> addDriver(@RequestBody DriverDTO driverDTO){
         DriverDTO newDriverDTO = driverService.addDriver(driverDTO);
         return ResponseEntity.ok(newDriverDTO);
     }
 
     @PutMapping("/{id}")
-    private ResponseEntity<?> editDriver(@PathVariable Long id, @RequestBody DriverDTO driverDTO) {
+    public ResponseEntity<DriverDTO> editDriver(@PathVariable Long id, @RequestBody DriverDTO driverDTO) {
         driverDTO.setId(id);
         DriverDTO updatedDriverDTO = driverService.editDriver(driverDTO);
         return ResponseEntity.ok(updatedDriverDTO);
     }
 
     @DeleteMapping("/{id}")
-    private ResponseEntity<?> deleteDriver(@PathVariable Long id){
+    public ResponseEntity<?> deleteDriver(@PathVariable Long id){
         driverService.deleteDriver(id);
         return ResponseEntity.ok().build();
     }

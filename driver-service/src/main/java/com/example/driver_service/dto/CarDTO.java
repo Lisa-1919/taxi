@@ -18,5 +18,7 @@ public class CarDTO {
 
     private String colour;
 
+    private Long driverId;
+
     private boolean isDeleted;
 }
