@@ -1,10 +1,18 @@
 package com.example.driver_service.controller;
 
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import com.example.driver_service.dto.CarDTO;
 import com.example.driver_service.service.CarService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -28,13 +36,13 @@ public class CarController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addCar(@RequestBody CarDTO carDTO) {
+    public ResponseEntity<?> addCar(@Valid @RequestBody CarDTO carDTO) {
         CarDTO newCarDTO = carService.addCar(carDTO);
         return ResponseEntity.ok(newCarDTO);
     }
 
     @PutMapping
-    public ResponseEntity<?> editCar(@RequestBody CarDTO carDTO){
+    public ResponseEntity<?> editCar(@Valid  @RequestBody CarDTO carDTO){
         CarDTO updatedCarDTO = carService.editCar(carDTO);
         return ResponseEntity.ok(updatedCarDTO);
     }
