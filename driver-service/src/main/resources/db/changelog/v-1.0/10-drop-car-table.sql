@@ -1,2 +1,2 @@
-DROP TABLE IF EXISTS public.car
+DROP TABLE IF EXISTS public.car CASCADE
 GO
