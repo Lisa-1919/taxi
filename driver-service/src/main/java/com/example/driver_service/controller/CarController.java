@@ -2,7 +2,6 @@ package com.example.driver_service.controller;
 
 import com.example.driver_service.dto.CarDTO;
 import com.example.driver_service.service.CarService;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
