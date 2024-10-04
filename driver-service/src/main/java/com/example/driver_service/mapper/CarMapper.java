@@ -1,6 +1,6 @@
 package com.example.driver_service.mapper;
 
-import com.example.driver_service.dto.CarDTO;
+import com.example.driver_service.dto.CarDto;
 import com.example.driver_service.entity.Car;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
@@ -8,7 +8,7 @@ import org.mapstruct.MappingTarget;
 @Mapper
 public interface CarMapper {
 
-    Car carDTOToCar(CarDTO carDTO);
-    CarDTO carToCarDTO(Car car);
-    void updateCarFromCarDTO(CarDTO carDTO, @MappingTarget Car car);
+    Car carDtoToCar(CarDto carDto);
+    CarDto carToCarDto(Car car);
+    void updateCarFromCarDto(CarDto carDto, @MappingTarget Car car);
 }

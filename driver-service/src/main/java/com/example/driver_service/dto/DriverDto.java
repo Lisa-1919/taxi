@@ -13,7 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class DriverDTO {
+public class DriverDto {
 
     private Long id;
 
@@ -35,7 +35,7 @@ public class DriverDTO {
 
     private String sex;
 
-    private CarDTO carDTO;
+    private CarDto carDto;
 
     private boolean isDeleted;
 

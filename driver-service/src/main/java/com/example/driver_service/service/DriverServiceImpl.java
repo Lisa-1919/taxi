@@ -1,7 +1,7 @@
 package com.example.driver_service.service;
 
-import com.example.driver_service.dto.CarDTO;
-import com.example.driver_service.dto.DriverDTO;
+import com.example.driver_service.dto.CarDto;
+import com.example.driver_service.dto.DriverDto;
 import com.example.driver_service.entity.Driver;
 import com.example.driver_service.mapper.CarMapper;
 import com.example.driver_service.mapper.DriverMapper;
@@ -24,8 +24,8 @@ public class DriverServiceImpl implements DriverService {
     private final CarMapper carMapper;
 
     @Override
-    public DriverDTO addDriver(DriverDTO driverDTO) {
-        Driver driver = driverMapper.driverDTOToDriver(driverDTO);
+    public DriverDto addDriver(DriverDto driverDto) {
+        Driver driver = driverMapper.driverDtoToDriver(driverDto);
 
         try {
             driver = driverRepository.save(driver);
@@ -33,23 +33,23 @@ public class DriverServiceImpl implements DriverService {
             throw new IllegalArgumentException("A driver with that email or phoneNumber already exists");
         }
 
-        return driverMapper.driverToDriverDTO(driver);
+        return driverMapper.driverToDriverDto(driver);
     }
 
     @Override
-    public DriverDTO editDriver(DriverDTO driverDTO) {
-        Driver driverFromDB = driverRepository.findById(driverDTO.getId())
+    public DriverDto editDriver(DriverDto driverDto) {
+        Driver driverFromDB = driverRepository.findById(driverDto.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
 
-        driverMapper.updateDriverFromDriverDTO(driverDTO, driverFromDB);
+        driverMapper.updateDriverFromDriverDto(driverDto, driverFromDB);
 
-        CarDTO carDTO = carMapper.carToCarDTO(driverFromDB.getCar());
+        CarDto carDTO = carMapper.carToCarDto(driverFromDB.getCar());
         try {
-            DriverDTO updatedDriverDTO = driverMapper.driverToDriverDTO(driverRepository.save(driverFromDB));
+            DriverDto updatedDriverDto = driverMapper.driverToDriverDto(driverRepository.save(driverFromDB));
 
-            updatedDriverDTO.setCarDTO(carDTO);
+            updatedDriverDto.setCarDto(carDTO);
 
-            return updatedDriverDTO;
+            return updatedDriverDto;
         } catch (DataIntegrityViolationException ex){
             throw new IllegalArgumentException("A driver with that email or phone number already exists");
         }
@@ -64,7 +64,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public DriverDTO getDriverById(Long id) {
+    public DriverDto getDriverById(Long id) {
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
 
@@ -72,16 +72,16 @@ public class DriverServiceImpl implements DriverService {
             Hibernate.initialize(driver.getCar());
         }
 
-        DriverDTO driverDTO = driverMapper.driverToDriverDTO(driver);
+        DriverDto driverDto = driverMapper.driverToDriverDto(driver);
 
-        CarDTO carDTO = carMapper.carToCarDTO(driver.getCar());
-        driverDTO.setCarDTO(carDTO);
+        CarDto carDto = carMapper.carToCarDto(driver.getCar());
+        driverDto.setCarDto(carDto);
 
-        return driverDTO;
+        return driverDto;
     }
 
     @Override
-    public List<DriverDTO> getAllDrivers() {
+    public List<DriverDto> getAllDrivers() {
         List<Driver> drivers = driverRepository.findAll();
 
         return drivers.stream()
@@ -91,14 +91,14 @@ public class DriverServiceImpl implements DriverService {
                         Hibernate.initialize(driver.getCar());
                     }
 
-                    DriverDTO driverDTO = driverMapper.driverToDriverDTO(driver);
+                    DriverDto driverDto = driverMapper.driverToDriverDto(driver);
 
                     if (driver.getCar() != null) {
-                        CarDTO carDTO = carMapper.carToCarDTO(driver.getCar());
-                        driverDTO.setCarDTO(carDTO);
+                        CarDto carDto = carMapper.carToCarDto(driver.getCar());
+                        driverDto.setCarDto(carDto);
                     }
 
-                    return driverDTO;
+                    return driverDto;
                 })
                 .collect(Collectors.toList());
     }

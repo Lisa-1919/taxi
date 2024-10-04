@@ -1,19 +1,19 @@
 package com.example.driver_service.service;
 
-import com.example.driver_service.dto.CarDTO;
+import com.example.driver_service.dto.CarDto;
 
 import java.util.List;
 
 public interface CarService {
 
-    CarDTO addCar(CarDTO carDTO);
+    CarDto addCar(CarDto carDto);
 
-    CarDTO editCar(CarDTO carDTO);
+    CarDto editCar(CarDto carDto);
 
     void deleteCar(Long id);
 
-    CarDTO getCarById(Long id);
+    CarDto getCarById(Long id);
 
-    List<CarDTO> getAllCars();
+    List<CarDto> getAllCars();
 
 }

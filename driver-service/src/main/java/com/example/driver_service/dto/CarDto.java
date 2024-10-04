@@ -11,7 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class CarDTO {
+public class CarDto {
     private Long id;
 
     @NotNull(message = "License plate cannot be null")

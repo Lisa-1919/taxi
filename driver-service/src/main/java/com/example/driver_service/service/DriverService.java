@@ -1,18 +1,18 @@
 package com.example.driver_service.service;
 
-import com.example.driver_service.dto.DriverDTO;
+import com.example.driver_service.dto.DriverDto;
 
 import java.util.List;
 
 public interface DriverService {
 
-    DriverDTO addDriver(DriverDTO driverDTO);
+    DriverDto addDriver(DriverDto driverDto);
 
-    DriverDTO editDriver(DriverDTO driverDTO);
+    DriverDto editDriver(DriverDto driverDto);
 
     void deleteDriver(Long id);
 
-    DriverDTO getDriverById(Long id);
+    DriverDto getDriverById(Long id);
 
-    List<DriverDTO> getAllDrivers();
+    List<DriverDto> getAllDrivers();
 }
