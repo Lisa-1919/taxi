@@ -17,7 +17,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 @RestController
-@RequestMapping("/cars")
+@RequestMapping("/api/v1/cars")
 @RequiredArgsConstructor
 public class CarController {
 
@@ -41,8 +41,8 @@ public class CarController {
         return ResponseEntity.ok(newCarDto);
     }
 
-    @PutMapping
-    public ResponseEntity<?> editCar(@Valid  @RequestBody CarDto carDto){
+    @PutMapping("/{id}")
+    public ResponseEntity<?> editCar(@PathVariable Long id, @Valid  @RequestBody CarDto carDto){
         CarDto updatedCarDto = carService.editCar(carDto);
         return ResponseEntity.ok(updatedCarDto);
     }
