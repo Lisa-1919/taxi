@@ -12,29 +12,28 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CarServiceImpl implements CarService {
 
     private final CarRepository carRepository;
-    private final CarMapper carMapper;
     private final DriverRepository driverRepository;
-
+    private final CarMapper carMapper;
 
     @Override
     public CarDto addCar(CarDto carDto) {
+
         Car car = carMapper.carDtoToCar(carDto);
 
-        Driver driver = driverRepository.findById(carDto.getDriverId())
-                .orElseThrow(() -> new EntityNotFoundException("Driver not found with ID: " + carDto.getDriverId()));
+        Driver driver = driverRepository.findById(carDto.driverId())
+                .orElseThrow(() -> new EntityNotFoundException("Driver not found with ID: " + carDto.driverId()));
 
         car.setDriver(driver);
         try {
             car = carRepository.save(car);
         } catch (DataIntegrityViolationException ex) {
-            throw new IllegalArgumentException("A car with that license plate already exists: " + carDto.getLicensePlate());
+            throw new IllegalArgumentException("A car with that license plate already exists: " + carDto.licensePlate());
         }
         driver.setCar(car);
         driverRepository.save(driver);
@@ -43,16 +42,16 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
-    public CarDto editCar(CarDto carDto) {
-        Car carFromDB = carRepository.findById(carDto.getId())
+    public CarDto editCar(Long id, CarDto updatedCarDto) {
+        Car carFromDB = carRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Car not found"));
 
-        carMapper.updateCarFromCarDto(carDto, carFromDB);
+        carMapper.updateCarFromCarDto(updatedCarDto, carFromDB);
 
         try {
             return carMapper.carToCarDto(carRepository.save(carFromDB));
         } catch (DataIntegrityViolationException ex) {
-            throw new IllegalArgumentException("A car with that license plate already exists: " + carDto.getLicensePlate());
+            throw new IllegalArgumentException("A car with that license plate already exists: " + updatedCarDto.licensePlate());
         }
     }
 
@@ -74,10 +73,6 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public List<CarDto> getAllCars() {
-        List<Car> cars = carRepository.findAll();
-
-        return cars.stream()
-                .map(carMapper::carToCarDto)
-                .collect(Collectors.toList());
+        return carRepository.findAll().stream().map(carMapper::carToCarDto).toList();
     }
 }

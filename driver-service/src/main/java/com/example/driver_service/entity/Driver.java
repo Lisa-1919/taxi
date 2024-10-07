@@ -50,6 +50,6 @@ public class Driver {
     private Car car;
 
     @Column(name = "is_deleted")
-    private boolean isDeleted = false;
+    private Boolean isDeleted = false;
 
 }

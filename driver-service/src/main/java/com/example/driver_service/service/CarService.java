@@ -8,7 +8,7 @@ public interface CarService {
 
     CarDto addCar(CarDto carDto);
 
-    CarDto editCar(CarDto carDto);
+    CarDto editCar(Long id, CarDto updatedCarDto);
 
     void deleteCar(Long id);
 
