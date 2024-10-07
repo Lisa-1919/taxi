@@ -1,7 +1,6 @@
 package com.example.driver_service.service;
 
 import com.example.driver_service.dto.DriverDto;
-import com.example.driver_service.entity.Driver;
 
 import java.util.List;
 
