@@ -7,7 +7,7 @@ public record CarDto (
     Long id,
 
     @NotNull(message = "License plate cannot be null")
-    @Pattern(regexp = "^[A-Z0-9]{1,4}[- ]?[A-Z0-9]{1,4}[- ]?[A-Z0-9]{1,4}$", message = "Invalid license plate format")
+    @Pattern(regexp = LICENSE_PLATE_REGEX, message = "Invalid license plate format")
     String licensePlate,
 
     @NotNull(message = "Mark cannot be null")
@@ -18,4 +18,6 @@ public record CarDto (
     Long driverId,
 
     Boolean isDeleted
-){}
+){
+    private static final String LICENSE_PLATE_REGEX = "^[A-Z0-9]{1,4}[- ]?[A-Z0-9]{1,4}[- ]?[A-Z0-9]{1,4}$";
+}
