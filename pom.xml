@@ -11,6 +11,7 @@
 
     <modules>
         <module>driver-service</module>
+        <module>passenger-service</module>
     </modules>
 
     <groupId>com.example</groupId>
