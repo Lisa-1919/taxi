@@ -18,14 +18,15 @@ public class DriverServiceImpl implements DriverService {
 
     private final DriverRepository driverRepository;
     private final DriverMapper driverMapper;
+
     @Override
     public DriverDto addDriver(DriverDto driverDto) {
         try {
             Driver driver = driverMapper.driverDtoToDriver(driverDto);
             driverDto = driverMapper.driverToDriverDto(driverRepository.save(driver));
             return driverDto;
-        } catch (DataIntegrityViolationException ex){
-            throw new IllegalArgumentException("A driver with that email or phoneNumber already exists");
+        } catch (DataIntegrityViolationException ex) {
+            throw new IllegalArgumentException("A driver with that email or phone number already exists");
         }
     }
 
@@ -37,8 +38,8 @@ public class DriverServiceImpl implements DriverService {
         driverMapper.updateDriverFromDriverDto(updatedDriverDto, driverFromDB);
 
         try {
-            return driverMapper.driverToDriverDto(driverFromDB);
-        } catch (DataIntegrityViolationException ex){
+            return driverMapper.driverToDriverDto(driverRepository.save(driverFromDB));
+        } catch (DataIntegrityViolationException ex) {
             throw new IllegalArgumentException("A driver with that email or phone number already exists");
         }
     }

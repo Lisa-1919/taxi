@@ -8,9 +8,9 @@ import org.mapstruct.MappingTarget;
 @Mapper
 public interface PassengerMapper {
 
-    Passenger PassengerDtoToPassenger(PassengerDto passengerDto);
+    Passenger passengerDtoToPassenger(PassengerDto passengerDto);
 
-    PassengerDto PassengerToPassengerDto(Passenger passenger);
+    PassengerDto passengerToPassengerDto(Passenger passenger);
 
     void updatePassengerFromPassengerDto(PassengerDto passengerDto, @MappingTarget Passenger passenger);
 }
