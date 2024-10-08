@@ -21,7 +21,8 @@ import org.hibernate.annotations.SQLDelete;
 @SQLDelete(sql = "UPDATE passenger SET is_deleted = true WHERE id = ?")
 public class Passenger {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "first_name")
