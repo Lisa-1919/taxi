@@ -4,6 +4,7 @@ import com.example.passenger_service.dto.PassengerDto;
 import com.example.passenger_service.entity.Passenger;
 import com.example.passenger_service.mapper.PassengerMapper;
 import com.example.passenger_service.repo.PassengerRepository;
+import com.example.passenger_service.util.ExceptionMessages;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -28,7 +29,7 @@ public class PassengerServiceImpl implements PassengerService {
             passengerDto = passengerMapper.passengerToPassengerDto(passengerRepository.save(passenger));
             return passengerDto;
         } catch (DataIntegrityViolationException ex) {
-            throw new IllegalArgumentException("A passenger with that email or phone number already exists");
+            throw new IllegalArgumentException(ExceptionMessages.DUPLICATE_PASSENGER_ERROR.format());
         }
     }
 
@@ -36,14 +37,14 @@ public class PassengerServiceImpl implements PassengerService {
     @Transactional
     public PassengerDto editPassenger(Long id, PassengerDto updatedPassengerDto) {
         Passenger passengerFromDb = passengerRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Passenger not found"));
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.PASSENGER_NOT_FOUND.format(id)));
 
         passengerMapper.updatePassengerFromPassengerDto(updatedPassengerDto, passengerFromDb);
 
         try {
             return passengerMapper.passengerToPassengerDto(passengerRepository.save(passengerFromDb));
         } catch (DataIntegrityViolationException ex) {
-            throw new IllegalArgumentException("A passenger with that email or phone number already exists");
+            throw new IllegalArgumentException(ExceptionMessages.DUPLICATE_PASSENGER_ERROR.format());
         }
     }
 
@@ -51,7 +52,7 @@ public class PassengerServiceImpl implements PassengerService {
     @Transactional
     public void deletePassenger(Long id) {
         Passenger passenger = passengerRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Passenger not found"));
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.PASSENGER_NOT_FOUND.format(id)));
 
         passengerRepository.delete(passenger);
     }
@@ -59,7 +60,7 @@ public class PassengerServiceImpl implements PassengerService {
     @Override
     public PassengerDto getPassengerById(Long id) {
         Passenger passenger = passengerRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Passenger not found"));
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.PASSENGER_NOT_FOUND.format(id)));
 
         return passengerMapper.passengerToPassengerDto(passenger);
     }

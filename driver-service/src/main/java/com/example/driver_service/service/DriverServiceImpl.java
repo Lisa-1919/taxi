@@ -4,6 +4,7 @@ import com.example.driver_service.dto.DriverDto;
 import com.example.driver_service.entity.Driver;
 import com.example.driver_service.mapper.DriverMapper;
 import com.example.driver_service.repo.DriverRepository;
+import com.example.driver_service.util.ExceptionMessages;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
@@ -28,7 +29,7 @@ public class DriverServiceImpl implements DriverService {
             driverDto = driverMapper.driverToDriverDto(driverRepository.save(driver));
             return driverDto;
         } catch (DataIntegrityViolationException ex) {
-            throw new IllegalArgumentException("A driver with that email or phone number already exists");
+            throw new IllegalArgumentException(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format());
         }
     }
 
@@ -36,14 +37,14 @@ public class DriverServiceImpl implements DriverService {
     @Transactional
     public DriverDto editDriver(Long id, DriverDto updatedDriverDto) {
         Driver driverFromDB = driverRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id)));
 
         driverMapper.updateDriverFromDriverDto(updatedDriverDto, driverFromDB);
 
         try {
             return driverMapper.driverToDriverDto(driverRepository.save(driverFromDB));
         } catch (DataIntegrityViolationException ex) {
-            throw new IllegalArgumentException("A driver with that email or phone number already exists");
+            throw new IllegalArgumentException(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format());
         }
     }
 
@@ -51,7 +52,7 @@ public class DriverServiceImpl implements DriverService {
     @Transactional
     public void deleteDriver(Long id) {
         Driver driver = driverRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id)));
 
         driverRepository.delete(driver);
     }
@@ -59,7 +60,7 @@ public class DriverServiceImpl implements DriverService {
     @Override
     public DriverDto getDriverById(Long id) {
         Driver driver = driverRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id)));
 
         if (driver.getCar() != null) {
             Hibernate.initialize(driver.getCar());
