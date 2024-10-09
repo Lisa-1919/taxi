@@ -12,6 +12,7 @@
     <modules>
         <module>driver-service</module>
         <module>passenger-service</module>
+        <module>rides-service</module>
     </modules>
 
     <groupId>com.example</groupId>
