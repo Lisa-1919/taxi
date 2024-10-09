@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class DriverServiceImpl implements DriverService {
     private final DriverMapper driverMapper;
 
     @Override
+    @Transactional
     public DriverDto addDriver(DriverDto driverDto) {
         try {
             Driver driver = driverMapper.driverDtoToDriver(driverDto);
@@ -31,6 +33,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
+    @Transactional
     public DriverDto editDriver(Long id, DriverDto updatedDriverDto) {
         Driver driverFromDB = driverRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
@@ -45,6 +48,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
+    @Transactional
     public void deleteDriver(Long id) {
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Driver not found"));

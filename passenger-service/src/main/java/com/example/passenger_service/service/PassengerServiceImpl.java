@@ -8,6 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class PassengerServiceImpl implements PassengerService {
 
 
     @Override
+    @Transactional
     public PassengerDto addPassenger(PassengerDto passengerDto) {
         try {
             Passenger passenger = passengerMapper.passengerDtoToPassenger(passengerDto);
@@ -31,6 +33,7 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
+    @Transactional
     public PassengerDto editPassenger(Long id, PassengerDto updatedPassengerDto) {
         Passenger passengerFromDb = passengerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Passenger not found"));
@@ -45,6 +48,7 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
+    @Transactional
     public void deletePassenger(Long id) {
         Passenger passenger = passengerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Passenger not found"));
