@@ -1,4 +1,4 @@
-package com.example.driver_service.exception;
+package com.example.passenger_service.exception;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
@@ -47,4 +47,5 @@ public class GlobalExceptionHandler {
         logger.error("Error: {}. Request: {}", ex.getMessage(), request.getDescription(false));
         return new ResponseEntity<>("There was an error on the server. Try again later.", HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 }
