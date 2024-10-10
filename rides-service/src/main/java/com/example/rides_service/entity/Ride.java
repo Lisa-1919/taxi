@@ -1,7 +1,10 @@
 package com.example.rides_service.entity;
 
+import com.example.rides_service.util.RideStatuses;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -39,7 +42,8 @@ public class Ride {
     private String toAddress;
 
     @Column(name = "ride_status")
-    private String rideStatus;
+    @Enumerated(EnumType.STRING)
+    private RideStatuses rideStatus;
 
     @Column(name = "order_date_time")
     private LocalDateTime orderDateTime;

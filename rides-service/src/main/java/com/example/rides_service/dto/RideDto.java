@@ -1,5 +1,7 @@
 package com.example.rides_service.dto;
 
+import com.example.rides_service.util.RideStatuses;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
@@ -9,7 +11,6 @@ public record RideDto(
 
         Long id,
 
-        @NotNull(message = "Driver id cannot be null")
         Long driverId,
 
         @NotNull(message = "Passenger id cannot be null")
@@ -21,13 +22,12 @@ public record RideDto(
         @NotNull(message = "Destination address cannot be null")
         String toAddress,
 
-        @NotNull(message = "Ride status cannot be null")
-        String rideStatus,
+        RideStatuses rideStatus,
 
-        @NotNull(message = "Order date and time cannot be null")
         LocalDateTime orderDateTime,
 
         @NotNull(message = "Cost cannot be null")
+        @DecimalMin(value = "0.01", message = "Minimum ride cost is 0.01")
         BigDecimal cost
 
 ) {
