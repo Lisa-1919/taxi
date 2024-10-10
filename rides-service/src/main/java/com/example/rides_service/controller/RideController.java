@@ -1,6 +1,8 @@
 package com.example.rides_service.controller;
 
-import com.example.rides_service.dto.RideDto;
+import com.example.rides_service.dto.RequestRide;
+import com.example.rides_service.dto.ResponseRide;
+import com.example.rides_service.dto.ResponseRideList;
 import com.example.rides_service.service.RideService;
 import com.example.rides_service.util.RideStatuses;
 import jakarta.validation.Valid;
@@ -15,8 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/rides")
@@ -25,33 +25,33 @@ public class RideController {
     private final RideService rideService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<RideDto> getRideById(@PathVariable Long id) {
-        RideDto rideDto = rideService.getRideById(id);
-        return ResponseEntity.ok(rideDto);
+    public ResponseEntity<ResponseRide> getRideById(@PathVariable Long id) {
+        ResponseRide responseRide = rideService.getRideById(id);
+        return ResponseEntity.ok(responseRide);
     }
 
     @GetMapping
-    public ResponseEntity<List<RideDto>> getAllRides() {
-        List<RideDto> rideDtoList = rideService.getAllRides();
-        return ResponseEntity.ok(rideDtoList);
+    public ResponseEntity<ResponseRideList> getAllRides() {
+        ResponseRideList responseRideList = rideService.getAllRides();
+        return ResponseEntity.ok(responseRideList);
     }
 
     @PostMapping
-    public ResponseEntity<RideDto> addRide(@Valid @RequestBody RideDto rideDto) {
-        RideDto newRideDto = rideService.addRide(rideDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newRideDto);
+    public ResponseEntity<ResponseRide> addRide(@Valid @RequestBody RequestRide requestRide) {
+        ResponseRide responseRide = rideService.addRide(requestRide);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseRide);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<RideDto> editRide(@PathVariable Long id, @Valid @RequestBody RideDto rideDto) {
-        RideDto updatedRideDto = rideService.editRide(id, rideDto);
-        return ResponseEntity.ok(updatedRideDto);
+    public ResponseEntity<ResponseRide> editRide(@PathVariable Long id, @Valid @RequestBody RequestRide requestRide) {
+        ResponseRide responseRide = rideService.editRide(id, requestRide);
+        return ResponseEntity.ok(responseRide);
     }
 
     @PutMapping("/{id}/{status}")
-    public ResponseEntity<RideDto> updateRideStatus(@PathVariable Long id, @PathVariable("status") RideStatuses newRideStatus) {
-        RideDto rideDto = rideService.updateRideStatus(id, newRideStatus);
-        return ResponseEntity.ok(rideDto);
+    public ResponseEntity<ResponseRide> updateRideStatus(@PathVariable Long id, @PathVariable("status") RideStatuses newRideStatus) {
+        ResponseRide responseRide = rideService.updateRideStatus(id, newRideStatus);
+        return ResponseEntity.ok(responseRide);
     }
 
 }

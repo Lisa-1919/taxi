@@ -1,6 +1,8 @@
 package com.example.rides_service.service;
 
-import com.example.rides_service.dto.RideDto;
+import com.example.rides_service.dto.RequestRide;
+import com.example.rides_service.dto.ResponseRide;
+import com.example.rides_service.dto.ResponseRideList;
 import com.example.rides_service.entity.Ride;
 import com.example.rides_service.mapper.RideMapper;
 import com.example.rides_service.repo.RideRepository;
@@ -12,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -24,36 +25,34 @@ public class RideServiceImpl implements RideService {
 
     @Override
     @Transactional
-    public RideDto addRide(RideDto rideDto) {
+    public ResponseRide addRide(RequestRide requestRide) {
 
-        isPassengerExists(rideDto.passengerId());
+        isPassengerExists(requestRide.passengerId());
 
-        Ride ride = rideMapper.rideFromRideDto(rideDto);
+        Ride ride = rideMapper.requestRideToRide(requestRide);
         ride.setOrderDateTime(LocalDateTime.now());
         ride.setRideStatus(RideStatuses.CREATED);
 
-        return rideMapper.rideDtoFromRide(rideRepository.save(ride));
+        return rideMapper.rideToResponseRide(rideRepository.save(ride));
     }
 
     @Override
     @Transactional
-    public RideDto editRide(Long id, RideDto rideDto) {
+    public ResponseRide editRide(Long id, RequestRide requestRide) {
 
-        isDriverExists(rideDto.driverId());
+        isDriverExists(requestRide.driverId());
 
-        Ride rideFromDB = rideRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND.format(id)));
+        Ride rideFromDB = getOrThrow(id);
 
-        rideMapper.updateRideFromRideDto(rideDto, rideFromDB);
+        rideMapper.updateRideFromRideDto(requestRide, rideFromDB);
 
-        return rideMapper.rideDtoFromRide(rideRepository.save(rideFromDB));
+        return rideMapper.rideToResponseRide(rideRepository.save(rideFromDB));
     }
 
     @Override
     @Transactional
-    public RideDto updateRideStatus(Long id, RideStatuses newStatus) {
-        Ride rideFromDB = rideRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND.format(id)));
+    public ResponseRide updateRideStatus(Long id, RideStatuses newStatus) {
+        Ride rideFromDB = getOrThrow(id);
 
         RideStatuses currentStatus = rideFromDB.getRideStatus();
 
@@ -67,20 +66,23 @@ public class RideServiceImpl implements RideService {
             throw new IllegalArgumentException(ExceptionMessages.INVALID_STATUS_TRANSITION.format(currentStatus, newStatus));
         }
 
-        return rideMapper.rideDtoFromRide(rideRepository.save(rideFromDB));
+        return rideMapper.rideToResponseRide(rideRepository.save(rideFromDB));
     }
 
     @Override
-    public RideDto getRideById(Long id) {
-        Ride ride = rideRepository.findById(id)
+    public ResponseRide getRideById(Long id) {
+        Ride ride = getOrThrow(id);
+        return rideMapper.rideToResponseRide(ride);
+    }
+
+    @Override
+    public ResponseRideList getAllRides() {
+        return new ResponseRideList(rideRepository.findAll().stream().map(rideMapper::rideToResponseRide).toList());
+    }
+
+    private Ride getOrThrow(Long id) {
+        return rideRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND.format(id)));
-
-        return rideMapper.rideDtoFromRide(ride);
-    }
-
-    @Override
-    public List<RideDto> getAllRides() {
-        return rideRepository.findAll().stream().map(rideMapper::rideDtoFromRide).toList();
     }
 
     //TO DO: request to the driver service for the existence of a driver with this id

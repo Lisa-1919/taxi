@@ -1,6 +1,7 @@
 package com.example.rides_service.mapper;
 
-import com.example.rides_service.dto.RideDto;
+import com.example.rides_service.dto.RequestRide;
+import com.example.rides_service.dto.ResponseRide;
 import com.example.rides_service.entity.Ride;
 import com.example.rides_service.util.RideStatuses;
 import org.mapstruct.Mapper;
@@ -10,13 +11,13 @@ import org.mapstruct.MappingTarget;
 @Mapper
 public interface RideMapper {
 
-    Ride rideFromRideDto(RideDto rideDto);
+    Ride requestRideToRide(RequestRide requestRide);
 
-    RideDto rideDtoFromRide(Ride ride);
+    ResponseRide rideToResponseRide(Ride ride);
 
-    @Mapping(target = "rideStatus", expression = "java(updateStatusBasedOnDriver(rideDto.driverId(), rideFromDB))")
-    @Mapping(target = "driverId", expression = "java(updateDriver(rideDto.driverId(), rideFromDB))")
-    void updateRideFromRideDto(RideDto rideDto, @MappingTarget Ride rideFromDB);
+    @Mapping(target = "rideStatus", expression = "java(updateStatusBasedOnDriver(requestRide.driverId(), rideFromDB))")
+    @Mapping(target = "driverId", expression = "java(updateDriver(requestRide.driverId(), rideFromDB))")
+    void updateRideFromRideDto(RequestRide requestRide, @MappingTarget Ride rideFromDB);
 
     default Long updateDriver(Long newDriverId, Ride rideFromDB) {
         if (rideFromDB.getDriverId() == null) {

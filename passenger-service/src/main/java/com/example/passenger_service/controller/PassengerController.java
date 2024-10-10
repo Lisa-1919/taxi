@@ -1,6 +1,8 @@
 package com.example.passenger_service.controller;
 
-import com.example.passenger_service.dto.PassengerDto;
+import com.example.passenger_service.dto.RequestPassenger;
+import com.example.passenger_service.dto.ResponsePassenger;
+import com.example.passenger_service.dto.ResponsePassengerList;
 import com.example.passenger_service.service.PassengerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,27 +27,27 @@ public class PassengerController {
     private final PassengerService passengerService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<PassengerDto> getPassengerById(@PathVariable Long id) {
-        PassengerDto passengerDto = passengerService.getPassengerById(id);
+    public ResponseEntity<ResponsePassenger> getPassengerById(@PathVariable Long id) {
+        ResponsePassenger passengerDto = passengerService.getPassengerById(id);
         return ResponseEntity.ok(passengerDto);
     }
 
     @GetMapping
-    public ResponseEntity<List<PassengerDto>> getAllPassengers() {
-        List<PassengerDto> passengerDtoList = passengerService.getAllPassengers();
-        return ResponseEntity.ok(passengerDtoList);
+    public ResponseEntity<ResponsePassengerList> getAllPassengers() {
+        ResponsePassengerList responsePassengerList = passengerService.getAllPassengers();
+        return ResponseEntity.ok(responsePassengerList);
     }
 
     @PostMapping
-    public ResponseEntity<PassengerDto> addPassenger(@Valid @RequestBody PassengerDto passengerDto) {
-        PassengerDto newPassengerDto = passengerService.addPassenger(passengerDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newPassengerDto);
+    public ResponseEntity<ResponsePassenger> addPassenger(@Valid @RequestBody RequestPassenger requestPassenger) {
+        ResponsePassenger responsePassenger = passengerService.addPassenger(requestPassenger);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responsePassenger);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PassengerDto> editPassenger(@PathVariable Long id, @Valid @RequestBody PassengerDto passengerDto) {
-        PassengerDto updatedPassengerDto = passengerService.editPassenger(id, passengerDto);
-        return ResponseEntity.ok(updatedPassengerDto);
+    public ResponseEntity<ResponsePassenger> editPassenger(@PathVariable Long id, @Valid @RequestBody RequestPassenger requestPassenger) {
+        ResponsePassenger responsePassenger = passengerService.editPassenger(id, requestPassenger);
+        return ResponseEntity.ok(responsePassenger);
     }
 
     @DeleteMapping("/{id}")

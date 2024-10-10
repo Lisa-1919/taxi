@@ -1,19 +1,21 @@
 package com.example.driver_service.service;
 
-import com.example.driver_service.dto.CarDto;
+import com.example.driver_service.dto.RequestCar;
+import com.example.driver_service.dto.ResponseCar;
+import com.example.driver_service.dto.ResponseCarList;
 
 import java.util.List;
 
 public interface CarService {
 
-    CarDto addCar(CarDto carDto);
+    ResponseCar addCar(RequestCar requestCar);
 
-    CarDto editCar(Long id, CarDto updatedCarDto);
+    ResponseCar editCar(Long id, RequestCar requestCar);
 
     void deleteCar(Long id);
 
-    CarDto getCarById(Long id);
+    ResponseCar getCarById(Long id);
 
-    List<CarDto> getAllCars();
+    ResponseCarList getAllCars();
 
 }

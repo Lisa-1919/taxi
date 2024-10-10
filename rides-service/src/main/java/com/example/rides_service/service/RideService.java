@@ -1,20 +1,19 @@
 package com.example.rides_service.service;
 
-import com.example.rides_service.dto.RideDto;
+import com.example.rides_service.dto.RequestRide;
+import com.example.rides_service.dto.ResponseRide;
+import com.example.rides_service.dto.ResponseRideList;
 import com.example.rides_service.util.RideStatuses;
-
-import java.util.List;
 
 public interface RideService {
 
-    RideDto addRide(RideDto rideDto);
+    ResponseRide addRide(RequestRide requestRide);
 
-    RideDto editRide(Long id, RideDto rideDto);
+    ResponseRide editRide(Long id, RequestRide requestRide);
 
-    RideDto updateRideStatus(Long id, RideStatuses status);
+    ResponseRide updateRideStatus(Long id, RideStatuses status);
 
-    RideDto getRideById(Long id);
-
-    List<RideDto> getAllRides();
+    ResponseRide getRideById(Long id);
+    ResponseRideList getAllRides();
 
 }

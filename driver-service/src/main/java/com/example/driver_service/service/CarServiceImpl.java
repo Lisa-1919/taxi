@@ -1,6 +1,8 @@
 package com.example.driver_service.service;
 
-import com.example.driver_service.dto.CarDto;
+import com.example.driver_service.dto.RequestCar;
+import com.example.driver_service.dto.ResponseCar;
+import com.example.driver_service.dto.ResponseCarList;
 import com.example.driver_service.entity.Car;
 import com.example.driver_service.entity.Driver;
 import com.example.driver_service.mapper.CarMapper;
@@ -13,8 +15,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class CarServiceImpl implements CarService {
@@ -25,59 +25,59 @@ public class CarServiceImpl implements CarService {
 
     @Override
     @Transactional
-    public CarDto addCar(CarDto carDto) {
+    public ResponseCar addCar(RequestCar requestCar) {
 
-        Car car = carMapper.carDtoToCar(carDto);
+        Car car = carMapper.requestCarToCar(requestCar);
 
-        Driver driver = driverRepository.findById(carDto.driverId())
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(carDto.driverId())));
+        Driver driver = driverRepository.findById(requestCar.driverId())
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(requestCar.driverId())));
 
         car.setDriver(driver);
         try {
             car = carRepository.save(car);
         } catch (DataIntegrityViolationException ex) {
-            throw new IllegalArgumentException(ExceptionMessages.DUPLICATE_CAR_ERROR.format(carDto.licensePlate()));
+            throw new IllegalArgumentException(ExceptionMessages.DUPLICATE_CAR_ERROR.format(requestCar.licensePlate()));
         }
         driver.setCar(car);
         driverRepository.save(driver);
 
-        return carMapper.carToCarDto(car);
+        return carMapper.carToResponseCar(car);
     }
 
     @Override
     @Transactional
-    public CarDto editCar(Long id, CarDto updatedCarDto) {
-        Car carFromDB = carRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(id)));
-
-        carMapper.updateCarFromCarDto(updatedCarDto, carFromDB);
+    public ResponseCar editCar(Long id, RequestCar requestCar) {
+        Car carFromDB = getOrThrow(id);
+        carMapper.updateCarFromRequestCar(requestCar, carFromDB);
 
         try {
-            return carMapper.carToCarDto(carRepository.save(carFromDB));
+            return carMapper.carToResponseCar(carRepository.save(carFromDB));
         } catch (DataIntegrityViolationException ex) {
-            throw new IllegalArgumentException(ExceptionMessages.DUPLICATE_CAR_ERROR.format(updatedCarDto.licensePlate()));
+            throw new IllegalArgumentException(ExceptionMessages.DUPLICATE_CAR_ERROR.format(requestCar.licensePlate()));
         }
     }
 
     @Override
     @Transactional
     public void deleteCar(Long id) {
-        Car car = carRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(id)));
-
+        Car car = getOrThrow(id);
         carRepository.delete(car);
     }
 
     @Override
-    public CarDto getCarById(Long id) {
-        Car car = carRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(id)));
-
-        return carMapper.carToCarDto(car);
+    public ResponseCar getCarById(Long id) {
+        Car car = getOrThrow(id);
+        return carMapper.carToResponseCar(car);
     }
 
     @Override
-    public List<CarDto> getAllCars() {
-        return carRepository.findAll().stream().map(carMapper::carToCarDto).toList();
+    public ResponseCarList getAllCars() {
+        return new ResponseCarList(carRepository.findAll().stream().map(carMapper::carToResponseCar).toList());
     }
+
+    private Car getOrThrow(Long id){
+        return carRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(id)));
+    }
+
 }

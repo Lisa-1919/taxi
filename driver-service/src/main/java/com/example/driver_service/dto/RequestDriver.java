@@ -5,10 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public record DriverDto(
-
-        Long id,
-
+public record RequestDriver(
         @NotNull(message = "First name cannot be null")
         @Size(min = 2, max = 50, message = "First name must be between 2 and 50 characters")
         String firstName,
@@ -25,11 +22,7 @@ public record DriverDto(
         @Pattern(regexp = PHONE_NUMBER_REGEX, message = "Invalid phone number format")
         String phoneNumber,
 
-        String sex,
-
-        CarDto carDto,
-
-        Boolean isDeleted
+        String sex
 
 ) {
     private static final String PHONE_NUMBER_REGEX = "^(\\+)?((\\d{2,3}) ?\\d|\\d)(([ -]?\\d)|( ?(\\d{2,3}) ?)){5,12}\\d$";

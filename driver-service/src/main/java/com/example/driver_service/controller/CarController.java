@@ -1,6 +1,8 @@
 package com.example.driver_service.controller;
 
-import com.example.driver_service.dto.CarDto;
+import com.example.driver_service.dto.RequestCar;
+import com.example.driver_service.dto.ResponseCar;
+import com.example.driver_service.dto.ResponseCarList;
 import com.example.driver_service.service.CarService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,27 +27,27 @@ public class CarController {
     private final CarService carService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<CarDto> getCarById(@PathVariable Long id) {
-        CarDto carDto = carService.getCarById(id);
-        return ResponseEntity.ok(carDto);
+    public ResponseEntity<ResponseCar> getCarById(@PathVariable Long id) {
+        ResponseCar responseCar = carService.getCarById(id);
+        return ResponseEntity.ok(responseCar);
     }
 
     @GetMapping
-    public ResponseEntity<List<CarDto>> getAllCars() {
-        List<CarDto> carDtoList = carService.getAllCars();
-        return ResponseEntity.ok(carDtoList);
+    public ResponseEntity<ResponseCarList> getAllCars() {
+        ResponseCarList responseCarList = carService.getAllCars();
+        return ResponseEntity.ok(responseCarList);
     }
 
     @PostMapping
-    public ResponseEntity<CarDto> addCar(@Valid @RequestBody CarDto carDto) {
-        CarDto newCarDto = carService.addCar(carDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newCarDto);
+    public ResponseEntity<ResponseCar> addCar(@Valid @RequestBody RequestCar requestCar) {
+        ResponseCar responseCar = carService.addCar(requestCar);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseCar);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CarDto> editCar(@PathVariable Long id, @Valid @RequestBody CarDto carDto) {
-        CarDto updatedCarDto = carService.editCar(id, carDto);
-        return ResponseEntity.ok(updatedCarDto);
+    public ResponseEntity<ResponseCar> editCar(@PathVariable Long id, @Valid @RequestBody RequestCar requestCar) {
+        ResponseCar responseCar = carService.editCar(id, requestCar);
+        return ResponseEntity.ok(responseCar);
     }
 
     @DeleteMapping("/{id}")
