@@ -1,6 +1,8 @@
 package com.example.driver_service.service;
 
-import com.example.driver_service.dto.DriverDto;
+import com.example.driver_service.dto.RequestDriver;
+import com.example.driver_service.dto.ResponseDriver;
+import com.example.driver_service.dto.ResponseDriverList;
 import com.example.driver_service.entity.Driver;
 import com.example.driver_service.mapper.DriverMapper;
 import com.example.driver_service.repo.DriverRepository;
@@ -23,11 +25,10 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     @Transactional
-    public DriverDto addDriver(DriverDto driverDto) {
+    public ResponseDriver addDriver(RequestDriver requestDriver) {
         try {
-            Driver driver = driverMapper.driverDtoToDriver(driverDto);
-            driverDto = driverMapper.driverToDriverDto(driverRepository.save(driver));
-            return driverDto;
+            Driver driver = driverMapper.requestDriverToDriver(requestDriver);
+            return driverMapper.driverToResponseDriver(driverRepository.save(driver));
         } catch (DataIntegrityViolationException ex) {
             throw new IllegalArgumentException(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format());
         }
@@ -35,14 +36,12 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     @Transactional
-    public DriverDto editDriver(Long id, DriverDto updatedDriverDto) {
-        Driver driverFromDB = driverRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id)));
-
-        driverMapper.updateDriverFromDriverDto(updatedDriverDto, driverFromDB);
+    public ResponseDriver editDriver(Long id, RequestDriver requestDriver) {
+        Driver driverFromDB = getOrThrow(id);
+        driverMapper.updateDriverFromRequestDriver(requestDriver, driverFromDB);
 
         try {
-            return driverMapper.driverToDriverDto(driverRepository.save(driverFromDB));
+            return driverMapper.driverToResponseDriver(driverRepository.save(driverFromDB));
         } catch (DataIntegrityViolationException ex) {
             throw new IllegalArgumentException(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format());
         }
@@ -51,26 +50,27 @@ public class DriverServiceImpl implements DriverService {
     @Override
     @Transactional
     public void deleteDriver(Long id) {
-        Driver driver = driverRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id)));
-
+        Driver driver = getOrThrow(id);
         driverRepository.delete(driver);
     }
 
     @Override
-    public DriverDto getDriverById(Long id) {
-        Driver driver = driverRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id)));
-
+    public ResponseDriver getDriverById(Long id) {
+        Driver driver = getOrThrow(id);
         if (driver.getCar() != null) {
             Hibernate.initialize(driver.getCar());
         }
 
-        return driverMapper.driverToDriverDto(driver);
+        return driverMapper.driverToResponseDriver(driver);
     }
 
     @Override
-    public List<DriverDto> getAllDrivers() {
-        return driverRepository.findAll().stream().map(driverMapper::driverToDriverDto).toList();
+    public ResponseDriverList getAllDrivers() {
+        return new ResponseDriverList (driverRepository.findAll().stream().map(driverMapper::driverToResponseDriver).toList());
+    }
+
+    private Driver getOrThrow(Long id){
+        return driverRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id)));
     }
 }

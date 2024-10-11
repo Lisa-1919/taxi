@@ -1,6 +1,8 @@
 package com.example.driver_service.controller;
 
-import com.example.driver_service.dto.DriverDto;
+import com.example.driver_service.dto.RequestDriver;
+import com.example.driver_service.dto.ResponseDriver;
+import com.example.driver_service.dto.ResponseDriverList;
 import com.example.driver_service.service.DriverService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,27 +28,27 @@ public class DriverController {
     private final DriverService driverService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<DriverDto> getDriverById(@PathVariable Long id){
-        DriverDto driverDTO = driverService.getDriverById(id);
+    public ResponseEntity<ResponseDriver> getDriverById(@PathVariable Long id){
+        ResponseDriver driverDTO = driverService.getDriverById(id);
         return ResponseEntity.ok(driverDTO);
     }
 
     @GetMapping
-    public ResponseEntity<List<DriverDto>> getAllDrivers(){
-        List<DriverDto> driverDtoList = driverService.getAllDrivers();
-        return ResponseEntity.ok(driverDtoList);
+    public ResponseEntity<ResponseDriverList> getAllDrivers(){
+        ResponseDriverList responseDriverList = driverService.getAllDrivers();
+        return ResponseEntity.ok(responseDriverList);
     }
 
     @PostMapping
-    public ResponseEntity<DriverDto> addDriver(@Validated @RequestBody DriverDto driverDto){
-        DriverDto newDriverDto = driverService.addDriver(driverDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newDriverDto);
+    public ResponseEntity<ResponseDriver> addDriver(@Validated @RequestBody RequestDriver requestDriver){
+        ResponseDriver responseDriver = driverService.addDriver(requestDriver);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDriver);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DriverDto> editDriver(@PathVariable Long id, @Valid @RequestBody DriverDto driverDto) {
-        DriverDto updatedDriverDto = driverService.editDriver(id, driverDto);
-        return ResponseEntity.ok(updatedDriverDto);
+    public ResponseEntity<ResponseDriver> editDriver(@PathVariable Long id, @Valid @RequestBody RequestDriver requestDriver) {
+        ResponseDriver responseDriver = driverService.editDriver(id, requestDriver);
+        return ResponseEntity.ok(responseDriver);
     }
 
     @DeleteMapping("/{id}")

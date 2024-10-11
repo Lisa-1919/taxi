@@ -1,4 +1,4 @@
-package com.example.passenger_service.exception;
+package com.example.rides_service.exception;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
