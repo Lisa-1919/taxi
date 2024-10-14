@@ -2,9 +2,8 @@ package com.example.driver_service.service;
 
 import com.example.driver_service.dto.RequestCar;
 import com.example.driver_service.dto.ResponseCar;
-import com.example.driver_service.dto.ResponseCarList;
-
-import java.util.List;
+import com.example.driver_service.dto.PagedResponseCarList;
+import org.springframework.data.domain.Pageable;
 
 public interface CarService {
 
@@ -16,6 +15,10 @@ public interface CarService {
 
     ResponseCar getCarById(Long id);
 
-    ResponseCarList getAllCars();
+    ResponseCar getCarByIdNonDeleted(Long id);
+
+    PagedResponseCarList getAllCars(Pageable pageable);
+
+    PagedResponseCarList getAllNonDeletedCars(Pageable pageable);
 
 }

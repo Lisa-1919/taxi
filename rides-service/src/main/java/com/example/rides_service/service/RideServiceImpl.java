@@ -2,18 +2,22 @@ package com.example.rides_service.service;
 
 import com.example.rides_service.dto.RequestRide;
 import com.example.rides_service.dto.ResponseRide;
-import com.example.rides_service.dto.ResponseRideList;
+import com.example.rides_service.dto.PagedResponseRideList;
 import com.example.rides_service.entity.Ride;
+import com.example.rides_service.exception.InvalidStatusTransitionException;
 import com.example.rides_service.mapper.RideMapper;
 import com.example.rides_service.repo.RideRepository;
 import com.example.rides_service.util.ExceptionMessages;
 import com.example.rides_service.util.RideStatuses;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -57,13 +61,11 @@ public class RideServiceImpl implements RideService {
         RideStatuses currentStatus = rideFromDB.getRideStatus();
 
         try {
-
             RideStatuses updatedStatus = currentStatus.transition(newStatus);
             rideFromDB.setRideStatus(updatedStatus);
-
         } catch (Exception e) {
 
-            throw new IllegalArgumentException(ExceptionMessages.INVALID_STATUS_TRANSITION.format(currentStatus, newStatus));
+            throw new InvalidStatusTransitionException(ExceptionMessages.INVALID_STATUS_TRANSITION.format(currentStatus, newStatus));
         }
 
         return rideMapper.rideToResponseRide(rideRepository.save(rideFromDB));
@@ -76,8 +78,17 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    public ResponseRideList getAllRides() {
-        return new ResponseRideList(rideRepository.findAll().stream().map(rideMapper::rideToResponseRide).toList());
+    public PagedResponseRideList getAllRides(Pageable pageable) {
+        Page<Ride> ridePage = rideRepository.findAll(pageable);
+        List<ResponseRide> responseRideList = ridePage.map(rideMapper::rideToResponseRide).toList();
+        return new PagedResponseRideList(
+                responseRideList,
+                ridePage.getNumber(),
+                ridePage.getSize(),
+                ridePage.getTotalElements(),
+                ridePage.getTotalPages(),
+                ridePage.isLast()
+        );
     }
 
     private Ride getOrThrow(Long id) {
