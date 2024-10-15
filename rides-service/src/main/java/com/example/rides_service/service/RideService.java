@@ -1,5 +1,6 @@
 package com.example.rides_service.service;
 
+import com.example.rides_service.dto.RequestChangeStatus;
 import com.example.rides_service.dto.RequestRide;
 import com.example.rides_service.dto.ResponseRide;
 import com.example.rides_service.dto.PagedResponseRideList;
@@ -12,7 +13,7 @@ public interface RideService {
 
     ResponseRide editRide(Long id, RequestRide requestRide);
 
-    ResponseRide updateRideStatus(Long id, RideStatuses status);
+    ResponseRide updateRideStatus(Long id, RequestChangeStatus requestChangeStatus);
 
     ResponseRide getRideById(Long id);
     PagedResponseRideList getAllRides(Pageable pageable);

@@ -1,5 +1,6 @@
 package com.example.rides_service.service;
 
+import com.example.rides_service.dto.RequestChangeStatus;
 import com.example.rides_service.dto.RequestRide;
 import com.example.rides_service.dto.ResponseRide;
 import com.example.rides_service.dto.PagedResponseRideList;
@@ -55,17 +56,17 @@ public class RideServiceImpl implements RideService {
 
     @Override
     @Transactional
-    public ResponseRide updateRideStatus(Long id, RideStatuses newStatus) {
+    public ResponseRide updateRideStatus(Long id, RequestChangeStatus requestChangeStatus) {
         Ride rideFromDB = getOrThrow(id);
 
         RideStatuses currentStatus = rideFromDB.getRideStatus();
 
         try {
-            RideStatuses updatedStatus = currentStatus.transition(newStatus);
+            RideStatuses updatedStatus = currentStatus.transition(requestChangeStatus.newStatus());
             rideFromDB.setRideStatus(updatedStatus);
         } catch (Exception e) {
 
-            throw new InvalidStatusTransitionException(ExceptionMessages.INVALID_STATUS_TRANSITION.format(currentStatus, newStatus));
+            throw new InvalidStatusTransitionException(ExceptionMessages.INVALID_STATUS_TRANSITION.format(currentStatus, requestChangeStatus.newStatus()));
         }
 
         return rideMapper.rideToResponseRide(rideRepository.save(rideFromDB));

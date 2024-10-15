@@ -1,5 +1,6 @@
 package com.example.rides_service.controller;
 
+import com.example.rides_service.dto.RequestChangeStatus;
 import com.example.rides_service.dto.RequestRide;
 import com.example.rides_service.dto.ResponseRide;
 import com.example.rides_service.dto.PagedResponseRideList;
@@ -51,9 +52,9 @@ public class RideController {
         return ResponseEntity.ok(responseRide);
     }
 
-    @PutMapping("/{id}/{status}")
-    public ResponseEntity<ResponseRide> updateRideStatus(@PathVariable Long id, @PathVariable("status") RideStatuses newRideStatus) {
-        ResponseRide responseRide = rideService.updateRideStatus(id, newRideStatus);
+    @PutMapping("/{id}/status")
+    public ResponseEntity<ResponseRide> updateRideStatus(@PathVariable Long id, @RequestBody RequestChangeStatus requestChangeStatus) {
+        ResponseRide responseRide = rideService.updateRideStatus(id, requestChangeStatus);
         return ResponseEntity.ok(responseRide);
     }
 
