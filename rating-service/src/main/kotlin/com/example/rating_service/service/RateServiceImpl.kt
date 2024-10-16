@@ -1,9 +1,10 @@
 package com.example.rating_service.service
 
+import com.example.rating_service.dto.PagedResponseRateList
 import com.example.rating_service.dto.RequestRate
 import com.example.rating_service.dto.ResponseRate
-import com.example.rating_service.dto.PagedResponseRateList
 import com.example.rating_service.entity.Rate
+import com.example.rating_service.mapper.RateMapper
 import com.example.rating_service.repo.RateRepository
 import com.example.rating_service.util.UserType
 import org.springframework.data.domain.Page
@@ -12,22 +13,23 @@ import org.springframework.stereotype.Service
 
 @Service
 class RateServiceImpl(
-    private val rateRepository: RateRepository
+    private val rateRepository: RateRepository,
+    private val rateMapper: RateMapper
 ) : RateService {
 
     override fun addRate(requestRate: RequestRate): ResponseRate {
         isRideExists(requestRate.rideId)
         isUserExists(requestRate.userId, requestRate.userType)
 
-        val rate = getRate(requestRate)
+        val rate = rateMapper.requestRateToRate(requestRate)
         val savedRate = rateRepository.save(rate)
 
-        return getResponseRate(savedRate)
+        return rateMapper.rateToResponseRate(savedRate)
     }
 
     override fun getRateById(id: Long): ResponseRate {
         val rate = rateRepository.getReferenceById(id)
-        return getResponseRate(rate)
+        return rateMapper.rateToResponseRate(rate)
     }
 
     override fun getAllRates(pageable: Pageable): PagedResponseRateList {
@@ -76,32 +78,32 @@ class RateServiceImpl(
     private fun isPassengerExists(passengerId: Long): Boolean {
         return true;
     }
-
-
-    private fun getRate(requestRate: RequestRate): Rate {
-        return Rate(
-            id = 0L,
-            userId = requestRate.userId,
-            userType = requestRate.userType,
-            rideId = requestRate.rideId,
-            rate = requestRate.rate,
-            rideCommentary = requestRate.rideCommentary
-        )
-    }
-
-    private fun getResponseRate(rate: Rate): ResponseRate {
-        return ResponseRate(
-            id = rate.id,
-            userId = rate.userId,
-            userType = rate.userType,
-            rideId = rate.rideId,
-            rate = rate.rate,
-            rideCommentary = rate.rideCommentary
-        )
-    }
+//
+//
+//    private fun getRate(requestRate: RequestRate): Rate {
+//        return Rate(
+//            id = 0L,
+//            userId = requestRate.userId,
+//            userType = requestRate.userType,
+//            rideId = requestRate.rideId,
+//            rate = requestRate.rate,
+//            rideCommentary = requestRate.rideCommentary
+//        )
+//    }
+//
+//    private fun getResponseRate(rate: Rate): ResponseRate {
+//        return ResponseRate(
+//            id = rate.id,
+//            userId = rate.userId,
+//            userType = rate.userType,
+//            rideId = rate.rideId,
+//            rate = rate.rate,
+//            rideCommentary = rate.rideCommentary
+//        )
+//    }
 
     private fun createPagedResponse(ratePage: Page<Rate>): PagedResponseRateList {
-        val rates = ratePage.map(::getResponseRate).toList()
+        val rates = ratePage.map(rateMapper::rateToResponseRate).toList()
         return PagedResponseRateList(
             rates = rates,
             pageNumber = ratePage.number,
