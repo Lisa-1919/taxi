@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
@@ -27,25 +28,31 @@ public class PassengerServiceImpl implements PassengerService {
     @Override
     @Transactional
     public ResponsePassenger addPassenger(RequestPassenger requestPassenger) {
-        try {
-            Passenger passenger = passengerMapper.requestPassengerToPassenger(requestPassenger);
-            return passengerMapper.passengerToResponsePassenger(passengerRepository.save(passenger));
-        } catch (DataIntegrityViolationException ex) {
-            throw new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_PASSENGER_ERROR.format());
-        }
+
+        checkUniqueField("email", requestPassenger.email(), passengerRepository::existsByEmail);
+        checkUniqueField("phoneNumber", requestPassenger.phoneNumber(), passengerRepository::existsByPhoneNumber);
+
+        Passenger passenger = passengerMapper.requestPassengerToPassenger(requestPassenger);
+        return passengerMapper.passengerToResponsePassenger(passengerRepository.save(passenger));
+
     }
 
     @Override
     @Transactional
     public ResponsePassenger editPassenger(Long id, RequestPassenger requestPassenger) {
         Passenger passengerFromDb = getOrThrow(id);
+
+        if (!passengerFromDb.getEmail().equals(requestPassenger.email())){
+            checkUniqueField("email", requestPassenger.email(), passengerRepository::existsByEmail);
+        }
+
+        if (!passengerFromDb.getPhoneNumber().equals(requestPassenger.phoneNumber())){
+            checkUniqueField("phoneNumber", requestPassenger.phoneNumber(), passengerRepository::existsByPhoneNumber);
+        }
+
         passengerMapper.updatePassengerFromRequestPassenger(requestPassenger, passengerFromDb);
 
-        try {
-            return passengerMapper.passengerToResponsePassenger(passengerRepository.save(passengerFromDb));
-        } catch (DataIntegrityViolationException ex) {
-            throw new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_PASSENGER_ERROR.format());
-        }
+        return passengerMapper.passengerToResponsePassenger(passengerRepository.save(passengerFromDb));
     }
 
     @Override
@@ -77,13 +84,19 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     public PagedResponsePassengerList getAllNonDeletedPassengers(Pageable pageable) {
-        Page<Passenger> passengerPage = passengerRepository.getAllNonDeleted(pageable);
+        Page<Passenger> passengerPage = passengerRepository.findAllNonDeleted(pageable);
         return getPagedResponsePassengerListFromPage(passengerPage);
     }
 
     private Passenger getOrThrow(Long id) {
-        return passengerRepository.getPassengerByIdNonDeleted(id)
+        return passengerRepository.findPassengerByIdNonDeleted(id)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.PASSENGER_NOT_FOUND.format(id)));
+    }
+
+    private <T> void checkUniqueField(String fieldName, T fieldValue, Function<T, Boolean> existsFunction) {
+        if (existsFunction.apply(fieldValue)) {
+            throw new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_PASSENGER_ERROR.format(fieldName, fieldValue));
+        }
     }
 
     private PagedResponsePassengerList getPagedResponsePassengerListFromPage(Page<Passenger> passengerPage) {

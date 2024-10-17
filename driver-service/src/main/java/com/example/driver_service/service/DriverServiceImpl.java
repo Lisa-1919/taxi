@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
@@ -28,25 +29,31 @@ public class DriverServiceImpl implements DriverService {
     @Override
     @Transactional
     public ResponseDriver addDriver(RequestDriver requestDriver) {
-        try {
-            Driver driver = driverMapper.requestDriverToDriver(requestDriver);
-            return driverMapper.driverToResponseDriver(driverRepository.save(driver));
-        } catch (DataIntegrityViolationException ex) {
-            throw new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format());
-        }
+
+        checkUniqueField("email", requestDriver.email(), driverRepository::existsByEmail);
+        checkUniqueField("phoneNumber", requestDriver.phoneNumber(), driverRepository::existsByPhoneNumber);
+
+        Driver driver = driverMapper.requestDriverToDriver(requestDriver);
+        return driverMapper.driverToResponseDriver(driverRepository.save(driver));
     }
 
     @Override
     @Transactional
     public ResponseDriver editDriver(Long id, RequestDriver requestDriver) {
         Driver driverFromDB = getOrThrow(id);
+
+        if (!driverFromDB.getEmail().equals(requestDriver.email())){
+            checkUniqueField("email", requestDriver.email(), driverRepository::existsByEmail);
+        }
+
+        if (!driverFromDB.getPhoneNumber().equals(requestDriver.phoneNumber())){
+            checkUniqueField("phoneNumber", requestDriver.phoneNumber(), driverRepository::existsByPhoneNumber);
+        }
+
         driverMapper.updateDriverFromRequestDriver(requestDriver, driverFromDB);
 
-        try {
-            return driverMapper.driverToResponseDriver(driverRepository.save(driverFromDB));
-        } catch (DataIntegrityViolationException ex) {
-            throw new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format());
-        }
+        return driverMapper.driverToResponseDriver(driverRepository.save(driverFromDB));
+
     }
 
     @Override
@@ -82,16 +89,22 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public PagedResponseDriverList getAllNonDeletedDrivers(Pageable pageable) {
-        Page<Driver> driverPage = driverRepository.getAllNonDeleted(pageable);
+        Page<Driver> driverPage = driverRepository.findAllNonDeleted(pageable);
         return getPagedResponseDriverListFromPage(driverPage);
     }
 
-    private Driver getOrThrow(Long id){
-        return driverRepository.getDriverByIdNonDeleted(id)
+    private Driver getOrThrow(Long id) {
+        return driverRepository.findDriverByIdNonDeleted(id)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id)));
     }
 
-    private PagedResponseDriverList getPagedResponseDriverListFromPage(Page<Driver> driverPage){
+    private <T> void checkUniqueField(String fieldName, T fieldValue, Function<T, Boolean> existsFunction) {
+        if (existsFunction.apply(fieldValue)) {
+            throw new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format(fieldName, fieldValue));
+        }
+    }
+
+    private PagedResponseDriverList getPagedResponseDriverListFromPage(Page<Driver> driverPage) {
         List<ResponseDriver> responseDriverList = driverPage
                 .map(driverMapper::driverToResponseDriver).toList();
 

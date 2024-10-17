@@ -1,10 +1,9 @@
 package com.example.rides_service.service;
 
+import com.example.rides_service.dto.PagedResponseRideList;
 import com.example.rides_service.dto.RequestChangeStatus;
 import com.example.rides_service.dto.RequestRide;
 import com.example.rides_service.dto.ResponseRide;
-import com.example.rides_service.dto.PagedResponseRideList;
-import com.example.rides_service.util.RideStatuses;
 import org.springframework.data.domain.Pageable;
 
 public interface RideService {

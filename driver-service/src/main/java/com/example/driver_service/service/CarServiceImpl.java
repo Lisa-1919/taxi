@@ -1,6 +1,8 @@
 package com.example.driver_service.service;
 
-import com.example.driver_service.dto.*;
+import com.example.driver_service.dto.PagedResponseCarList;
+import com.example.driver_service.dto.RequestCar;
+import com.example.driver_service.dto.ResponseCar;
 import com.example.driver_service.entity.Car;
 import com.example.driver_service.entity.Driver;
 import com.example.driver_service.mapper.CarMapper;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
@@ -29,17 +32,15 @@ public class CarServiceImpl implements CarService {
     @Transactional
     public ResponseCar addCar(RequestCar requestCar) {
 
+        checkUniqueField("licensePlate", requestCar.licensePlate(), carRepository::existsByLicensePlate);
+
         Car car = carMapper.requestCarToCar(requestCar);
 
-        Driver driver = driverRepository.getDriverByIdNonDeleted(requestCar.driverId())
+        Driver driver = driverRepository.findDriverByIdNonDeleted(requestCar.driverId())
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(requestCar.driverId())));
 
         car.setDriver(driver);
-        try {
-            car = carRepository.save(car);
-        } catch (DataIntegrityViolationException ex) {
-            throw new IllegalArgumentException(ExceptionMessages.DUPLICATE_CAR_ERROR.format(requestCar.licensePlate()));
-        }
+        car = carRepository.save(car);
         driver.setCar(car);
         driverRepository.save(driver);
 
@@ -50,13 +51,14 @@ public class CarServiceImpl implements CarService {
     @Transactional
     public ResponseCar editCar(Long id, RequestCar requestCar) {
         Car carFromDB = getOrThrow(id);
+
+        if (!carFromDB.getLicensePlate().equals(requestCar.licensePlate())) {
+            checkUniqueField("licensePlate", requestCar.licensePlate(), carRepository::existsByLicensePlate);
+        }
+
         carMapper.updateCarFromRequestCar(requestCar, carFromDB);
 
-        try {
-            return carMapper.carToResponseCar(carRepository.save(carFromDB));
-        } catch (DataIntegrityViolationException ex) {
-            throw new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_CAR_ERROR.format(requestCar.licensePlate()));
-        }
+        return carMapper.carToResponseCar(carRepository.save(carFromDB));
     }
 
     @Override
@@ -88,16 +90,22 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public PagedResponseCarList getAllNonDeletedCars(Pageable pageable) {
-        Page<Car> carsPage = carRepository.getAllNonDeleted(pageable);
+        Page<Car> carsPage = carRepository.findAllNonDeleted(pageable);
         return getPagedResponseCarListFromPage(carsPage);
     }
 
     private Car getOrThrow(Long id) {
-        return carRepository.getCarByIdNonDeleted(id)
+        return carRepository.findCarByIdNonDeleted(id)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(id)));
     }
 
-    private PagedResponseCarList getPagedResponseCarListFromPage(Page<Car> carPage){
+    private <T> void checkUniqueField(String fieldName, T fieldValue, Function<T, Boolean> existsFunction) {
+        if (existsFunction.apply(fieldValue)) {
+            throw new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_CAR_ERROR.format(fieldName, fieldValue));
+        }
+    }
+
+    private PagedResponseCarList getPagedResponseCarListFromPage(Page<Car> carPage) {
         List<ResponseCar> responseCarList = carPage.stream()
                 .map(carMapper::carToResponseCar).toList();
 

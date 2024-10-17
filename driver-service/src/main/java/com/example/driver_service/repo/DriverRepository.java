@@ -14,9 +14,13 @@ import java.util.Optional;
 public interface DriverRepository extends JpaRepository<Driver, Long> {
 
     @Query("SELECT d FROM Driver d WHERE d.isDeleted = false")
-    Page<Driver> getAllNonDeleted(Pageable pageable);
+    Page<Driver> findAllNonDeleted(Pageable pageable);
 
     @Query("SELECT d FROM Driver d WHERE d.id = :id and d.isDeleted = false")
-    Optional<Driver> getDriverByIdNonDeleted(@Param("id") Long id);
+    Optional<Driver> findDriverByIdNonDeleted(@Param("id") Long id);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByPhoneNumber(String phoneNumber);
 
 }

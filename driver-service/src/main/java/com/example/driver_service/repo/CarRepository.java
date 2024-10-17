@@ -14,9 +14,11 @@ import java.util.Optional;
 public interface CarRepository extends JpaRepository<Car, Long> {
 
     @Query("SELECT c FROM Car c WHERE c.isDeleted = false")
-    Page<Car> getAllNonDeleted(Pageable pageable);
+    Page<Car> findAllNonDeleted(Pageable pageable);
 
     @Query("SELECT c FROM Car c WHERE c.id = :id and c.isDeleted = false")
-    Optional<Car> getCarByIdNonDeleted(@Param("id") Long id);
+    Optional<Car> findCarByIdNonDeleted(@Param("id") Long id);
+
+    boolean existsByLicensePlate(String licensePlate);
 
 }
