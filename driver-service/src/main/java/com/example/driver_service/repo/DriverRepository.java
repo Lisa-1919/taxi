@@ -23,4 +23,7 @@ public interface DriverRepository extends JpaRepository<Driver, Long> {
 
     boolean existsByPhoneNumber(String phoneNumber);
 
+    @Query("SELECT COUNT(d) > 0 FROM Driver d WHERE d.id = :id AND d.isDeleted = false")
+    boolean existsByIdAndNonDeleted(@Param("id") Long id);
+
 }

@@ -70,4 +70,10 @@ public class DriverController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @GetMapping("/{id}/exists")
+    public ResponseEntity<Boolean> doesDriverExist(@PathVariable Long id) {
+        boolean exists = driverService.driverExists(id);
+        return ResponseEntity.ok(exists);
+    }
+
 }

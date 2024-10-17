@@ -1,5 +1,7 @@
 package com.example.rides_service.service;
 
+import com.example.rides_service.client.DriverServiceClient;
+import com.example.rides_service.client.PassengerServiceClient;
 import com.example.rides_service.dto.RequestChangeStatus;
 import com.example.rides_service.dto.RequestRide;
 import com.example.rides_service.dto.ResponseRide;
@@ -25,8 +27,9 @@ import java.util.List;
 public class RideServiceImpl implements RideService {
 
     private final RideRepository rideRepository;
-
     private final RideMapper rideMapper;
+    private final DriverServiceClient driverServiceClient;
+    private final PassengerServiceClient passengerServiceClient;
 
     @Override
     @Transactional
@@ -46,6 +49,7 @@ public class RideServiceImpl implements RideService {
     public ResponseRide editRide(Long id, RequestRide requestRide) {
 
         isDriverExists(requestRide.driverId());
+        isDriverExists(requestRide.passengerId());
 
         Ride rideFromDB = getOrThrow(id);
 
@@ -97,13 +101,15 @@ public class RideServiceImpl implements RideService {
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND.format(id)));
     }
 
-    //TO DO: request to the driver service for the existence of a driver with this id
-    private boolean isDriverExists(Long driverId) {
-        return true;
+    private void isDriverExists(Long driverId) {
+        boolean exists = driverServiceClient.isDriverExists(driverId);
+        if(!exists)
+            throw new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId));
     }
 
-    //TO DO: request to the passenger service for the existence of a driver with this id
-    private boolean isPassengerExists(Long passengerId) {
-        return true;
+    private void isPassengerExists(Long passengerId) {
+        boolean exists = passengerServiceClient.isPassengerExists(passengerId);
+        if(!exists)
+            throw new EntityNotFoundException(ExceptionMessages.PASSENGER_NOT_FOUND.format(passengerId));
     }
 }

@@ -69,4 +69,10 @@ public class PassengerController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @GetMapping("/{id}/exists")
+    public ResponseEntity<Boolean> doesPassengerExist(@PathVariable Long id) {
+        boolean exists = passengerService.passengerExists(id);
+        return ResponseEntity.ok(exists);
+    }
+
 }

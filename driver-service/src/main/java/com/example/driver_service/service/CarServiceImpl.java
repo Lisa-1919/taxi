@@ -18,11 +18,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 @Service
 @RequiredArgsConstructor
 public class CarServiceImpl implements CarService {
+
+    private static final String LICENSE_PLATE = "licensePlate";
 
     private final CarRepository carRepository;
     private final DriverRepository driverRepository;
@@ -32,7 +34,7 @@ public class CarServiceImpl implements CarService {
     @Transactional
     public ResponseCar addCar(RequestCar requestCar) {
 
-        checkUniqueField("licensePlate", requestCar.licensePlate(), carRepository::existsByLicensePlate);
+        checkUniqueField(LICENSE_PLATE, requestCar.licensePlate(), carRepository::existsByLicensePlate);
 
         Car car = carMapper.requestCarToCar(requestCar);
 
@@ -53,7 +55,7 @@ public class CarServiceImpl implements CarService {
         Car carFromDB = getOrThrow(id);
 
         if (!carFromDB.getLicensePlate().equals(requestCar.licensePlate())) {
-            checkUniqueField("licensePlate", requestCar.licensePlate(), carRepository::existsByLicensePlate);
+            checkUniqueField(LICENSE_PLATE, requestCar.licensePlate(), carRepository::existsByLicensePlate);
         }
 
         carMapper.updateCarFromRequestCar(requestCar, carFromDB);
@@ -99,15 +101,16 @@ public class CarServiceImpl implements CarService {
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(id)));
     }
 
-    private <T> void checkUniqueField(String fieldName, T fieldValue, Function<T, Boolean> existsFunction) {
-        if (existsFunction.apply(fieldValue)) {
+    private <T> void checkUniqueField(String fieldName, T fieldValue, Predicate<T> existsFunction) {
+        if (existsFunction.test(fieldValue)) {
             throw new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_CAR_ERROR.format(fieldName, fieldValue));
         }
     }
 
     private PagedResponseCarList getPagedResponseCarListFromPage(Page<Car> carPage) {
-        List<ResponseCar> responseCarList = carPage.stream()
-                .map(carMapper::carToResponseCar).toList();
+        List<ResponseCar> responseCarList = carPage
+                .map(carMapper::carToResponseCar)
+                .toList();
 
         return new PagedResponseCarList(
                 responseCarList,

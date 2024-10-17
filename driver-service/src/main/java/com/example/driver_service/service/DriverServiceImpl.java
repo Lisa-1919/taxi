@@ -17,11 +17,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 @Service
 @RequiredArgsConstructor
 public class DriverServiceImpl implements DriverService {
+
+    private static final String EMAIL = "email";
+    private static final String PHONE_NUMBER = "phoneNumber";
 
     private final DriverRepository driverRepository;
     private final DriverMapper driverMapper;
@@ -30,8 +33,8 @@ public class DriverServiceImpl implements DriverService {
     @Transactional
     public ResponseDriver addDriver(RequestDriver requestDriver) {
 
-        checkUniqueField("email", requestDriver.email(), driverRepository::existsByEmail);
-        checkUniqueField("phoneNumber", requestDriver.phoneNumber(), driverRepository::existsByPhoneNumber);
+        checkUniqueField(EMAIL, requestDriver.email(), driverRepository::existsByEmail);
+        checkUniqueField(PHONE_NUMBER, requestDriver.phoneNumber(), driverRepository::existsByPhoneNumber);
 
         Driver driver = driverMapper.requestDriverToDriver(requestDriver);
         return driverMapper.driverToResponseDriver(driverRepository.save(driver));
@@ -43,11 +46,11 @@ public class DriverServiceImpl implements DriverService {
         Driver driverFromDB = getOrThrow(id);
 
         if (!driverFromDB.getEmail().equals(requestDriver.email())){
-            checkUniqueField("email", requestDriver.email(), driverRepository::existsByEmail);
+            checkUniqueField(EMAIL, requestDriver.email(), driverRepository::existsByEmail);
         }
 
         if (!driverFromDB.getPhoneNumber().equals(requestDriver.phoneNumber())){
-            checkUniqueField("phoneNumber", requestDriver.phoneNumber(), driverRepository::existsByPhoneNumber);
+            checkUniqueField(PHONE_NUMBER, requestDriver.phoneNumber(), driverRepository::existsByPhoneNumber);
         }
 
         driverMapper.updateDriverFromRequestDriver(requestDriver, driverFromDB);
@@ -93,20 +96,26 @@ public class DriverServiceImpl implements DriverService {
         return getPagedResponseDriverListFromPage(driverPage);
     }
 
-    private Driver getOrThrow(Long id) {
+    @Override
+    public boolean driverExists(Long id) {
+        return driverRepository.existsByIdAndNonDeleted(id);
+    }
+
+    private Driver getOrThrow(Long id){
         return driverRepository.findDriverByIdNonDeleted(id)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id)));
     }
 
-    private <T> void checkUniqueField(String fieldName, T fieldValue, Function<T, Boolean> existsFunction) {
-        if (existsFunction.apply(fieldValue)) {
+    private <T> void checkUniqueField(String fieldName, T fieldValue, Predicate<T> existsFunction) {
+        if (existsFunction.test(fieldValue)) {
             throw new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format(fieldName, fieldValue));
         }
     }
 
     private PagedResponseDriverList getPagedResponseDriverListFromPage(Page<Driver> driverPage) {
         List<ResponseDriver> responseDriverList = driverPage
-                .map(driverMapper::driverToResponseDriver).toList();
+                .map(driverMapper::driverToResponseDriver)
+                .toList();
 
         return new PagedResponseDriverList(
                 responseDriverList,
