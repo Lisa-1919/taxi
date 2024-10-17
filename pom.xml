@@ -13,6 +13,7 @@
         <module>driver-service</module>
         <module>passenger-service</module>
         <module>rides-service</module>
+        <module>rating-service</module>
     </modules>
 
     <groupId>com.example</groupId>
