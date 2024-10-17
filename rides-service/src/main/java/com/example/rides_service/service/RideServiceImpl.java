@@ -16,6 +16,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +37,7 @@ public class RideServiceImpl implements RideService {
     @Transactional
     public ResponseRide addRide(RequestRide requestRide) {
 
-        isPassengerExists(requestRide.passengerId());
+        doesPassengerExist(requestRide.passengerId());
 
         Ride ride = rideMapper.requestRideToRide(requestRide);
         ride.setOrderDateTime(LocalDateTime.now());
@@ -48,8 +50,8 @@ public class RideServiceImpl implements RideService {
     @Transactional
     public ResponseRide editRide(Long id, RequestRide requestRide) {
 
-        isDriverExists(requestRide.driverId());
-        isDriverExists(requestRide.passengerId());
+        doesDriverExist(requestRide.driverId());
+        doesDriverExist(requestRide.passengerId());
 
         Ride rideFromDB = getOrThrow(id);
 
@@ -61,6 +63,7 @@ public class RideServiceImpl implements RideService {
     @Override
     @Transactional
     public ResponseRide updateRideStatus(Long id, RequestChangeStatus requestChangeStatus) {
+
         Ride rideFromDB = getOrThrow(id);
 
         RideStatuses currentStatus = rideFromDB.getRideStatus();
@@ -69,7 +72,6 @@ public class RideServiceImpl implements RideService {
             RideStatuses updatedStatus = currentStatus.transition(requestChangeStatus.newStatus());
             rideFromDB.setRideStatus(updatedStatus);
         } catch (Exception e) {
-
             throw new InvalidStatusTransitionException(ExceptionMessages.INVALID_STATUS_TRANSITION.format(currentStatus, requestChangeStatus.newStatus()));
         }
 
@@ -85,7 +87,9 @@ public class RideServiceImpl implements RideService {
     @Override
     public PagedResponseRideList getAllRides(Pageable pageable) {
         Page<Ride> ridePage = rideRepository.findAll(pageable);
-        List<ResponseRide> responseRideList = ridePage.map(rideMapper::rideToResponseRide).toList();
+        List<ResponseRide> responseRideList = ridePage
+                .map(rideMapper::rideToResponseRide)
+                .toList();
         return new PagedResponseRideList(
                 responseRideList,
                 ridePage.getNumber(),
@@ -101,15 +105,16 @@ public class RideServiceImpl implements RideService {
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND.format(id)));
     }
 
-    private void isDriverExists(Long driverId) {
-        boolean exists = driverServiceClient.isDriverExists(driverId);
-        if(!exists)
+    private void doesDriverExist(Long driverId) {
+        ResponseEntity<Void> response = driverServiceClient.doesDriverExists(driverId);
+        if(response.getStatusCode() != HttpStatus.OK)
             throw new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId));
     }
 
-    private void isPassengerExists(Long passengerId) {
-        boolean exists = passengerServiceClient.isPassengerExists(passengerId);
-        if(!exists)
+    private void doesPassengerExist(Long passengerId) {
+        ResponseEntity<Void> response = passengerServiceClient.doesPassengerExists(passengerId);
+        if(response.getStatusCode() != HttpStatus.OK)
             throw new EntityNotFoundException(ExceptionMessages.PASSENGER_NOT_FOUND.format(passengerId));
     }
+
 }

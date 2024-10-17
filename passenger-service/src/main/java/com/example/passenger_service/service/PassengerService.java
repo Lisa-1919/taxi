@@ -21,5 +21,5 @@ public interface PassengerService {
 
     PagedResponsePassengerList getAllNonDeletedPassengers(Pageable pageable);
 
-    boolean passengerExists(Long id);
+    boolean doesPassengerExist(Long id);
 }

@@ -21,5 +21,5 @@ public interface DriverService {
 
     PagedResponseDriverList getAllNonDeletedDrivers(Pageable pageable);
 
-    boolean driverExists(Long id);
+    boolean doesDriverExist(Long id);
 }

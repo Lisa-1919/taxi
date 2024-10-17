@@ -97,7 +97,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public boolean driverExists(Long id) {
+    public boolean doesDriverExist(Long id) {
         return driverRepository.existsByIdAndNonDeleted(id);
     }
 

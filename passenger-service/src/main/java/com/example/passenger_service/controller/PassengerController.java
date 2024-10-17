@@ -70,9 +70,9 @@ public class PassengerController {
     }
 
     @GetMapping("/{id}/exists")
-    public ResponseEntity<Boolean> doesPassengerExist(@PathVariable Long id) {
-        boolean exists = passengerService.passengerExists(id);
-        return ResponseEntity.ok(exists);
+    public ResponseEntity<Void> doesPassengerExist(@PathVariable Long id) {
+        boolean exists = passengerService.doesPassengerExist(id);
+        return exists ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 
 }
