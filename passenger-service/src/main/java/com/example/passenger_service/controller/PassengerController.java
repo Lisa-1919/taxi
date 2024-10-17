@@ -2,10 +2,12 @@ package com.example.passenger_service.controller;
 
 import com.example.passenger_service.dto.RequestPassenger;
 import com.example.passenger_service.dto.ResponsePassenger;
-import com.example.passenger_service.dto.ResponsePassengerList;
+import com.example.passenger_service.dto.PagedResponsePassengerList;
 import com.example.passenger_service.service.PassengerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,25 +19,36 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/passengers")
 public class PassengerController {
 
+    private final static int DEFAULT_SIZE = 10;
     private final PassengerService passengerService;
 
-    @GetMapping("/{id}")
+    @GetMapping("/all{id}")
     public ResponseEntity<ResponsePassenger> getPassengerById(@PathVariable Long id) {
         ResponsePassenger passengerDto = passengerService.getPassengerById(id);
         return ResponseEntity.ok(passengerDto);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponsePassenger> getPassengerByIdNonDeleted(@PathVariable Long id) {
+        ResponsePassenger passengerDto = passengerService.getPassengerByIdNonDeleted(id);
+        return ResponseEntity.ok(passengerDto);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<PagedResponsePassengerList> getAllPassengers(@PageableDefault(page = 0, size = DEFAULT_SIZE) Pageable pageable) {
+        PagedResponsePassengerList pagedResponsePassengerList = passengerService.getAllPassengers(pageable);
+        return ResponseEntity.ok(pagedResponsePassengerList);
+    }
+
     @GetMapping
-    public ResponseEntity<ResponsePassengerList> getAllPassengers() {
-        ResponsePassengerList responsePassengerList = passengerService.getAllPassengers();
-        return ResponseEntity.ok(responsePassengerList);
+    public ResponseEntity<PagedResponsePassengerList> getAllNonDeletedPassengers(@PageableDefault(page = 0, size = DEFAULT_SIZE) Pageable pageable) {
+        PagedResponsePassengerList pagedResponsePassengerList = passengerService.getAllNonDeletedPassengers(pageable);
+        return ResponseEntity.ok(pagedResponsePassengerList);
     }
 
     @PostMapping
@@ -51,9 +64,15 @@ public class PassengerController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletePassenger(@PathVariable Long id) {
+    public ResponseEntity<Void> deletePassenger(@PathVariable Long id) {
         passengerService.deletePassenger(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @GetMapping("/{id}/exists")
+    public ResponseEntity<Boolean> doesPassengerExist(@PathVariable Long id) {
+        boolean exists = passengerService.passengerExists(id);
+        return ResponseEntity.ok(exists);
     }
 
 }

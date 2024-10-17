@@ -1,27 +1,35 @@
 package com.example.rides_service.service;
 
+import com.example.rides_service.client.DriverServiceClient;
+import com.example.rides_service.client.PassengerServiceClient;
+import com.example.rides_service.dto.RequestChangeStatus;
 import com.example.rides_service.dto.RequestRide;
 import com.example.rides_service.dto.ResponseRide;
-import com.example.rides_service.dto.ResponseRideList;
+import com.example.rides_service.dto.PagedResponseRideList;
 import com.example.rides_service.entity.Ride;
+import com.example.rides_service.exception.InvalidStatusTransitionException;
 import com.example.rides_service.mapper.RideMapper;
 import com.example.rides_service.repo.RideRepository;
 import com.example.rides_service.util.ExceptionMessages;
 import com.example.rides_service.util.RideStatuses;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
 public class RideServiceImpl implements RideService {
 
     private final RideRepository rideRepository;
-
     private final RideMapper rideMapper;
+    private final DriverServiceClient driverServiceClient;
+    private final PassengerServiceClient passengerServiceClient;
 
     @Override
     @Transactional
@@ -41,6 +49,7 @@ public class RideServiceImpl implements RideService {
     public ResponseRide editRide(Long id, RequestRide requestRide) {
 
         isDriverExists(requestRide.driverId());
+        isDriverExists(requestRide.passengerId());
 
         Ride rideFromDB = getOrThrow(id);
 
@@ -51,19 +60,17 @@ public class RideServiceImpl implements RideService {
 
     @Override
     @Transactional
-    public ResponseRide updateRideStatus(Long id, RideStatuses newStatus) {
+    public ResponseRide updateRideStatus(Long id, RequestChangeStatus requestChangeStatus) {
         Ride rideFromDB = getOrThrow(id);
 
         RideStatuses currentStatus = rideFromDB.getRideStatus();
 
         try {
-
-            RideStatuses updatedStatus = currentStatus.transition(newStatus);
+            RideStatuses updatedStatus = currentStatus.transition(requestChangeStatus.newStatus());
             rideFromDB.setRideStatus(updatedStatus);
-
         } catch (Exception e) {
 
-            throw new IllegalArgumentException(ExceptionMessages.INVALID_STATUS_TRANSITION.format(currentStatus, newStatus));
+            throw new InvalidStatusTransitionException(ExceptionMessages.INVALID_STATUS_TRANSITION.format(currentStatus, requestChangeStatus.newStatus()));
         }
 
         return rideMapper.rideToResponseRide(rideRepository.save(rideFromDB));
@@ -76,8 +83,17 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    public ResponseRideList getAllRides() {
-        return new ResponseRideList(rideRepository.findAll().stream().map(rideMapper::rideToResponseRide).toList());
+    public PagedResponseRideList getAllRides(Pageable pageable) {
+        Page<Ride> ridePage = rideRepository.findAll(pageable);
+        List<ResponseRide> responseRideList = ridePage.map(rideMapper::rideToResponseRide).toList();
+        return new PagedResponseRideList(
+                responseRideList,
+                ridePage.getNumber(),
+                ridePage.getSize(),
+                ridePage.getTotalElements(),
+                ridePage.getTotalPages(),
+                ridePage.isLast()
+        );
     }
 
     private Ride getOrThrow(Long id) {
@@ -85,13 +101,15 @@ public class RideServiceImpl implements RideService {
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND.format(id)));
     }
 
-    //TO DO: request to the driver service for the existence of a driver with this id
-    private boolean isDriverExists(Long driverId) {
-        return true;
+    private void isDriverExists(Long driverId) {
+        boolean exists = driverServiceClient.isDriverExists(driverId);
+        if(!exists)
+            throw new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId));
     }
 
-    //TO DO: request to the passenger service for the existence of a driver with this id
-    private boolean isPassengerExists(Long passengerId) {
-        return true;
+    private void isPassengerExists(Long passengerId) {
+        boolean exists = passengerServiceClient.isPassengerExists(passengerId);
+        if(!exists)
+            throw new EntityNotFoundException(ExceptionMessages.PASSENGER_NOT_FOUND.format(passengerId));
     }
 }

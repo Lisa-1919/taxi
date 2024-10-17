@@ -2,10 +2,12 @@ package com.example.driver_service.controller;
 
 import com.example.driver_service.dto.RequestCar;
 import com.example.driver_service.dto.ResponseCar;
-import com.example.driver_service.dto.ResponseCarList;
+import com.example.driver_service.dto.PagedResponseCarList;
 import com.example.driver_service.service.CarService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,25 +19,36 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/v1/cars")
 @RequiredArgsConstructor
 public class CarController {
 
+    private final int DEFAULT_SIZE = 10;
     private final CarService carService;
 
-    @GetMapping("/{id}")
+    @GetMapping("/all/{id}")
     public ResponseEntity<ResponseCar> getCarById(@PathVariable Long id) {
         ResponseCar responseCar = carService.getCarById(id);
         return ResponseEntity.ok(responseCar);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseCar> getCarByIdNonDeleted(@PathVariable Long id) {
+        ResponseCar responseCar = carService.getCarByIdNonDeleted(id);
+        return ResponseEntity.ok(responseCar);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<PagedResponseCarList> getAllCars(@PageableDefault(page = 0, size = DEFAULT_SIZE) Pageable pageable) {
+        PagedResponseCarList pagedResponseCarList = carService.getAllCars(pageable);
+        return ResponseEntity.ok(pagedResponseCarList);
+    }
+
     @GetMapping
-    public ResponseEntity<ResponseCarList> getAllCars() {
-        ResponseCarList responseCarList = carService.getAllCars();
-        return ResponseEntity.ok(responseCarList);
+    public ResponseEntity<PagedResponseCarList> getAllNonDeletedCars(@PageableDefault(page = 0, size = DEFAULT_SIZE) Pageable pageable) {
+        PagedResponseCarList pagedResponseCarList = carService.getAllNonDeletedCars(pageable);
+        return ResponseEntity.ok(pagedResponseCarList);
     }
 
     @PostMapping
@@ -51,8 +64,8 @@ public class CarController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCar(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteCar(@PathVariable Long id) {
         carService.deleteCar(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

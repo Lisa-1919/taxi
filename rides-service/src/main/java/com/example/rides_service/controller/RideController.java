@@ -1,12 +1,14 @@
 package com.example.rides_service.controller;
 
+import com.example.rides_service.dto.PagedResponseRideList;
+import com.example.rides_service.dto.RequestChangeStatus;
 import com.example.rides_service.dto.RequestRide;
 import com.example.rides_service.dto.ResponseRide;
-import com.example.rides_service.dto.ResponseRideList;
 import com.example.rides_service.service.RideService;
-import com.example.rides_service.util.RideStatuses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/rides")
 public class RideController {
 
+    private final int DEFAULT_SIZE = 10;
     private final RideService rideService;
 
     @GetMapping("/{id}")
@@ -31,9 +34,9 @@ public class RideController {
     }
 
     @GetMapping
-    public ResponseEntity<ResponseRideList> getAllRides() {
-        ResponseRideList responseRideList = rideService.getAllRides();
-        return ResponseEntity.ok(responseRideList);
+    public ResponseEntity<PagedResponseRideList> getAllRides(@PageableDefault(page = 0, size = DEFAULT_SIZE) Pageable pageable) {
+        PagedResponseRideList pagedResponseRideList = rideService.getAllRides(pageable);
+        return ResponseEntity.ok(pagedResponseRideList);
     }
 
     @PostMapping
@@ -48,9 +51,9 @@ public class RideController {
         return ResponseEntity.ok(responseRide);
     }
 
-    @PutMapping("/{id}/{status}")
-    public ResponseEntity<ResponseRide> updateRideStatus(@PathVariable Long id, @PathVariable("status") RideStatuses newRideStatus) {
-        ResponseRide responseRide = rideService.updateRideStatus(id, newRideStatus);
+    @PutMapping("/{id}/status")
+    public ResponseEntity<ResponseRide> updateRideStatus(@PathVariable Long id, @RequestBody RequestChangeStatus requestChangeStatus) {
+        ResponseRide responseRide = rideService.updateRideStatus(id, requestChangeStatus);
         return ResponseEntity.ok(responseRide);
     }
 

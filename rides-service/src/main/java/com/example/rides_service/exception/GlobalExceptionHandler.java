@@ -25,6 +25,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(InvalidStatusTransitionException.class)
+    public ResponseEntity<String> handleInvalidStatusTransitionException(InvalidStatusTransitionException ex, WebRequest request) {
+        log.error("Error: {}. Request: {}", ex.getMessage(), request.getDescription(false));
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+    }
+
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, WebRequest request) {
         log.error("Validation error: {}. Request: {}", ex.getMessage(), request.getDescription(false));
