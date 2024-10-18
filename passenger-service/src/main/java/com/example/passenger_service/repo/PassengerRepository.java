@@ -23,6 +23,5 @@ public interface PassengerRepository extends JpaRepository<Passenger, Long> {
 
     boolean existsByPhoneNumber(String phoneNumber);
 
-    @Query("SELECT COUNT(p) > 0 FROM Passenger p WHERE p.id = :id and p.isDeleted = false")
-    boolean existsByIdAndNonDeleted(@Param("id") Long id);
+    boolean existsByIdAndIsDeletedFalse(Long id);
 }

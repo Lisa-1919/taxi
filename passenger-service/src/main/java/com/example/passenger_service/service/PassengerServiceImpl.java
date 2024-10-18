@@ -93,7 +93,7 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     public boolean doesPassengerExist(Long id) {
-        return passengerRepository.existsByIdAndNonDeleted(id);
+        return passengerRepository.existsByIdAndIsDeletedFalse(id);
     }
 
     private Passenger getOrThrow(Long id) {
