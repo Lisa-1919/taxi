@@ -71,9 +71,9 @@ public class DriverController {
     }
 
     @GetMapping("/{id}/exists")
-    public ResponseEntity<Void> doesDriverExist(@PathVariable Long id) {
+    public ResponseEntity<Boolean> doesDriverExist(@PathVariable Long id) {
         boolean exists = driverService.doesDriverExist(id);
-        return exists ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+        return ResponseEntity.ok(exists);
     }
 
 }

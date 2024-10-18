@@ -106,15 +106,11 @@ public class RideServiceImpl implements RideService {
     }
 
     private void doesDriverExist(Long driverId) {
-        ResponseEntity<Void> response = driverServiceClient.doesDriverExists(driverId);
-        if(response.getStatusCode() != HttpStatus.OK)
-            throw new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId));
+        driverServiceClient.doesDriverExists(driverId);
     }
 
     private void doesPassengerExist(Long passengerId) {
-        ResponseEntity<Void> response = passengerServiceClient.doesPassengerExists(passengerId);
-        if(response.getStatusCode() != HttpStatus.OK)
-            throw new EntityNotFoundException(ExceptionMessages.PASSENGER_NOT_FOUND.format(passengerId));
+        passengerServiceClient.doesPassengerExists(passengerId);
     }
 
 }

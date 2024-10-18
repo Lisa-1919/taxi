@@ -93,7 +93,9 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     public boolean doesPassengerExist(Long id) {
-        return passengerRepository.existsByIdAndIsDeletedFalse(id);
+        boolean exists = passengerRepository.existsByIdAndIsDeletedFalse(id);
+        if(exists) return true;
+        else throw new EntityNotFoundException(ExceptionMessages.PASSENGER_NOT_FOUND.format(id));
     }
 
     private Passenger getOrThrow(Long id) {
