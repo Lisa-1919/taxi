@@ -97,8 +97,10 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public boolean driverExists(Long id) {
-        return driverRepository.existsByIdAndNonDeleted(id);
+    public boolean doesDriverExist(Long id) {
+        boolean exists = driverRepository.existsByIdAndIsDeletedFalse(id);
+        if(exists) return true;
+        else throw new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id));
     }
 
     private Driver getOrThrow(Long id){

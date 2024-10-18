@@ -1,13 +1,15 @@
 package com.example.rides_service.client;
 
+import com.example.rides_service.config.RetrieveMessageErrorDecoder;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "passengerService", url = "http://localhost:8082/api/v1/passengers")
+@FeignClient(name = "passengerService", url = "${feign.client.passenger-service-url}", configuration = RetrieveMessageErrorDecoder.class)
 public interface PassengerServiceClient {
 
     @GetMapping("/{id}/exists")
-    Boolean isPassengerExists(@PathVariable("id") Long passengerId);
+    ResponseEntity<Boolean> doesPassengerExists(@PathVariable("id") Long passengerId);
 
 }
