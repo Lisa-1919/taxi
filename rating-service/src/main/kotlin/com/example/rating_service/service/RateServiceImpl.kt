@@ -57,55 +57,38 @@ class RateServiceImpl(
         return createPagedResponse(ratePage)
     }
 
-    //TODO: request on ride-service
+    // Placeholder for a request to the ride-service
+    // Needs to check if such a ride exists
+    // Will be implemented in a task related to asynchronous interaction
     private fun isRideExists(rideId: Long): Boolean {
         return true;
     }
 
-    private fun isUserExists(userId: Long, userType: UserType): Boolean {
-        return when (userType) {
+    private fun isUserExists(userId: Long, userType: UserType): Boolean =
+        when (userType) {
             UserType.DRIVER -> isDriverExists(userId)
             UserType.PASSENGER -> isPassengerExists(userId)
-        }
-    }
 
-    //TODO: request on driver-service
+        }
+
+    // Placeholder for a request to the driver-service
+    // Needs to check if such a driver exists
+    // Will be implemented in a task related to asynchronous interaction
     private fun isDriverExists(driverId: Long): Boolean {
         return true;
     }
 
-    //TODO: request on passenger-service
+    // Placeholder for a request to the passenger-service
+    // Needs to check if such a passenger exists
+    // Will be implemented in a task related to asynchronous interaction
     private fun isPassengerExists(passengerId: Long): Boolean {
         return true;
     }
-//
-//
-//    private fun getRate(requestRate: RequestRate): Rate {
-//        return Rate(
-//            id = 0L,
-//            userId = requestRate.userId,
-//            userType = requestRate.userType,
-//            rideId = requestRate.rideId,
-//            rate = requestRate.rate,
-//            rideCommentary = requestRate.rideCommentary
-//        )
-//    }
-//
-//    private fun getResponseRate(rate: Rate): ResponseRate {
-//        return ResponseRate(
-//            id = rate.id,
-//            userId = rate.userId,
-//            userType = rate.userType,
-//            rideId = rate.rideId,
-//            rate = rate.rate,
-//            rideCommentary = rate.rideCommentary
-//        )
-//    }
 
     private fun createPagedResponse(ratePage: Page<Rate>): PagedResponseRateList {
         val rates = ratePage.map(rateMapper::rateToResponseRate).toList()
         return PagedResponseRateList(
-            rates = rates,
+            list = rates,
             pageNumber = ratePage.number,
             pageSize = ratePage.size,
             totalElements = ratePage.totalElements,
