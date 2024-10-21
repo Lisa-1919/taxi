@@ -1,0 +1,4 @@
+DROP INDEX IF EXISTS unique_rating
+GO
+DROP TABLE IF EXISTS public.rate
+GO
