@@ -1,6 +1,6 @@
 package com.example.rating_service.dto
 
-import com.example.rating_service.util.UserType
+import com.example.kafka.util.UserType
 
 data class ResponseRate(
     val id: Long,

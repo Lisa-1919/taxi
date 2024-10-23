@@ -74,6 +74,11 @@
 			<artifactId>spring-web</artifactId>
 			<version>6.1.13</version>
 		</dependency>
+		<dependency>
+			<groupId>com.example</groupId>
+			<artifactId>kafka-config</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 	<build>

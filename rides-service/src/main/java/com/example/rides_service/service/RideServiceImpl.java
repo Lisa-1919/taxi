@@ -1,5 +1,6 @@
 package com.example.rides_service.service;
 
+import com.example.kafka.util.UserType;
 import com.example.rides_service.client.DriverServiceClient;
 import com.example.rides_service.client.PassengerServiceClient;
 import com.example.rides_service.dto.RequestChangeStatus;
@@ -98,6 +99,34 @@ public class RideServiceImpl implements RideService {
                 ridePage.getTotalPages(),
                 ridePage.isLast()
         );
+    }
+
+    @Override
+    public Boolean doesRideExist(Long id) {
+        boolean exists = rideRepository.existsById(id);
+        if(exists) return true;
+        else throw new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND.format(id));
+    }
+
+    @Override
+    public Boolean doesRideExistForUser(Long id, Long userId, UserType userType) {
+        return switch (userType) {
+            case DRIVER -> doesRideExistForDriver(id, userId);
+            case PASSENGER -> doesRideExistForPassenger(id, userId);
+            default -> throw new EntityNotFoundException(ExceptionMessages.UNKNOWN_USER_TYPE.format(userType));
+        };
+    }
+
+    private Boolean doesRideExistForDriver(Long id, Long driverId) {
+        boolean exists = rideRepository.existsByIdAndDriverId(id, driverId);
+        if(exists) return true;
+        else throw new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND_FOR_DRIVER.format(id, driverId));
+    }
+
+    private Boolean doesRideExistForPassenger(Long id, Long passengerId) {
+        boolean exists = rideRepository.existsByIdAndPassengerId(id, passengerId);
+        if(exists) return true;
+        else throw new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND_FOR_PASSENGER.format(id, passengerId));
     }
 
     private Ride getOrThrow(Long id) {
