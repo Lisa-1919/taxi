@@ -30,6 +30,7 @@
         <lombok.version>1.18.34</lombok.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <spring.cloud.version>2023.0.3</spring.cloud.version>
+        <kafka.config.version>0.0.1-SNAPSHOT</kafka.config.version>
     </properties>
 
     <dependencyManagement>
@@ -89,7 +90,7 @@
         <dependency>
             <groupId>com.example</groupId>
             <artifactId>kafka-config</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${kafka.config.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
