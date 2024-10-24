@@ -1,6 +1,7 @@
 package com.example.rating_service.entity
 
-import com.example.rating_service.util.UserType
+import com.example.rating_service.util.RateStatus
+import com.example.kafka.util.UserType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -32,7 +33,11 @@ class Rate(
     var rate: Double,
 
     @Column(name = "ride_commentary")
-    var rideCommentary: String
+    var rideCommentary: String,
+
+    @Column(name = "rate_status")
+    @Enumerated(EnumType.STRING)
+    var status: RateStatus
 ) {
-    constructor() : this(0L, 0L, UserType.PASSENGER,0L, 0.0, "")
+    constructor() : this(0L, 0L, UserType.PASSENGER,0L, 0.0, "", RateStatus.PENDING)
 }

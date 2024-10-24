@@ -45,11 +45,11 @@ public class DriverServiceImpl implements DriverService {
     public ResponseDriver editDriver(Long id, RequestDriver requestDriver) {
         Driver driverFromDB = getOrThrow(id);
 
-        if (!driverFromDB.getEmail().equals(requestDriver.email())){
+        if (!driverFromDB.getEmail().equals(requestDriver.email())) {
             checkUniqueField(EMAIL, requestDriver.email(), driverRepository::existsByEmail);
         }
 
-        if (!driverFromDB.getPhoneNumber().equals(requestDriver.phoneNumber())){
+        if (!driverFromDB.getPhoneNumber().equals(requestDriver.phoneNumber())) {
             checkUniqueField(PHONE_NUMBER, requestDriver.phoneNumber(), driverRepository::existsByPhoneNumber);
         }
 
@@ -99,11 +99,11 @@ public class DriverServiceImpl implements DriverService {
     @Override
     public boolean doesDriverExist(Long id) {
         boolean exists = driverRepository.existsByIdAndIsDeletedFalse(id);
-        if(exists) return true;
+        if (exists) return true;
         else throw new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id));
     }
 
-    private Driver getOrThrow(Long id){
+    private Driver getOrThrow(Long id) {
         return driverRepository.findDriverByIdNonDeleted(id)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id)));
     }
