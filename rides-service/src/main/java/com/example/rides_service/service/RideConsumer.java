@@ -23,7 +23,7 @@ public class RideConsumer {
 
         CheckRideResponse response = new CheckRideResponse(request.rateId(), rideExists);
 
-        rideProducer.sendPassengerCheckResponse(response);
+        rideProducer.sendRideCheckResponse(response);
         log.info("Sent ride check response for rateId: {} with rideExists: {}", request.rateId(), rideExists);
     }
 
