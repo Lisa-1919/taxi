@@ -2,6 +2,7 @@ package com.example.rides_service.service;
 
 import com.example.rides_service.client.DriverServiceClient;
 import com.example.rides_service.client.PassengerServiceClient;
+import com.example.rides_service.dto.UpdateStatusMessage;
 import com.example.rides_service.dto.PagedResponseRideList;
 import com.example.rides_service.dto.RequestChangeStatus;
 import com.example.rides_service.dto.RequestRide;
@@ -35,6 +36,7 @@ public class RideServiceImpl implements RideService {
     private final RideMapper rideMapper;
     private final DriverServiceClient driverServiceClient;
     private final PassengerServiceClient passengerServiceClient;
+    private final KafkaProducer kafkaProducer;
 
     @Override
     @Transactional
@@ -47,7 +49,11 @@ public class RideServiceImpl implements RideService {
         ride.setOrderDateTime(LocalDateTime.now());
         ride.setRideStatus(RideStatuses.CREATED);
 
-        return rideMapper.rideToResponseRide(rideRepository.save(ride));
+        ResponseRide responseRide = rideMapper.rideToResponseRide(rideRepository.save(ride));
+
+        sendUpdateStatusMessageToPassenger(responseRide.id(), responseRide.rideStatus());
+
+        return responseRide;
     }
 
     @Override
@@ -56,13 +62,15 @@ public class RideServiceImpl implements RideService {
     public ResponseRide editRide(Long id, RequestRide requestRide) {
 
         doesDriverExist(requestRide.driverId());
-        doesDriverExist(requestRide.passengerId());
+        doesPassengerExist(requestRide.passengerId());
 
         Ride rideFromDB = getOrThrow(id);
-
         rideMapper.updateRideFromRideDto(requestRide, rideFromDB);
+        ResponseRide responseRide = rideMapper.rideToResponseRide(rideRepository.save(rideFromDB));
 
-        return rideMapper.rideToResponseRide(rideRepository.save(rideFromDB));
+        sendUpdateStatusMessageToPassenger(responseRide.id(), responseRide.rideStatus());
+
+        return responseRide;
     }
 
     @Override
@@ -81,7 +89,11 @@ public class RideServiceImpl implements RideService {
             throw new InvalidStatusTransitionException(ExceptionMessages.INVALID_STATUS_TRANSITION.format(currentStatus, requestChangeStatus.newStatus()));
         }
 
-        return rideMapper.rideToResponseRide(rideRepository.save(rideFromDB));
+        ResponseRide responseRide = rideMapper.rideToResponseRide(rideRepository.save(rideFromDB));
+
+        sendUpdateStatusMessageToPassenger(responseRide.id(), responseRide.rideStatus());
+
+        return responseRide;
     }
 
     @Override
@@ -140,6 +152,10 @@ public class RideServiceImpl implements RideService {
 
     private void doesPassengerExist(Long passengerId) {
         passengerServiceClient.doesPassengerExists(passengerId);
+    }
+
+    private void sendUpdateStatusMessageToPassenger(Long rideId, RideStatuses rideStatus) {
+        kafkaProducer.send(new UpdateStatusMessage("The status of your ride with id " + rideId + " changed to " + rideStatus.toString()));
     }
 
     public ResponseRide fallbackDriverResponse(Long id, Throwable t) {
