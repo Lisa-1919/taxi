@@ -1,5 +1,8 @@
 package com.example.rating_service.service
 
+import com.example.rating_service.client.DriverServiceClient
+import com.example.rating_service.client.PassengerServiceClient
+import com.example.rating_service.client.RideServiceClient
 import com.example.rating_service.dto.PagedResponseRateList
 import com.example.rating_service.dto.RequestRate
 import com.example.rating_service.dto.ResponseRate
@@ -14,7 +17,10 @@ import org.springframework.stereotype.Service
 @Service
 class RateServiceImpl(
     private val rateRepository: RateRepository,
-    private val rateMapper: RateMapper
+    private val rateMapper: RateMapper,
+    private val rideServiceClient: RideServiceClient,
+    private val passengerServiceClient: PassengerServiceClient,
+    private val driverServiceClient: DriverServiceClient
 ) : RateService {
 
     override fun addRate(requestRate: RequestRate): ResponseRate {
@@ -57,14 +63,11 @@ class RateServiceImpl(
         return createPagedResponse(ratePage)
     }
 
-    // Placeholder for a request to the ride-service
-    // Needs to check if such a ride exists
-    // Will be implemented in a task related to asynchronous interaction
-    private fun isRideExists(rideId: Long): Boolean {
-        return true;
+    private fun isRideExists(rideId: Long): Boolean? {
+        return rideServiceClient.doesRideExist(rideId)?.body
     }
 
-    private fun isUserExists(userId: Long, userType: UserType): Boolean =
+    private fun isUserExists(userId: Long, userType: UserType): Boolean? =
         when (userType) {
             UserType.DRIVER -> isDriverExists(userId)
             UserType.PASSENGER -> isPassengerExists(userId)
@@ -74,15 +77,15 @@ class RateServiceImpl(
     // Placeholder for a request to the driver-service
     // Needs to check if such a driver exists
     // Will be implemented in a task related to asynchronous interaction
-    private fun isDriverExists(driverId: Long): Boolean {
-        return true;
+    private fun isDriverExists(driverId: Long): Boolean? {
+        return driverServiceClient.doesDriverExist(driverId)?.body
     }
 
     // Placeholder for a request to the passenger-service
     // Needs to check if such a passenger exists
     // Will be implemented in a task related to asynchronous interaction
-    private fun isPassengerExists(passengerId: Long): Boolean {
-        return true;
+    private fun isPassengerExists(passengerId: Long): Boolean? {
+        return passengerServiceClient.doesPassengerExist(passengerId)?.body
     }
 
     private fun createPagedResponse(ratePage: Page<Rate>): PagedResponseRateList {

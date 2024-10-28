@@ -57,4 +57,10 @@ public class RideController {
         return ResponseEntity.ok(responseRide);
     }
 
+    @GetMapping("/{id}/exists")
+    public ResponseEntity<Boolean> doesRideExist(@PathVariable("id") Long id){
+        Boolean exists = rideService.doesRideExist(id);
+        return ResponseEntity.ok(exists);
+    }
+
 }

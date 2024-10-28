@@ -100,6 +100,13 @@ public class RideServiceImpl implements RideService {
         );
     }
 
+    @Override
+    public Boolean doesRideExist(Long id) {
+        boolean exists = rideRepository.existsById(id);
+        if(exists) return true;
+        else throw new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND.format(id));
+    }
+
     private Ride getOrThrow(Long id) {
         return rideRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND.format(id)));

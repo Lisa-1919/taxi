@@ -17,4 +17,6 @@ public interface RideService {
     ResponseRide getRideById(Long id);
     PagedResponseRideList getAllRides(Pageable pageable);
 
+    Boolean doesRideExist(Long id);
+
 }
