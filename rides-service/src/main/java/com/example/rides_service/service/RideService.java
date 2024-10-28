@@ -15,8 +15,11 @@ public interface RideService {
     ResponseRide updateRideStatus(Long id, RequestChangeStatus requestChangeStatus);
 
     ResponseRide getRideById(Long id);
+
     PagedResponseRideList getAllRides(Pageable pageable);
 
-    Boolean doesRideExist(Long id);
+    Boolean doesRideExistForDriver(Long id, Long driverId);
+
+    Boolean doesRideExistForPassenger(Long id, Long passengerId);
 
 }

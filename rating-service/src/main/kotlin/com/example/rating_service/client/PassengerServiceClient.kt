@@ -12,5 +12,5 @@ import org.springframework.web.bind.annotation.PathVariable
 )
 interface PassengerServiceClient {
     @GetMapping("/{id}/exists")
-    fun doesPassengerExist(@PathVariable("id") passengerId: Long): ResponseEntity<Boolean>?
+    fun doesPassengerExist(@PathVariable("id") passengerId: Long): ResponseEntity<Boolean>
 }

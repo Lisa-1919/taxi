@@ -9,6 +9,7 @@ import com.example.rating_service.dto.ResponseRate
 import com.example.rating_service.entity.Rate
 import com.example.rating_service.mapper.RateMapper
 import com.example.rating_service.repo.RateRepository
+import com.example.rating_service.util.ExceptionMessages
 import com.example.rating_service.util.UserType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -24,7 +25,7 @@ class RateServiceImpl(
 ) : RateService {
 
     override fun addRate(requestRate: RequestRate): ResponseRate {
-        isRideExists(requestRate.rideId)
+        isRideExists(requestRate.rideId, requestRate.userId, requestRate.userType)
         isUserExists(requestRate.userId, requestRate.userType)
 
         val rate = rateMapper.requestRateToRate(requestRate)
@@ -63,30 +64,17 @@ class RateServiceImpl(
         return createPagedResponse(ratePage)
     }
 
-    private fun isRideExists(rideId: Long): Boolean? {
-        return rideServiceClient.doesRideExist(rideId)?.body
-    }
+    private fun isRideExists(rideId: Long, userId: Long, userType: UserType): Boolean? =
+        when(userType) {
+            UserType.DRIVER -> rideServiceClient.doesRideExistForDriver(rideId, userId).body
+            UserType.PASSENGER -> rideServiceClient.doesRideExistForPassenger(rideId, userId).body
+        }
 
     private fun isUserExists(userId: Long, userType: UserType): Boolean? =
         when (userType) {
-            UserType.DRIVER -> isDriverExists(userId)
-            UserType.PASSENGER -> isPassengerExists(userId)
-
+            UserType.DRIVER -> driverServiceClient.doesDriverExist(userId).body
+            UserType.PASSENGER -> passengerServiceClient.doesPassengerExist(userId).body
         }
-
-    // Placeholder for a request to the driver-service
-    // Needs to check if such a driver exists
-    // Will be implemented in a task related to asynchronous interaction
-    private fun isDriverExists(driverId: Long): Boolean? {
-        return driverServiceClient.doesDriverExist(driverId)?.body
-    }
-
-    // Placeholder for a request to the passenger-service
-    // Needs to check if such a passenger exists
-    // Will be implemented in a task related to asynchronous interaction
-    private fun isPassengerExists(passengerId: Long): Boolean? {
-        return passengerServiceClient.doesPassengerExist(passengerId)?.body
-    }
 
     private fun createPagedResponse(ratePage: Page<Rate>): PagedResponseRateList {
         val rates = ratePage.map(rateMapper::rateToResponseRate).toList()

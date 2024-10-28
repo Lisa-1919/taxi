@@ -2,10 +2,10 @@ package com.example.rides_service.service;
 
 import com.example.rides_service.client.DriverServiceClient;
 import com.example.rides_service.client.PassengerServiceClient;
+import com.example.rides_service.dto.PagedResponseRideList;
 import com.example.rides_service.dto.RequestChangeStatus;
 import com.example.rides_service.dto.RequestRide;
 import com.example.rides_service.dto.ResponseRide;
-import com.example.rides_service.dto.PagedResponseRideList;
 import com.example.rides_service.entity.Ride;
 import com.example.rides_service.exception.InvalidStatusTransitionException;
 import com.example.rides_service.mapper.RideMapper;
@@ -16,8 +16,6 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -101,10 +99,17 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    public Boolean doesRideExist(Long id) {
-        boolean exists = rideRepository.existsById(id);
-        if(exists) return true;
-        else throw new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND.format(id));
+    public Boolean doesRideExistForDriver(Long id, Long driverId) {
+        boolean exists = rideRepository.existsByIdAndDriverId(id, driverId);
+        if (exists) return true;
+        else throw new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND_FOR_DRIVER.format(id, driverId));
+    }
+
+    @Override
+    public Boolean doesRideExistForPassenger(Long id, Long passengerId) {
+        boolean exists = rideRepository.existsByIdAndPassengerId(id, passengerId);
+        if (exists) return true;
+        else throw new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND_FOR_PASSENGER.format(id, passengerId));
     }
 
     private Ride getOrThrow(Long id) {
