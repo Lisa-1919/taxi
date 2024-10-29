@@ -16,14 +16,14 @@ class RetrieveMessageErrorDecoder : ErrorDecoder {
     private val defaultErrorDecoder = ErrorDecoder.Default()
 
     override fun decode(methodKey: String, response: Response): Exception {
-        var errorMessage = ExceptionMessages.UNKNOWN_ERROR.message
+        var errorMessage = ExceptionMessages.UNKNOWN_ERROR
 
         response.body()?.let { responseBody ->
             try {
                 errorMessage = responseBody.asInputStream().bufferedReader().use { it.readText() }
             } catch (e: IOException) {
                 log.error("Error reading response body: {}", e.message)
-                return Exception(ExceptionMessages.UNABLE_TO_READ_ERROR_RESPONSE.message)
+                return Exception(ExceptionMessages.UNABLE_TO_READ_ERROR_RESPONSE)
             }
         }
 
