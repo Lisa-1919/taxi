@@ -49,11 +49,7 @@ public class RideServiceImpl implements RideService {
         ride.setOrderDateTime(LocalDateTime.now());
         ride.setRideStatus(RideStatuses.CREATED);
 
-        ResponseRide responseRide = rideMapper.rideToResponseRide(rideRepository.save(ride));
-
-        sendUpdateStatusMessageToPassenger(responseRide.id(), responseRide.rideStatus());
-
-        return responseRide;
+        return rideMapper.rideToResponseRide(rideRepository.save(ride));
     }
 
     @Override
