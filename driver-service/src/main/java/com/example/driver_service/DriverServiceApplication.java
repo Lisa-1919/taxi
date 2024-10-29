@@ -3,7 +3,7 @@ package com.example.driver_service;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication(scanBasePackages = {"com.example.driver_service", "com.example.kafka"})
+@SpringBootApplication
 public class DriverServiceApplication {
 
 	public static void main(String[] args) {

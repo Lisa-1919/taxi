@@ -1,12 +1,11 @@
 package com.example.rides_service.service;
 
-import com.example.kafka.util.UserType;
 import com.example.rides_service.client.DriverServiceClient;
 import com.example.rides_service.client.PassengerServiceClient;
+import com.example.rides_service.dto.PagedResponseRideList;
 import com.example.rides_service.dto.RequestChangeStatus;
 import com.example.rides_service.dto.RequestRide;
 import com.example.rides_service.dto.ResponseRide;
-import com.example.rides_service.dto.PagedResponseRideList;
 import com.example.rides_service.entity.Ride;
 import com.example.rides_service.exception.InvalidStatusTransitionException;
 import com.example.rides_service.mapper.RideMapper;
@@ -19,8 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -119,27 +116,6 @@ public class RideServiceImpl implements RideService {
         else throw new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND.format(id));
     }
 
-    @Override
-    @CircuitBreaker(name = "ridesService", fallbackMethod = "fallbackBooleanResponse")
-    public Boolean doesRideExistForUser(Long id, Long userId, UserType userType) {
-        return switch (userType) {
-            case DRIVER -> doesRideExistForDriver(id, userId);
-            case PASSENGER -> doesRideExistForPassenger(id, userId);
-            default -> throw new EntityNotFoundException(ExceptionMessages.UNKNOWN_USER_TYPE.format(userType));
-        };
-    }
-
-    private Boolean doesRideExistForDriver(Long id, Long driverId) {
-        boolean exists = rideRepository.existsByIdAndDriverId(id, driverId);
-        if(exists) return true;
-        else throw new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND_FOR_DRIVER.format(id, driverId));
-    }
-
-    private Boolean doesRideExistForPassenger(Long id, Long passengerId) {
-        boolean exists = rideRepository.existsByIdAndPassengerId(id, passengerId);
-        if(exists) return true;
-        else throw new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND_FOR_PASSENGER.format(id, passengerId));
-    }
 
     private Ride getOrThrow(Long id) {
         return rideRepository.findById(id)
