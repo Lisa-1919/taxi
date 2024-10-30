@@ -7,7 +7,6 @@ import com.example.driver_service.entity.Driver;
 import com.example.driver_service.mapper.DriverMapper;
 import com.example.driver_service.repo.DriverRepository;
 import com.example.driver_service.util.ExceptionMessages;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +17,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -35,7 +33,6 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     @Transactional
-    @CircuitBreaker(name = "driverService", fallbackMethod = "fallbackDriverResponse")
     public ResponseDriver addDriver(RequestDriver requestDriver) {
 
         checkUniqueField(EMAIL, requestDriver.email(), driverRepository::existsByEmail);
@@ -47,7 +44,6 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     @Transactional
-    @CircuitBreaker(name = "driverService", fallbackMethod = "fallbackDriverResponse")
     public ResponseDriver editDriver(Long id, RequestDriver requestDriver) {
         Driver driverFromDB = getOrThrow(id);
 
@@ -67,14 +63,12 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     @Transactional
-    @CircuitBreaker(name = "driverService", fallbackMethod = "fallbackVoidResponse")
     public void deleteDriver(Long id) {
         Driver driver = getOrThrow(id);
         driverRepository.delete(driver);
     }
 
     @Override
-    @CircuitBreaker(name = "driverService", fallbackMethod = "fallbackDriverResponse")
     public ResponseDriver getDriverById(Long id) {
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id)));
@@ -83,7 +77,6 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    @CircuitBreaker(name = "driverService", fallbackMethod = "fallbackDriverResponse")
     public ResponseDriver getDriverByIdNonDeleted(Long id) {
         Driver driver = getOrThrow(id);
         if (driver.getCar() != null) {
@@ -94,21 +87,18 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    @CircuitBreaker(name = "driverService", fallbackMethod = "fallbackPagedResponse")
     public PagedResponseDriverList getAllDrivers(Pageable pageable) {
         Page<Driver> driverPage = driverRepository.findAll(pageable);
         return getPagedResponseDriverListFromPage(driverPage);
     }
 
     @Override
-    @CircuitBreaker(name = "driverService", fallbackMethod = "fallbackPagedResponse")
     public PagedResponseDriverList getAllNonDeletedDrivers(Pageable pageable) {
         Page<Driver> driverPage = driverRepository.findAllNonDeleted(pageable);
         return getPagedResponseDriverListFromPage(driverPage);
     }
 
     @Override
-    @CircuitBreaker(name = "driverService", fallbackMethod = "fallbackBooleanResponse")
     public boolean doesDriverExist(Long id) {
         boolean exists = driverRepository.existsByIdAndIsDeletedFalse(id);
         if (exists) return true;
@@ -139,22 +129,6 @@ public class DriverServiceImpl implements DriverService {
                 driverPage.getTotalPages(),
                 driverPage.isLast()
         );
-    }
-
-    public ResponseDriver fallbackDriverResponse(Long id, Throwable t) {
-        return new ResponseDriver(0L, null, null, null, null, null, null, null);
-    }
-
-    public PagedResponseDriverList fallbackPagedResponse(Pageable pageable, Throwable t) {
-        return new PagedResponseDriverList(Collections.emptyList(), pageable.getPageNumber(), pageable.getPageSize(), 0, 0, true);
-    }
-
-    public void fallbackVoidResponse(Long id, Throwable t) {
-        log.error("Failed to process request for driver id: {}. Error: {}", id, t.getMessage(), t);
-    }
-
-    public boolean fallbackBooleanResponse(Long id, Throwable t) {
-        return false;
     }
 }
 

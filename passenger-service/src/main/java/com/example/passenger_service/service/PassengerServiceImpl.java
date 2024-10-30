@@ -7,7 +7,6 @@ import com.example.passenger_service.entity.Passenger;
 import com.example.passenger_service.mapper.PassengerMapper;
 import com.example.passenger_service.repo.PassengerRepository;
 import com.example.passenger_service.util.ExceptionMessages;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +16,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -34,7 +32,6 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     @Transactional
-    @CircuitBreaker(name = "passengerService", fallbackMethod = "fallbackPassengerResponse")
     public ResponsePassenger addPassenger(RequestPassenger requestPassenger) {
 
         checkUniqueField(EMAIL, requestPassenger.email(), passengerRepository::existsByEmail);
@@ -47,7 +44,6 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     @Transactional
-    @CircuitBreaker(name = "passengerService", fallbackMethod = "fallbackPassengerResponse")
     public ResponsePassenger editPassenger(Long id, RequestPassenger requestPassenger) {
         Passenger passengerFromDb = getOrThrow(id);
 
@@ -66,14 +62,12 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     @Transactional
-    @CircuitBreaker(name = "passengerService", fallbackMethod = "fallbackVoidResponse")
     public void deletePassenger(Long id) {
         Passenger passenger = getOrThrow(id);
         passengerRepository.delete(passenger);
     }
 
     @Override
-    @CircuitBreaker(name = "passengerService", fallbackMethod = "fallbackPassengerResponse")
     public ResponsePassenger getPassengerById(Long id) {
         Passenger passenger = passengerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.PASSENGER_NOT_FOUND.format(id)));
@@ -82,28 +76,24 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
-    @CircuitBreaker(name = "passengerService", fallbackMethod = "fallbackPassengerResponse")
     public ResponsePassenger getPassengerByIdNonDeleted(Long id) {
         Passenger passenger = getOrThrow(id);
         return passengerMapper.passengerToResponsePassenger(passenger);
     }
 
     @Override
-    @CircuitBreaker(name = "passengerService", fallbackMethod = "fallbackPagedResponse")
     public PagedResponsePassengerList getAllPassengers(Pageable pageable) {
         Page<Passenger> passengerPage = passengerRepository.findAll(pageable);
         return getPagedResponsePassengerListFromPage(passengerPage);
     }
 
     @Override
-    @CircuitBreaker(name = "passengerService", fallbackMethod = "fallbackPagedResponse")
     public PagedResponsePassengerList getAllNonDeletedPassengers(Pageable pageable) {
         Page<Passenger> passengerPage = passengerRepository.findAllNonDeleted(pageable);
         return getPagedResponsePassengerListFromPage(passengerPage);
     }
 
     @Override
-    @CircuitBreaker(name = "passengerService", fallbackMethod = "fallbackBooleanResponse")
     public boolean doesPassengerExist(Long id) {
         boolean exists = passengerRepository.existsByIdAndIsDeletedFalse(id);
         if(exists) return true;
@@ -134,22 +124,6 @@ public class PassengerServiceImpl implements PassengerService {
                 passengerPage.getTotalPages(),
                 passengerPage.isLast()
         );
-    }
-
-    public ResponsePassenger fallbackPassengerResponse(Long id, Throwable t) {
-        return new ResponsePassenger(0L, null, null, null, null, null);
-    }
-
-    public PagedResponsePassengerList fallbackPagedResponse(Pageable pageable, Throwable t) {
-        return new PagedResponsePassengerList(Collections.emptyList(), pageable.getPageNumber(), pageable.getPageSize(), 0, 0, true);
-    }
-
-    public void fallbackVoidResponse(Long id, Throwable t) {
-        log.error("Failed to process request for driver id: {}. Error: {}", id, t.getMessage(), t);
-    }
-
-    public boolean fallbackBooleanResponse(Long id, Throwable t) {
-        return false;
     }
 
 }
