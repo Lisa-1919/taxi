@@ -21,7 +21,6 @@
 		<kotlin.version>1.9.25</kotlin.version>
 		<kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
 		<mapstruct.version>1.5.5.Final</mapstruct.version>
-		<kafka.config.version>0.0.1-SNAPSHOT</kafka.config.version>
 		<resilience4j.spring.boot3.verison>2.1.0</resilience4j.spring.boot3.verison>
 	</properties>
 
@@ -74,11 +73,6 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.example</groupId>
-			<artifactId>kafka-config</artifactId>
-			<version>${kafka.config.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.github.resilience4j</groupId>

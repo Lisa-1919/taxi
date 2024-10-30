@@ -1,9 +1,5 @@
 package com.example.rating_service.service
 
-import com.example.kafka.dto.CheckDriverRequest
-import com.example.kafka.dto.CheckPassengerRequest
-import com.example.kafka.dto.CheckRideRequest
-import com.example.kafka.util.UserType
 import com.example.rating_service.dto.PagedResponseRateList
 import com.example.rating_service.dto.RequestRate
 import com.example.rating_service.dto.ResponseRate
@@ -19,8 +15,7 @@ import org.springframework.stereotype.Service
 @Service
 open class RateServiceImpl(
     private val rateRepository: RateRepository,
-    private val rateMapper: RateMapper,
-    private val rateProducer: RateProducer
+    private val rateMapper: RateMapper
 ) : RateService {
 
     private val log = LoggerFactory.getLogger(RateServiceImpl::class.java)
@@ -30,19 +25,6 @@ open class RateServiceImpl(
 
         val rate = rateMapper.requestRateToRate(requestRate)
         val savedRate = rateRepository.save(rate)
-
-        rateProducer.checkRide(
-            CheckRideRequest(
-                savedRate.id,
-                requestRate.rideId,
-                requestRate.userId,
-                requestRate.userType
-            )
-        )
-        when (requestRate.userType) {
-            UserType.PASSENGER -> rateProducer.checkPassenger(CheckPassengerRequest(savedRate.id, requestRate.userId))
-            UserType.DRIVER -> rateProducer.checkDriver(CheckDriverRequest(savedRate.id, requestRate.userId))
-        }
 
         return rateMapper.rateToResponseRate(savedRate)
     }

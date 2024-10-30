@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS public.rate
     ride_id bigint NOT NULL,
     rate double precision,
     ride_commentary text COLLATE pg_catalog."default",
-    rate_status character varying(7) NOT NULL,
     CONSTRAINT driver_pkey PRIMARY KEY (id)
 )
 GO
