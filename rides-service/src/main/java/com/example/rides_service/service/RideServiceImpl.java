@@ -2,14 +2,17 @@ package com.example.rides_service.service;
 
 import com.example.rides_service.client.DriverServiceClient;
 import com.example.rides_service.client.PassengerServiceClient;
-import com.example.rides_service.dto.*;
+import com.example.rides_service.dto.PagedResponseRideList;
+import com.example.rides_service.dto.RequestChangeStatus;
+import com.example.rides_service.dto.RequestRide;
+import com.example.rides_service.dto.ResponseRide;
+import com.example.rides_service.dto.UpdateStatusMessage;
 import com.example.rides_service.entity.Ride;
 import com.example.rides_service.exception.InvalidStatusTransitionException;
 import com.example.rides_service.mapper.RideMapper;
 import com.example.rides_service.repo.RideRepository;
 import com.example.rides_service.util.ExceptionMessages;
 import com.example.rides_service.util.RideStatuses;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +28,8 @@ import java.util.List;
 @Service
 @Slf4j
 public class RideServiceImpl implements RideService {
+
+    private static final String RIDE_STATUS_UPDATE_MESSAGE = "The status of your ride with id %d changed to %s";
 
     private final RideRepository rideRepository;
     private final RideMapper rideMapper;
@@ -133,7 +138,8 @@ public class RideServiceImpl implements RideService {
     }
 
     private void sendUpdateStatusMessageToPassenger(Long rideId, RideStatuses rideStatus) {
-        kafkaProducer.send(new UpdateStatusMessage("The status of your ride with id " + rideId + " changed to " + rideStatus.toString()));
+        String message = String.format(RIDE_STATUS_UPDATE_MESSAGE, rideId, rideStatus.toString());
+        kafkaProducer.send(new UpdateStatusMessage(message));
     }
 
 }
