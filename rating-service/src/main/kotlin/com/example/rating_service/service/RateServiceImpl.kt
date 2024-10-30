@@ -1,11 +1,16 @@
 package com.example.rating_service.service
 
+import com.example.rating_service.client.DriverServiceClient
+import com.example.rating_service.client.PassengerServiceClient
+import com.example.rating_service.client.RideServiceClient
 import com.example.rating_service.dto.PagedResponseRateList
 import com.example.rating_service.dto.RequestRate
 import com.example.rating_service.dto.ResponseRate
 import com.example.rating_service.entity.Rate
 import com.example.rating_service.mapper.RateMapper
 import com.example.rating_service.repo.RateRepository
+import com.example.rating_service.util.ExceptionMessages
+import com.example.rating_service.util.UserType
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
@@ -15,13 +20,18 @@ import org.springframework.stereotype.Service
 @Service
 open class RateServiceImpl(
     private val rateRepository: RateRepository,
-    private val rateMapper: RateMapper
+    private val rateMapper: RateMapper,
+    private val rideServiceClient: RideServiceClient,
+    private val passengerServiceClient: PassengerServiceClient,
+    private val driverServiceClient: DriverServiceClient
 ) : RateService {
 
     private val log = LoggerFactory.getLogger(RateServiceImpl::class.java)
 
     @CircuitBreaker(name = "ratingService", fallbackMethod = "fallbackRateResponse")
     override fun addRate(requestRate: RequestRate): ResponseRate {
+        isRideExists(requestRate.rideId, requestRate.userId, requestRate.userType)
+        isUserExists(requestRate.userId, requestRate.userType)
 
         val rate = rateMapper.requestRateToRate(requestRate)
         val savedRate = rateRepository.save(rate)
@@ -64,6 +74,18 @@ open class RateServiceImpl(
         val ratePage = rateRepository.getAllRatesByDriverId(driverId, pageable)
         return createPagedResponse(ratePage)
     }
+
+    private fun isRideExists(rideId: Long, userId: Long, userType: UserType): Boolean? =
+        when(userType) {
+            UserType.DRIVER -> rideServiceClient.doesRideExistForDriver(rideId, userId).body
+            UserType.PASSENGER -> rideServiceClient.doesRideExistForPassenger(rideId, userId).body
+        }
+
+    private fun isUserExists(userId: Long, userType: UserType): Boolean? =
+        when (userType) {
+            UserType.DRIVER -> driverServiceClient.doesDriverExist(userId).body
+            UserType.PASSENGER -> passengerServiceClient.doesPassengerExist(userId).body
+        }
 
     private fun createPagedResponse(ratePage: Page<Rate>): PagedResponseRateList {
         val rates = ratePage.map(rateMapper::rateToResponseRate).toList()

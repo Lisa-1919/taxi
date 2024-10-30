@@ -109,13 +109,25 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
+    public Boolean doesRideExistForDriver(Long id, Long driverId) {
+        boolean exists = rideRepository.existsByIdAndDriverId(id, driverId);
+        if (exists) return true;
+        else throw new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND_FOR_DRIVER.format(id, driverId));
+    }
+
+    @Override
+    public Boolean doesRideExistForPassenger(Long id, Long passengerId) {
+        boolean exists = rideRepository.existsByIdAndPassengerId(id, passengerId);
+        if (exists) return true;
+        else throw new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND_FOR_PASSENGER.format(id, passengerId));
+    }
+  
     @CircuitBreaker(name = "ridesService", fallbackMethod = "fallbackBooleanResponse")
     public Boolean doesRideExist(Long id) {
         boolean exists = rideRepository.existsById(id);
         if(exists) return true;
         else throw new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND.format(id));
     }
-
 
     private Ride getOrThrow(Long id) {
         return rideRepository.findById(id)
