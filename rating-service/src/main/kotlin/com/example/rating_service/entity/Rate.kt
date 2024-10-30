@@ -32,7 +32,8 @@ class Rate(
     var rate: Double,
 
     @Column(name = "ride_commentary")
-    var rideCommentary: String
-) {
+    var rideCommentary: String,
+
+    ) {
     constructor() : this(0L, 0L, UserType.PASSENGER,0L, 0.0, "")
 }
