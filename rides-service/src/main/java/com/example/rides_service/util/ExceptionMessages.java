@@ -7,7 +7,8 @@ public enum ExceptionMessages {
     RIDE_NOT_FOUND_FOR_PASSENGER("Ride with id '%s' not found for passenger with id '%s'"),
     INVALID_STATUS_TRANSITION("Invalid status transition from '%s' to '%s'"),
     UNABLE_TO_READ_ERROR_RESPONSE("Unable to read error response"),
-    UNKNOWN_USER_TYPE("Unknown user type '%s'"),
+    UNABLE_TO_REACH_PASSENGER_SERVICE("Unable to reach Passenger Service. Please try again later"),
+    UNABLE_TO_REACH_DRIVER_SERVICE("Unable to reach Driver Service. Please try again later"),
     UNKNOWN_ERROR("Unknown error");
     private String message;
 
