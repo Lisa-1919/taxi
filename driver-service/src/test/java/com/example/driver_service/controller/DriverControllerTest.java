@@ -84,8 +84,8 @@ class DriverControllerTest {
 
         @Test
         void getAllDrivers_ShouldReturnPagedResponse() throws Exception {
-            var pageable = PageRequest.of(0, 10);
-            var driverPage = new PagedResponseDriverList(List.of(testResponseDriver), 1, 1, 1, 10, true);
+            PageRequest pageable = PageRequest.of(0, 10);
+            PagedResponseDriverList driverPage = new PagedResponseDriverList(List.of(testResponseDriver), 1, 1, 1, 10, true);
 
             when(driverService.getAllDrivers(pageable)).thenReturn(driverPage);
 
@@ -96,8 +96,8 @@ class DriverControllerTest {
 
         @Test
         void getAllNonDeletedDrivers_ShouldReturnPagedResponse() throws Exception {
-            var pageable = PageRequest.of(0, 10);
-            var driverPage = new PagedResponseDriverList(List.of(testResponseDriver), 1, 1, 1, 10, true);
+            PageRequest pageable = PageRequest.of(0, 10);
+            PagedResponseDriverList driverPage = new PagedResponseDriverList(List.of(testResponseDriver), 1, 1, 1, 10, true);
 
             when(driverService.getAllNonDeletedDrivers(pageable)).thenReturn(driverPage);
 

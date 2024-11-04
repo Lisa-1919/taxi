@@ -43,9 +43,6 @@ class DriverServiceImplTest {
     @MockBean
     DriverMapper driverMapper;
 
-    private static final String EMAIL = "email";
-    private static final String PHONE_NUMBER = "phoneNumber";
-
     private Driver testDriver;
     private RequestDriver testRequestDriver;
     private ResponseDriver testResponseDriver;

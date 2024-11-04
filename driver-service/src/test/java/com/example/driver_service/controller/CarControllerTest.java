@@ -84,8 +84,8 @@ class CarControllerTest {
 
         @Test
         void getAllNonDeletedCars_ShouldReturnPagedResponse() throws Exception {
-            var pageable = PageRequest.of(0, 10);
-            var carPage = new PagedResponseCarList(List.of(testResponseCar), 1, 1, 1, 10, true);
+            PageRequest pageable = PageRequest.of(0, 10);
+            PagedResponseCarList carPage = new PagedResponseCarList(List.of(testResponseCar), 1, 1, 1, 10, true);
 
             when(carService.getAllNonDeletedCars(pageable)).thenReturn(carPage);
 
