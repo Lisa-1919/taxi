@@ -119,7 +119,7 @@ class CarServiceImplTest {
 
             ResponseCar responseCar = carService.editCar(carId, testRequestCar);
 
-            assertResponseCarEquals(expectedResponseCar, responseCar);
+            assertEquals(expectedResponseCar, responseCar);
             verify(carRepository).save(testCar);
             verify(carMapper).updateCarFromRequestCar(eq(testRequestCar), eq(testCar));
         }
@@ -129,8 +129,7 @@ class CarServiceImplTest {
             Long carId = 1L;
             RequestCar requestCar = new RequestCar("newLicensePlate", "newMark", "newColour", 1L);
 
-            when(carRepository.findCarByIdNonDeleted(carId))
-                    .thenThrow(new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(carId)));
+            mockCarNotFound(carId);
 
             assertThrows(EntityNotFoundException.class, () -> carService.editCar(carId, requestCar));
 
@@ -153,8 +152,7 @@ class CarServiceImplTest {
 
         @Test
         void deleteCarEntityNotFound() {
-            when(carRepository.findCarByIdNonDeleted(testCar.getId()))
-                    .thenThrow(new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(testCar.getId())));
+            mockCarNotFound(testCar.getId());
 
             assertThrows(EntityNotFoundException.class, () -> carService.deleteCar(testCar.getId()));
 
@@ -198,8 +196,7 @@ class CarServiceImplTest {
 
         @Test
         void getCarByIdNonDeletedEntityNotFound() {
-            when(carRepository.findCarByIdNonDeleted(testCar.getId()))
-                    .thenThrow(new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(testCar.getId())));
+            mockCarNotFound(testCar.getId());
 
             assertThrows(EntityNotFoundException.class, () -> carService.getCarByIdNonDeleted(testCar.getId()));
 
@@ -241,13 +238,6 @@ class CarServiceImplTest {
         }
     }
 
-    private void assertResponseCarEquals(ResponseCar expected, ResponseCar actual) {
-        assertEquals(expected.id(), actual.id());
-        assertEquals(expected.licensePlate(), actual.licensePlate());
-        assertEquals(expected.mark(), actual.mark());
-        assertEquals(expected.colour(), actual.colour());
-    }
-
     private void assertPagedResponse(PagedResponseCarList actual) {
         assertEquals(1, actual.cars().size());
         assertEquals(testResponseCar, actual.cars().get(0));
@@ -262,4 +252,8 @@ class CarServiceImplTest {
         when(carRepository.existsByLicensePlate(licensePlate)).thenReturn(exists);
     }
 
+    private void mockCarNotFound(Long id){
+        when(carRepository.findCarByIdNonDeleted(id))
+                .thenThrow(new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(id)));
+    }
 }

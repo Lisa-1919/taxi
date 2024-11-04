@@ -264,23 +264,26 @@ class DriverServiceImplTest {
         }
     }
 
-    @Test
-    void doesDriverExistOk() {
-        boolean expected = true;
-        when(driverRepository.existsByIdAndIsDeletedFalse(testDriver.getId())).thenReturn(expected);
-        boolean actual = driverService.doesDriverExist(testDriver.getId());
+    @Nested
+    class DriverExistsTests {
+        @Test
+        void doesDriverExistOk() {
+            boolean expected = true;
+            when(driverRepository.existsByIdAndIsDeletedFalse(testDriver.getId())).thenReturn(expected);
+            boolean actual = driverService.doesDriverExist(testDriver.getId());
 
-        assertEquals(expected, actual);
+            assertEquals(expected, actual);
 
-        verify(driverRepository).existsByIdAndIsDeletedFalse(testDriver.getId());
-    }
+            verify(driverRepository).existsByIdAndIsDeletedFalse(testDriver.getId());
+        }
 
-    @Test
-    void doesDriverExistEntityNotFound() {
-        mockDriverNotFound(testDriver.getId());
-        assertThrows(EntityNotFoundException.class, () -> driverService.doesDriverExist(testDriver.getId()));
+        @Test
+        void doesDriverExistEntityNotFound() {
+            mockDriverNotFound(testDriver.getId());
+            assertThrows(EntityNotFoundException.class, () -> driverService.doesDriverExist(testDriver.getId()));
 
-        verify(driverRepository).existsByIdAndIsDeletedFalse(testDriver.getId());
+            verify(driverRepository).existsByIdAndIsDeletedFalse(testDriver.getId());
+        }
     }
 
     private void mockDriverNonExistence() {
@@ -289,7 +292,7 @@ class DriverServiceImplTest {
     }
 
     private void mockDriverNotFound(Long id) {
-        when(driverRepository.existsByIdAndIsDeletedFalse(id))
+        when(driverRepository.findDriverByIdNonDeleted(id))
                 .thenThrow(new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id)));
 
     }
