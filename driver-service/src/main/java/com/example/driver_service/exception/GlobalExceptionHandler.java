@@ -41,7 +41,7 @@ public class GlobalExceptionHandler {
             errors.append("Field '").append(error.getField())
                     .append("' ").append(error.getDefaultMessage())
                     .append(". Rejected value: ").append(error.getRejectedValue())
-                    .append("; ");
+                    .append(";\n");
         });
 
         return new ResponseEntity<>(errors.toString(), HttpStatus.BAD_REQUEST);
