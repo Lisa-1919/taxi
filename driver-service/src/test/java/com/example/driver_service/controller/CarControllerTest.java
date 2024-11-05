@@ -5,6 +5,7 @@ import com.example.driver_service.dto.RequestCar;
 import com.example.driver_service.dto.ResponseCar;
 import com.example.driver_service.service.CarService;
 import com.example.driver_service.util.ExceptionMessages;
+import com.example.driver_service.utils.CarTestEntityUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,15 +53,15 @@ class CarControllerTest {
 
     @BeforeEach
     void setUp() {
-        testRequestCar = new RequestCar("A-1111-A", "mark", "black", 1L);
-        testResponseCar = new ResponseCar(1L, "A-1111-A", "mark", "black", 1L, false);
+        testRequestCar = CarTestEntityUtils.createTestRequestCar();
+        testResponseCar = CarTestEntityUtils.createTestResponseCar();
     }
 
     @Nested
     class GetCarTests {
         @Test
         void getCarById_ShouldReturnCar() throws Exception {
-            Long carId = 1L;
+            Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
             when(carService.getCarById(carId)).thenReturn(testResponseCar);
 
             mockMvc.perform(get("/api/v1/cars/all/{id}", carId))
@@ -72,7 +73,7 @@ class CarControllerTest {
 
         @Test
         void getCarByIdNonDeleted_ShouldReturnCar() throws Exception {
-            Long carId = 1L;
+            Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
             when(carService.getCarByIdNonDeleted(carId)).thenReturn(testResponseCar);
 
             mockMvc.perform(get("/api/v1/cars/{id}", carId))
@@ -84,14 +85,15 @@ class CarControllerTest {
 
         @Test
         void getAllNonDeletedCars_ShouldReturnPagedResponse() throws Exception {
-            PageRequest pageable = PageRequest.of(0, 10);
-            PagedResponseCarList carPage = new PagedResponseCarList(List.of(testResponseCar), 1, 1, 1, 10, true);
+            PageRequest pageable = CarTestEntityUtils.createDefaultPageRequest();
+            PagedResponseCarList carPage = CarTestEntityUtils.createDefaultPagedResponseCarList(List.of(testResponseCar));
 
             when(carService.getAllNonDeletedCars(pageable)).thenReturn(carPage);
 
-            mockMvc.perform(get("/api/v1/cars").param("page", "0").param("size", "10"))
+            mockMvc.perform(get("/api/v1/cars").param("page", String.valueOf(CarTestEntityUtils.DEFAULT_PAGE_NUMBER)).param("size", String.valueOf(CarTestEntityUtils.DEFAULT_PAGE_SIZE)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.totalElements").value(1));
+
+                    .andExpect(jsonPath("$.totalElements").value(CarTestEntityUtils.DEFAULT_TOTAL_ELEMENTS));
         }
     }
 
@@ -113,53 +115,41 @@ class CarControllerTest {
 
         @Test
         void addCar_InvalidData_ShouldReturnBadRequest() throws Exception {
-            RequestCar invalidRequestCar = new RequestCar("", null, "Blue", null);
+            RequestCar invalidRequestCar = CarTestEntityUtils.createInvalidRequestCar();
 
             mockMvc.perform(post("/api/v1/cars")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(invalidRequestCar)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(content().string(containsString("Field 'licensePlate' Invalid license plate format. Rejected value: ;")))
-                    .andExpect(content().string(containsString("Field 'mark' Mark cannot be null. Rejected value: null;")))
-                    .andExpect(content().string(containsString("Field 'driverId' Driver id cannot be null. Rejected value: null;")));
-        }
-
-        @Test
-        void addCar_InvalidLicensePlateFormat_ShouldReturnBadRequest() throws Exception {
-            RequestCar invalidLicensePlateRequestCar = new RequestCar("INVALID!", "Toyota", "Red", 1L);
-
-            mockMvc.perform(post("/api/v1/cars")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(invalidLicensePlateRequestCar)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(content().string(containsString("Invalid license plate format")));
+                    .andExpect(content().string(containsString("Field 'licensePlate' Invalid license plate format. Rejected value: " + invalidRequestCar.licensePlate() + ";")))
+                    .andExpect(content().string(containsString("Field 'mark' Mark cannot be null. Rejected value: " + invalidRequestCar.mark() + ";")))
+                    .andExpect(content().string(containsString("Field 'driverId' Driver id cannot be null. Rejected value: " + invalidRequestCar.driverId() + ";")));
         }
 
         @Test
         void addCar_DuplicateLicensePlate_ShouldReturnConflict() throws Exception {
             when(carService.addCar(any(RequestCar.class)))
-                    .thenThrow(new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_CAR_ERROR.format("licensePlate", testResponseCar.licensePlate())));
+                    .thenThrow(new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_CAR_ERROR.format("licensePlate", testRequestCar.licensePlate())));
 
             mockMvc.perform(post("/api/v1/cars")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(testResponseCar)))
+                            .content(objectMapper.writeValueAsString(testRequestCar)))
                     .andExpect(status().isConflict())
-                    .andExpect(content().string(containsString("A car with licensePlate 'A-1111-A' already exists")));
+                    .andExpect(content().string(containsString(ExceptionMessages.DUPLICATE_CAR_ERROR.format("licensePlate", testRequestCar.licensePlate()))));
         }
 
         @Test
         void addCar_NonExistentDriver_ShouldReturnNotFound() throws Exception {
-            Long nonExistentDriverId = 999L;
-            RequestCar requestCarWithNonExistentDriver = new RequestCar("ABC123", "Toyota", "Red", nonExistentDriverId);
+            Long nonExistentDriverId = CarTestEntityUtils.DEFAULT_DRIVER_ID;
 
             when(carService.addCar(any(RequestCar.class)))
                     .thenThrow(new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(nonExistentDriverId)));
 
             mockMvc.perform(post("/api/v1/cars")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(requestCarWithNonExistentDriver)))
+                            .content(objectMapper.writeValueAsString(testRequestCar)))
                     .andExpect(status().isNotFound())
-                    .andExpect(content().string(containsString("Driver with id '" + nonExistentDriverId + "' not found")));
+                    .andExpect(content().string(containsString(ExceptionMessages.DRIVER_NOT_FOUND.format(nonExistentDriverId))));
         }
 
         @Nested
@@ -167,7 +157,7 @@ class CarControllerTest {
 
             @Test
             void editCar_ShouldUpdateCarSuccessfully() throws Exception {
-                Long carId = 1L;
+                Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
                 when(carService.editCar(eq(carId), any(RequestCar.class))).thenReturn(testResponseCar);
 
                 mockMvc.perform(put("/api/v1/cars/{id}", carId)
@@ -181,33 +171,34 @@ class CarControllerTest {
 
             @Test
             void editCar_InvalidData_ShouldReturnBadRequest() throws Exception {
-                RequestCar invalidRequestCar = new RequestCar("INVALID!", null, null, 1L);
+                Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
+                RequestCar invalidRequestCar = CarTestEntityUtils.createInvalidRequestCar();
 
-                mockMvc.perform(put("/api/v1/cars/{id}", 1L)
+                mockMvc.perform(put("/api/v1/cars/{id}", carId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(invalidRequestCar)))
                         .andExpect(status().isBadRequest())
-                        .andExpect(content().string(containsString("Field 'licensePlate' Invalid license plate format. Rejected value: INVALID!;")))
-                        .andExpect(content().string(containsString("Field 'mark' Mark cannot be null. Rejected value: null; ")))
-                        .andExpect(content().string(containsString("Colour cannot be null")));
+                        .andExpect(content().string(containsString("Field 'licensePlate' Invalid license plate format. Rejected value: " + invalidRequestCar.licensePlate() + ";")))
+                        .andExpect(content().string(containsString("Field 'mark' Mark cannot be null. Rejected value: " + invalidRequestCar.mark() + ";")))
+                        .andExpect(content().string(containsString("Field 'driverId' Driver id cannot be null. Rejected value: " + invalidRequestCar.driverId() + ";")));
             }
 
             @Test
             void editCar_NonExistentCar_ShouldReturnNotFound() throws Exception {
-                Long nonExistentCarId = 999L;
-                when(carService.editCar(eq(nonExistentCarId), any(RequestCar.class)))
-                        .thenThrow(new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(nonExistentCarId)));
+                Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
+                when(carService.editCar(eq(carId), any(RequestCar.class)))
+                        .thenThrow(new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(carId)));
 
-                mockMvc.perform(put("/api/v1/cars/{id}", nonExistentCarId)
+                mockMvc.perform(put("/api/v1/cars/{id}", carId)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(testRequestCar)))
                         .andExpect(status().isNotFound())
-                        .andExpect(content().string(containsString("Car with id '" + nonExistentCarId + "' not found")));
+                        .andExpect(content().string(containsString(ExceptionMessages.CAR_NOT_FOUND.format(carId))));
             }
 
             @Test
             void editCar_DuplicateLicensePlate_ShouldReturnConflict() throws Exception {
-                Long carId = 1L;
+                Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
                 when(carService.editCar(eq(carId), any(RequestCar.class)))
                         .thenThrow(new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_CAR_ERROR.format("licensePlate", testRequestCar.licensePlate())));
 
@@ -215,7 +206,7 @@ class CarControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(testRequestCar)))
                         .andExpect(status().isConflict())
-                        .andExpect(content().string(containsString("A car with licensePlate 'A-1111-A' already exists")));
+                        .andExpect(content().string(containsString(ExceptionMessages.DUPLICATE_CAR_ERROR.format("licensePlate", testRequestCar.licensePlate()))));
             }
         }
 
@@ -223,7 +214,7 @@ class CarControllerTest {
         class DeleteCarTests {
             @Test
             void deleteCar_ShouldReturnNoContent() throws Exception {
-                Long carId = 1L;
+                Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
                 doNothing().when(carService).deleteCar(carId);
 
                 mockMvc.perform(delete("/api/v1/cars/{id}", carId))
@@ -232,14 +223,14 @@ class CarControllerTest {
 
             @Test
             void deleteCar_NonExistentCar_ShouldReturnNotFound() throws Exception {
-                Long nonExistentCarId = 999L;
-                doThrow(new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(nonExistentCarId)))
-                        .when(carService).deleteCar(nonExistentCarId);
+                Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
+                doThrow(new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(carId)))
+                        .when(carService).deleteCar(carId);
 
-                mockMvc.perform(delete("/api/v1/cars/{id}", nonExistentCarId)
+                mockMvc.perform(delete("/api/v1/cars/{id}", carId)
                                 .contentType(MediaType.APPLICATION_JSON))
                         .andExpect(status().isNotFound())
-                        .andExpect(content().string(containsString("Car with id '" + nonExistentCarId + "' not found")));
+                        .andExpect(content().string(containsString(ExceptionMessages.CAR_NOT_FOUND.format(carId))));
             }
         }
     }

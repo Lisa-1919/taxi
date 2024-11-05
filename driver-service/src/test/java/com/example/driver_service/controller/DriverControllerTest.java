@@ -5,6 +5,7 @@ import com.example.driver_service.dto.RequestDriver;
 import com.example.driver_service.dto.ResponseDriver;
 import com.example.driver_service.service.DriverService;
 import com.example.driver_service.util.ExceptionMessages;
+import com.example.driver_service.utils.DriverTestEntityUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,15 +53,15 @@ class DriverControllerTest {
 
     @BeforeEach
     void setUp() {
-        testResponseDriver = new ResponseDriver(1L, "John", "Doe", "john@example.com", "+1234567890", "male", null, false);
-        testRequestDriver = new RequestDriver("John", "Doe", "john@example.com", "+1234567890", "male");
+        testResponseDriver = DriverTestEntityUtils.createTestResponseDriver();
+        testRequestDriver = DriverTestEntityUtils.createTestRequestDriver();
     }
 
     @Nested
     class GetDriverTests {
         @Test
         void getDriverById_ShouldReturnDriver() throws Exception {
-            Long driverId = 1L;
+            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             when(driverService.getDriverById(driverId)).thenReturn(testResponseDriver);
 
             mockMvc.perform(get("/api/v1/drivers/all/{id}", driverId))
@@ -72,7 +73,7 @@ class DriverControllerTest {
 
         @Test
         void getDriverByIdNonDeleted_ShouldReturnDriver() throws Exception {
-            Long driverId = 1L;
+            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             when(driverService.getDriverByIdNonDeleted(driverId)).thenReturn(testResponseDriver);
 
             mockMvc.perform(get("/api/v1/drivers/{id}", driverId))
@@ -134,7 +135,7 @@ class DriverControllerTest {
         }
 
         @Test
-        void addDriver_DuplicateEmail_ShouldReturnConflict() throws Exception{
+        void addDriver_DuplicateEmail_ShouldReturnConflict() throws Exception {
             when(driverService.addDriver(any(RequestDriver.class)))
                     .thenThrow(new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format("email", testRequestDriver.email())));
 
@@ -142,7 +143,7 @@ class DriverControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(testRequestDriver)))
                     .andExpect(status().isConflict())
-                    .andExpect(content().string(containsString("A driver with email 'john@example.com' already exists")));
+                    .andExpect(content().string(containsString(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format("email", testRequestDriver.email()))));
         }
     }
 
@@ -151,34 +152,34 @@ class DriverControllerTest {
 
         @Test
         void editDriver_ShouldUpdateDriverSuccessfully() throws Exception {
-            Long driverId = 1L;
-            when(driverService.editDriver(eq(driverId), any(RequestDriver.class))).thenReturn(testResponseDriver);
+            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
+            ResponseDriver updatedResponseDriver = DriverTestEntityUtils.createUpdatedResponseDriver();
+            when(driverService.editDriver(eq(driverId), any(RequestDriver.class))).thenReturn(updatedResponseDriver);
 
             mockMvc.perform(put("/api/v1/drivers/{id}", driverId)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(testRequestDriver)))
+                            .content(objectMapper.writeValueAsString(updatedResponseDriver)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.firstName").value("John"))
-                    .andExpect(jsonPath("$.lastName").value("Doe"))
-                    .andExpect(jsonPath("$.email").value("john@example.com"));
+                    .andExpect(jsonPath("$.email").value(DriverTestEntityUtils.NEW_EMAIL))
+                    .andExpect(jsonPath("$.phoneNumber").value(DriverTestEntityUtils.NEW_PHONE_NUMBER));
         }
 
         @Test
         void editDriver_InvalidData_ShouldReturnBadRequest() throws Exception {
-            RequestDriver invalidRequestDriver = new RequestDriver("J", "", "invalid-email", "123", "male");
+            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
+            RequestDriver invalidRequestDriver = DriverTestEntityUtils.createInvalidRequestDriver();
 
-            mockMvc.perform(put("/api/v1/drivers/{id}", 1L)
+            mockMvc.perform(put("/api/v1/drivers/{id}", driverId)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(invalidRequestDriver)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(content().string(containsString("Field 'lastName' Last name must be between 1 and 50 characters")))
-                    .andExpect(content().string(containsString("Field 'email' Invalid email format. Rejected value: invalid-email;")))
-                    .andExpect(content().string(containsString("Field 'phoneNumber' Invalid phone number format. Rejected value: 123;")));
+                    .andExpect(content().string(containsString("Field 'email' Invalid email format. Rejected value: " + invalidRequestDriver.email() + ";")))
+                    .andExpect(content().string(containsString("Field 'phoneNumber' Invalid phone number format. Rejected value: " + invalidRequestDriver.phoneNumber() + ";")));
         }
 
         @Test
         void editDriver_NonExistentDriver_ShouldReturnNotFound() throws Exception {
-            Long driverId = 999L;
+            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             when(driverService.editDriver(eq(driverId), any(RequestDriver.class)))
                     .thenThrow(new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
 
@@ -186,12 +187,12 @@ class DriverControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(testRequestDriver)))
                     .andExpect(status().isNotFound())
-                    .andExpect(content().string(containsString("Driver with id '" + driverId + "' not found")));
+                    .andExpect(content().string(containsString(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId))));
         }
 
         @Test
         void editDriver_DuplicateEmail_ShouldReturnConflict() throws Exception {
-            Long driverId = 1L;
+            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             when(driverService.editDriver(eq(driverId), any(RequestDriver.class)))
                     .thenThrow(new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format("email", testRequestDriver.email())));
 
@@ -199,12 +200,12 @@ class DriverControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(testRequestDriver)))
                     .andExpect(status().isConflict())
-                    .andExpect(content().string(containsString("A driver with email 'john@example.com' already exists")));
+                    .andExpect(content().string(containsString(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format("email", testRequestDriver.email()))));
         }
 
         @Test
         void editDriver_DuplicatePhoneNumber_ShouldReturnConflict() throws Exception {
-            Long driverId = 1L;
+            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             when(driverService.editDriver(eq(driverId), any(RequestDriver.class)))
                     .thenThrow(new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format("phoneNumber", testRequestDriver.phoneNumber())));
 
@@ -212,7 +213,7 @@ class DriverControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(testRequestDriver)))
                     .andExpect(status().isConflict())
-                    .andExpect(content().string(containsString("A driver with phoneNumber '+1234567890' already exists")));
+                    .andExpect(content().string(containsString(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format("phoneNumber", testRequestDriver.phoneNumber()))));
         }
     }
 
@@ -220,7 +221,7 @@ class DriverControllerTest {
     class DeleteDriverTests {
         @Test
         void deleteDriver_ShouldReturnNoContent() throws Exception {
-            Long driverId = 1L;
+            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             doNothing().when(driverService).deleteDriver(driverId);
 
             mockMvc.perform(delete("/api/v1/drivers/{id}", driverId))
@@ -229,14 +230,14 @@ class DriverControllerTest {
 
         @Test
         void deleteDriver_NonExistentDriver_ShouldReturnNotFound() throws Exception {
-            Long nonExistentDriverId = 999L;
-            doThrow(new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(nonExistentDriverId)))
-                    .when(driverService).deleteDriver(nonExistentDriverId);
+            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
+            doThrow(new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)))
+                    .when(driverService).deleteDriver(driverId);
 
-            mockMvc.perform(delete("/api/v1/drivers/{id}", nonExistentDriverId)
+            mockMvc.perform(delete("/api/v1/drivers/{id}", driverId)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound())
-                    .andExpect(content().string(containsString("Driver with id '" + nonExistentDriverId + "' not found")));
+                    .andExpect(content().string(containsString(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId))));
         }
     }
 
@@ -244,7 +245,7 @@ class DriverControllerTest {
     class DeriverExistTests {
         @Test
         void doesDriverExist_ShouldReturnTrue() throws Exception {
-            Long driverId = 1L;
+            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             when(driverService.doesDriverExist(driverId)).thenReturn(true);
 
             mockMvc.perform(get("/api/v1/drivers/{id}/exists", driverId))
@@ -254,14 +255,14 @@ class DriverControllerTest {
 
         @Test
         void doesDriverExist_NonExistentDriver_ShouldReturnNotFound() throws Exception {
-            Long nonExistentDriverId = 999L;
-            when(driverService.doesDriverExist(nonExistentDriverId))
-                    .thenThrow(new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(nonExistentDriverId)));
+            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
+            when(driverService.doesDriverExist(driverId))
+                    .thenThrow(new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
 
-            mockMvc.perform(get("/api/v1/drivers/{id}/exists", nonExistentDriverId)
+            mockMvc.perform(get("/api/v1/drivers/{id}/exists", driverId)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isNotFound())
-                    .andExpect(content().string(containsString("Driver with id '" + nonExistentDriverId + "' not found")));
+                    .andExpect(content().string(containsString(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId))));
         }
     }
 

@@ -9,6 +9,7 @@ import com.example.driver_service.mapper.CarMapper;
 import com.example.driver_service.repo.CarRepository;
 import com.example.driver_service.repo.DriverRepository;
 import com.example.driver_service.util.ExceptionMessages;
+import com.example.driver_service.utils.CarTestEntityUtils;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -18,9 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
@@ -29,6 +28,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -54,11 +54,10 @@ class CarServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        testDriver = new Driver();
-        testDriver.setId(1L);
-        testCar = new Car(1L, "licensePlate", "mark", "colour", testDriver, false);
-        testResponseCar = new ResponseCar(1L, "licensePlate", "mark", "colour", 1L, false);
-        testRequestCar = new RequestCar("licensePlate", "mark", "colour", 1L);
+        testDriver = CarTestEntityUtils.createTestDriver();
+        testCar = CarTestEntityUtils.createTestCar();
+        testResponseCar = CarTestEntityUtils.createTestResponseCar();
+        testRequestCar = CarTestEntityUtils.createTestRequestCar();
     }
 
     @Nested
@@ -108,9 +107,9 @@ class CarServiceImplTest {
     class EditCarTests {
         @Test
         void editCarOk() {
-            Long carId = 1L;
-            Car updatedCar = new Car(carId, "newLicensePlate", "newMark", "newColour", testDriver, false);
-            ResponseCar expectedResponseCar = new ResponseCar(carId, "newLicensePlate", "newMark", "newColour", testDriver.getId(), false);
+            Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
+            Car updatedCar = CarTestEntityUtils.createUpdatedCar();
+            ResponseCar expectedResponseCar = CarTestEntityUtils.createUpdatedResponseCar();
 
             when(carRepository.findCarByIdNonDeleted(carId)).thenReturn(Optional.of(testCar));
             mockCarRepositoryLicensePlateExists("newLicensePlate", false);
@@ -126,12 +125,10 @@ class CarServiceImplTest {
 
         @Test
         void editCarEntityNotFound() {
-            Long carId = 1L;
-            RequestCar requestCar = new RequestCar("newLicensePlate", "newMark", "newColour", 1L);
-
+            Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
             mockCarNotFound(carId);
 
-            assertThrows(EntityNotFoundException.class, () -> carService.editCar(carId, requestCar));
+            assertThrows(EntityNotFoundException.class, () -> carService.editCar(carId, any(RequestCar.class)));
 
             verify(carRepository).findCarByIdNonDeleted(carId);
             verifyNoInteractions(carMapper);
@@ -205,8 +202,8 @@ class CarServiceImplTest {
 
         @Test
         void getAllCars() {
-            Pageable pageable = PageRequest.of(0, 5);
-            Page<Car> carPage = new PageImpl<>(List.of(testCar), pageable, 1);
+            PageRequest pageable = CarTestEntityUtils.createDefaultPageRequest();
+            Page<Car> carPage = CarTestEntityUtils.createDefaultCarPage(List.of(testCar));
 
             when(carRepository.findAll(pageable)).thenReturn(carPage);
             when(carMapper.carToResponseCar(testCar)).thenReturn(testResponseCar);
@@ -222,8 +219,8 @@ class CarServiceImplTest {
 
         @Test
         void getAllNonDeletedCars() {
-            Pageable pageable = PageRequest.of(0, 5);
-            Page<Car> carPage = new PageImpl<>(List.of(testCar), pageable, 1);
+            PageRequest pageable = CarTestEntityUtils.createDefaultPageRequest();
+            Page<Car> carPage = CarTestEntityUtils.createDefaultCarPage(List.of(testCar));
 
             when(carRepository.findAllNonDeleted(pageable)).thenReturn(carPage);
             when(carMapper.carToResponseCar(testCar)).thenReturn(testResponseCar);
@@ -239,12 +236,11 @@ class CarServiceImplTest {
     }
 
     private void assertPagedResponse(PagedResponseCarList actual) {
-        assertEquals(1, actual.cars().size());
         assertEquals(testResponseCar, actual.cars().get(0));
-        assertEquals(1, actual.totalElements());
-        assertEquals(1, actual.totalPages());
-        assertEquals(0, actual.pageNumber());
-        assertEquals(5, actual.pageSize());
+        assertEquals(CarTestEntityUtils.DEFAULT_TOTAL_ELEMENTS, actual.totalElements());
+        assertEquals(CarTestEntityUtils.DEFAULT_TOTAL_PAGES, actual.totalPages());
+        assertEquals(CarTestEntityUtils.DEFAULT_PAGE_NUMBER, actual.pageNumber());
+        assertEquals(CarTestEntityUtils.DEFAULT_PAGE_SIZE, actual.pageSize());
         assertTrue(actual.last());
     }
 

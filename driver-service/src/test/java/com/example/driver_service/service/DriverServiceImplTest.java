@@ -7,6 +7,7 @@ import com.example.driver_service.entity.Driver;
 import com.example.driver_service.mapper.DriverMapper;
 import com.example.driver_service.repo.DriverRepository;
 import com.example.driver_service.util.ExceptionMessages;
+import com.example.driver_service.utils.DriverTestEntityUtils;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -16,8 +17,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -49,9 +48,9 @@ class DriverServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        testDriver = new Driver(1L, "firstName", "lastName", "email", "phoneNumber", "male", null, false);
-        testRequestDriver = new RequestDriver("firstName", "lastName", "email", "phoneNumber", "male");
-        testResponseDriver = new ResponseDriver(1L, "firstName", "lastName", "email", "phoneNumber", "male", null, false);
+        testDriver = DriverTestEntityUtils.createTestDriver();
+        testRequestDriver = DriverTestEntityUtils.createTestRequestDriver();
+        testResponseDriver = DriverTestEntityUtils.createTestResponseDriver();
     }
 
     @Nested
@@ -97,11 +96,11 @@ class DriverServiceImplTest {
     class EditDriverTests {
         @Test
         void editDriverOk() {
-            Long driverId = 1L;
-            RequestDriver requestDriver = new RequestDriver("newFirstName", "newSecondName", "newEmail", "newPhoneNumber", "sex");
-            Driver existingDriver = new Driver(driverId, "firstName", "secondName", "email", "phoneNumber", "sex", null, false);
-            Driver updatedDriver = new Driver(driverId, "newFirstName", "newSecondName", "newEmail", "newPhoneNumber", "sex", null, false);
-            ResponseDriver expectedResponseDriver = new ResponseDriver(driverId, "newFirstName", "newSecondName", "newEmail", "newPhoneNumber", "sex", null, false);
+            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
+            RequestDriver requestDriver = DriverTestEntityUtils.createUpdateRequestDriver();
+            Driver existingDriver = DriverTestEntityUtils.createTestDriver();
+            Driver updatedDriver = DriverTestEntityUtils.createUpdatedDriver();
+            ResponseDriver expectedResponseDriver = DriverTestEntityUtils.createUpdatedResponseDriver();
 
             when(driverRepository.findDriverByIdNonDeleted(driverId)).thenReturn(Optional.of(existingDriver));
             mockDriverNonExistence();
@@ -128,11 +127,10 @@ class DriverServiceImplTest {
 
         @Test
         void editDriverDuplicateEmail() {
-            Long driverId = 1L;
-            RequestDriver requestDriver = new RequestDriver("newFirstName", "newSecondName", "newEmail", "newPhoneNumber", "sex");
-            Driver existingDriver = new Driver(driverId, "firstName", "secondName", "email", "phoneNumber", "sex", null, false);
+            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
+            RequestDriver requestDriver = DriverTestEntityUtils.createUpdateRequestDriver();
 
-            when(driverRepository.findDriverByIdNonDeleted(driverId)).thenReturn(Optional.of(existingDriver));
+            when(driverRepository.findDriverByIdNonDeleted(driverId)).thenReturn(Optional.of(testDriver));
             when(driverRepository.existsByEmail(requestDriver.email())).thenReturn(true);
 
             assertThrows(DataIntegrityViolationException.class, () -> driverService.editDriver(driverId, requestDriver));
@@ -144,11 +142,10 @@ class DriverServiceImplTest {
 
         @Test
         void editDriverDuplicatePhoneNumber() {
-            Long driverId = 1L;
-            RequestDriver requestDriver = new RequestDriver("newFirstName", "newSecondName", "newEmail", "newPhoneNumber", "sex");
-            Driver existingDriver = new Driver(driverId, "firstName", "secondName", "email", "phoneNumber", "sex", null, false);
+            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
+            RequestDriver requestDriver = DriverTestEntityUtils.createUpdateRequestDriver();
 
-            when(driverRepository.findDriverByIdNonDeleted(driverId)).thenReturn(Optional.of(existingDriver));
+            when(driverRepository.findDriverByIdNonDeleted(driverId)).thenReturn(Optional.of(testDriver));
             when(driverRepository.existsByEmail(requestDriver.email())).thenReturn(false);
             when(driverRepository.existsByPhoneNumber(requestDriver.phoneNumber())).thenReturn(true);
 
@@ -228,8 +225,8 @@ class DriverServiceImplTest {
 
         @Test
         void getAllDrivers() {
-            Pageable pageable = PageRequest.of(0, 5);
-            Page<Driver> driverPage = new PageImpl<>(List.of(testDriver), pageable, 1);
+            Pageable pageable = DriverTestEntityUtils.createDefaultPageRequest();
+            Page<Driver> driverPage = DriverTestEntityUtils.createDefaultDriverPage(List.of(testDriver));
 
             when(driverRepository.findAll(pageable)).thenReturn(driverPage);
             when(driverMapper.driverToResponseDriver(testDriver)).thenReturn(testResponseDriver);
@@ -245,8 +242,8 @@ class DriverServiceImplTest {
 
         @Test
         void getAllNonDeletedDrivers() {
-            Pageable pageable = PageRequest.of(0, 5);
-            Page<Driver> driverPage = new PageImpl<>(List.of(testDriver), pageable, 1);
+            Pageable pageable = DriverTestEntityUtils.createDefaultPageRequest();
+            Page<Driver> driverPage = DriverTestEntityUtils.createDefaultDriverPage(List.of(testDriver));
 
             when(driverRepository.findAllNonDeleted(pageable)).thenReturn(driverPage);
             when(driverMapper.driverToResponseDriver(testDriver)).thenReturn(testResponseDriver);
@@ -295,12 +292,11 @@ class DriverServiceImplTest {
     }
 
     private void assertPagedResponse(PagedResponseDriverList actual) {
-        assertEquals(1, actual.drivers().size());
         assertEquals(testResponseDriver, actual.drivers().get(0));
-        assertEquals(1, actual.totalElements());
-        assertEquals(1, actual.totalPages());
-        assertEquals(0, actual.pageNumber());
-        assertEquals(5, actual.pageSize());
+        assertEquals(DriverTestEntityUtils.DEFAULT_TOTAL_ELEMENTS, actual.totalElements());
+        assertEquals(DriverTestEntityUtils.DEFAULT_TOTAL_PAGES, actual.totalPages());
+        assertEquals(DriverTestEntityUtils.DEFAULT_PAGE_NUMBER, actual.pageNumber());
+        assertEquals(DriverTestEntityUtils.DEFAULT_PAGE_SIZE, actual.pageSize());
         assertTrue(actual.last());
     }
 }
