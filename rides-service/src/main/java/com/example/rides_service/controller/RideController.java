@@ -7,8 +7,7 @@ import com.example.rides_service.dto.ResponseRide;
 import com.example.rides_service.service.RideService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/rides")
 public class RideController {
 
-    private final int DEFAULT_SIZE = 10;
     private final RideService rideService;
 
     @GetMapping("/{id}")
@@ -34,8 +33,11 @@ public class RideController {
     }
 
     @GetMapping
-    public ResponseEntity<PagedResponseRideList> getAllRides(@PageableDefault(page = 0, size = DEFAULT_SIZE) Pageable pageable) {
-        PagedResponseRideList pagedResponseRideList = rideService.getAllRides(pageable);
+    public ResponseEntity<PagedResponseRideList> getAllRides(
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @RequestParam(value = "limit", defaultValue = "10") Integer limit
+    ) {
+        PagedResponseRideList pagedResponseRideList = rideService.getAllRides(PageRequest.of(page, limit));
         return ResponseEntity.ok(pagedResponseRideList);
     }
 
