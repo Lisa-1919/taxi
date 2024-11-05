@@ -1,7 +1,8 @@
 package com.example.driver_service.utils;
 
-import com.example.driver_service.dto.*;
-import com.example.driver_service.entity.Car;
+import com.example.driver_service.dto.PagedResponseDriverList;
+import com.example.driver_service.dto.RequestDriver;
+import com.example.driver_service.dto.ResponseDriver;
 import com.example.driver_service.entity.Driver;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
