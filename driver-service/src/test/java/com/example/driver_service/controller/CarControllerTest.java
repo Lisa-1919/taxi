@@ -48,11 +48,13 @@ class CarControllerTest {
     @MockBean
     private CarService carService;
 
+    private Long carId;
     private ResponseCar testResponseCar;
     private RequestCar testRequestCar;
 
     @BeforeEach
     void setUp() {
+        carId = CarTestEntityUtils.DEFAULT_CAR_ID;
         testRequestCar = CarTestEntityUtils.createTestRequestCar();
         testResponseCar = CarTestEntityUtils.createTestResponseCar();
     }
@@ -61,7 +63,6 @@ class CarControllerTest {
     class GetCarTests {
         @Test
         void getCarById_ShouldReturnCar() throws Exception {
-            Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
             when(carService.getCarById(carId)).thenReturn(testResponseCar);
 
             mockMvc.perform(get("/api/v1/cars/all/{id}", carId))
@@ -73,7 +74,6 @@ class CarControllerTest {
 
         @Test
         void getCarByIdNonDeleted_ShouldReturnCar() throws Exception {
-            Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
             when(carService.getCarByIdNonDeleted(carId)).thenReturn(testResponseCar);
 
             mockMvc.perform(get("/api/v1/cars/{id}", carId))
@@ -140,16 +140,14 @@ class CarControllerTest {
 
         @Test
         void addCar_NonExistentDriver_ShouldReturnNotFound() throws Exception {
-            Long nonExistentDriverId = CarTestEntityUtils.DEFAULT_DRIVER_ID;
-
             when(carService.addCar(any(RequestCar.class)))
-                    .thenThrow(new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(nonExistentDriverId)));
+                    .thenThrow(new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(carId)));
 
             mockMvc.perform(post("/api/v1/cars")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(testRequestCar)))
                     .andExpect(status().isNotFound())
-                    .andExpect(content().string(containsString(ExceptionMessages.DRIVER_NOT_FOUND.format(nonExistentDriverId))));
+                    .andExpect(content().string(containsString(ExceptionMessages.DRIVER_NOT_FOUND.format(carId))));
         }
 
         @Nested
@@ -157,7 +155,6 @@ class CarControllerTest {
 
             @Test
             void editCar_ShouldUpdateCarSuccessfully() throws Exception {
-                Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
                 when(carService.editCar(eq(carId), any(RequestCar.class))).thenReturn(testResponseCar);
 
                 mockMvc.perform(put("/api/v1/cars/{id}", carId)
@@ -171,7 +168,6 @@ class CarControllerTest {
 
             @Test
             void editCar_InvalidData_ShouldReturnBadRequest() throws Exception {
-                Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
                 RequestCar invalidRequestCar = CarTestEntityUtils.createInvalidRequestCar();
 
                 mockMvc.perform(put("/api/v1/cars/{id}", carId)
@@ -185,7 +181,6 @@ class CarControllerTest {
 
             @Test
             void editCar_NonExistentCar_ShouldReturnNotFound() throws Exception {
-                Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
                 when(carService.editCar(eq(carId), any(RequestCar.class)))
                         .thenThrow(new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(carId)));
 
@@ -198,7 +193,6 @@ class CarControllerTest {
 
             @Test
             void editCar_DuplicateLicensePlate_ShouldReturnConflict() throws Exception {
-                Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
                 when(carService.editCar(eq(carId), any(RequestCar.class)))
                         .thenThrow(new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_CAR_ERROR.format("licensePlate", testRequestCar.licensePlate())));
 
@@ -214,7 +208,6 @@ class CarControllerTest {
         class DeleteCarTests {
             @Test
             void deleteCar_ShouldReturnNoContent() throws Exception {
-                Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
                 doNothing().when(carService).deleteCar(carId);
 
                 mockMvc.perform(delete("/api/v1/cars/{id}", carId))
@@ -223,7 +216,6 @@ class CarControllerTest {
 
             @Test
             void deleteCar_NonExistentCar_ShouldReturnNotFound() throws Exception {
-                Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
                 doThrow(new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(carId)))
                         .when(carService).deleteCar(carId);
 

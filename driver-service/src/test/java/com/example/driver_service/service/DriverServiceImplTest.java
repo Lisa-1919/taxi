@@ -45,9 +45,11 @@ class DriverServiceImplTest {
     private Driver testDriver;
     private RequestDriver testRequestDriver;
     private ResponseDriver testResponseDriver;
+    private Long driverId;
 
     @BeforeEach
     void setUp() {
+        driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
         testDriver = DriverTestEntityUtils.createTestDriver();
         testRequestDriver = DriverTestEntityUtils.createTestRequestDriver();
         testResponseDriver = DriverTestEntityUtils.createTestResponseDriver();
@@ -96,7 +98,6 @@ class DriverServiceImplTest {
     class EditDriverTests {
         @Test
         void editDriverOk() {
-            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             RequestDriver requestDriver = DriverTestEntityUtils.createUpdateRequestDriver();
             Driver existingDriver = DriverTestEntityUtils.createTestDriver();
             Driver updatedDriver = DriverTestEntityUtils.createUpdatedDriver();
@@ -117,17 +118,16 @@ class DriverServiceImplTest {
 
         @Test
         void editDriverEntityNotFound() {
-            mockDriverNotFound(testDriver.getId());
+            mockDriverNotFound(driverId);
 
-            assertThrows(EntityNotFoundException.class, () -> driverService.editDriver(testDriver.getId(), testRequestDriver));
+            assertThrows(EntityNotFoundException.class, () -> driverService.editDriver(driverId, testRequestDriver));
 
-            verify(driverRepository).findDriverByIdNonDeleted(testDriver.getId());
+            verify(driverRepository).findDriverByIdNonDeleted(driverId);
             verifyNoMoreInteractions(driverRepository, driverMapper);
         }
 
         @Test
         void editDriverDuplicateEmail() {
-            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             RequestDriver requestDriver = DriverTestEntityUtils.createUpdateRequestDriver();
 
             when(driverRepository.findDriverByIdNonDeleted(driverId)).thenReturn(Optional.of(testDriver));
@@ -142,7 +142,6 @@ class DriverServiceImplTest {
 
         @Test
         void editDriverDuplicatePhoneNumber() {
-            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             RequestDriver requestDriver = DriverTestEntityUtils.createUpdateRequestDriver();
 
             when(driverRepository.findDriverByIdNonDeleted(driverId)).thenReturn(Optional.of(testDriver));
@@ -163,20 +162,20 @@ class DriverServiceImplTest {
 
         @Test
         void deleteDriverOk() {
-            when(driverRepository.findDriverByIdNonDeleted(testDriver.getId())).thenReturn(Optional.of(testDriver));
+            when(driverRepository.findDriverByIdNonDeleted(driverId)).thenReturn(Optional.of(testDriver));
 
-            driverService.deleteDriver(testDriver.getId());
+            driverService.deleteDriver(driverId);
 
             verify(driverRepository).delete(testDriver);
         }
 
         @Test
         void deleteDriverEntityNotFound() {
-            mockDriverNotFound(testDriver.getId());
+            mockDriverNotFound(driverId);
 
-            assertThrows(EntityNotFoundException.class, () -> driverService.deleteDriver(testDriver.getId()));
+            assertThrows(EntityNotFoundException.class, () -> driverService.deleteDriver(driverId));
 
-            verify(driverRepository).findDriverByIdNonDeleted(testDriver.getId());
+            verify(driverRepository).findDriverByIdNonDeleted(driverId);
             verifyNoMoreInteractions(driverRepository);
         }
     }
@@ -185,41 +184,41 @@ class DriverServiceImplTest {
     class GetDriverTests {
         @Test
         void getDriverByIdOk() {
-            when(driverRepository.findById(testDriver.getId())).thenReturn(Optional.of(testDriver));
+            when(driverRepository.findById(driverId)).thenReturn(Optional.of(testDriver));
             when(driverMapper.driverToResponseDriver(testDriver)).thenReturn(testResponseDriver);
 
-            ResponseDriver responseDriver = driverService.getDriverById(testDriver.getId());
+            ResponseDriver responseDriver = driverService.getDriverById(driverId);
 
             assertEquals(testResponseDriver, responseDriver);
         }
 
         @Test
         void getDriverByIdEntityNotFound() {
-            mockDriverNotFound(testDriver.getId());
+            mockDriverNotFound(driverId);
 
-            assertThrows(EntityNotFoundException.class, () -> driverService.getDriverById(testDriver.getId()));
+            assertThrows(EntityNotFoundException.class, () -> driverService.getDriverById(driverId));
 
-            verify(driverRepository).findById(testDriver.getId());
+            verify(driverRepository).findById(driverId);
             verifyNoMoreInteractions(driverMapper);
         }
 
         @Test
         void getDriverByIdNonDeletedOk() {
-            when(driverRepository.findDriverByIdNonDeleted(testDriver.getId())).thenReturn(Optional.of(testDriver));
+            when(driverRepository.findDriverByIdNonDeleted(driverId)).thenReturn(Optional.of(testDriver));
             when(driverMapper.driverToResponseDriver(testDriver)).thenReturn(testResponseDriver);
 
-            ResponseDriver responseDriver = driverService.getDriverByIdNonDeleted(testDriver.getId());
+            ResponseDriver responseDriver = driverService.getDriverByIdNonDeleted(driverId);
 
             assertEquals(testResponseDriver, responseDriver);
         }
 
         @Test
         void getDriverByIdNonDeletedEntityNotFound() {
-            mockDriverNotFound(testDriver.getId());
+            mockDriverNotFound(driverId);
 
-            assertThrows(EntityNotFoundException.class, () -> driverService.getDriverByIdNonDeleted(testDriver.getId()));
+            assertThrows(EntityNotFoundException.class, () -> driverService.getDriverByIdNonDeleted(driverId));
 
-            verify(driverRepository).findDriverByIdNonDeleted(testDriver.getId());
+            verify(driverRepository).findDriverByIdNonDeleted(driverId);
             verifyNoMoreInteractions(driverMapper);
         }
 
@@ -263,20 +262,20 @@ class DriverServiceImplTest {
         @Test
         void doesDriverExistOk() {
             boolean expected = true;
-            when(driverRepository.existsByIdAndIsDeletedFalse(testDriver.getId())).thenReturn(expected);
-            boolean actual = driverService.doesDriverExist(testDriver.getId());
+            when(driverRepository.existsByIdAndIsDeletedFalse(driverId)).thenReturn(expected);
+            boolean actual = driverService.doesDriverExist(driverId);
 
             assertEquals(expected, actual);
 
-            verify(driverRepository).existsByIdAndIsDeletedFalse(testDriver.getId());
+            verify(driverRepository).existsByIdAndIsDeletedFalse(driverId);
         }
 
         @Test
         void doesDriverExistEntityNotFound() {
-            mockDriverNotFound(testDriver.getId());
-            assertThrows(EntityNotFoundException.class, () -> driverService.doesDriverExist(testDriver.getId()));
+            mockDriverNotFound(driverId);
+            assertThrows(EntityNotFoundException.class, () -> driverService.doesDriverExist(driverId));
 
-            verify(driverRepository).existsByIdAndIsDeletedFalse(testDriver.getId());
+            verify(driverRepository).existsByIdAndIsDeletedFalse(driverId);
         }
     }
 

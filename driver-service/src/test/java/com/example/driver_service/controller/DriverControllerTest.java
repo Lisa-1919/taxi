@@ -48,11 +48,13 @@ class DriverControllerTest {
     @MockBean
     private DriverService driverService;
 
+    private Long driverId;
     private ResponseDriver testResponseDriver;
     private RequestDriver testRequestDriver;
 
     @BeforeEach
     void setUp() {
+        driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
         testResponseDriver = DriverTestEntityUtils.createTestResponseDriver();
         testRequestDriver = DriverTestEntityUtils.createTestRequestDriver();
     }
@@ -61,7 +63,6 @@ class DriverControllerTest {
     class GetDriverTests {
         @Test
         void getDriverById_ShouldReturnDriver() throws Exception {
-            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             when(driverService.getDriverById(driverId)).thenReturn(testResponseDriver);
 
             mockMvc.perform(get("/api/v1/drivers/all/{id}", driverId))
@@ -73,7 +74,6 @@ class DriverControllerTest {
 
         @Test
         void getDriverByIdNonDeleted_ShouldReturnDriver() throws Exception {
-            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             when(driverService.getDriverByIdNonDeleted(driverId)).thenReturn(testResponseDriver);
 
             mockMvc.perform(get("/api/v1/drivers/{id}", driverId))
@@ -152,7 +152,6 @@ class DriverControllerTest {
 
         @Test
         void editDriver_ShouldUpdateDriverSuccessfully() throws Exception {
-            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             ResponseDriver updatedResponseDriver = DriverTestEntityUtils.createUpdatedResponseDriver();
             when(driverService.editDriver(eq(driverId), any(RequestDriver.class))).thenReturn(updatedResponseDriver);
 
@@ -166,7 +165,6 @@ class DriverControllerTest {
 
         @Test
         void editDriver_InvalidData_ShouldReturnBadRequest() throws Exception {
-            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             RequestDriver invalidRequestDriver = DriverTestEntityUtils.createInvalidRequestDriver();
 
             mockMvc.perform(put("/api/v1/drivers/{id}", driverId)
@@ -179,7 +177,6 @@ class DriverControllerTest {
 
         @Test
         void editDriver_NonExistentDriver_ShouldReturnNotFound() throws Exception {
-            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             when(driverService.editDriver(eq(driverId), any(RequestDriver.class)))
                     .thenThrow(new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
 
@@ -192,7 +189,6 @@ class DriverControllerTest {
 
         @Test
         void editDriver_DuplicateEmail_ShouldReturnConflict() throws Exception {
-            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             when(driverService.editDriver(eq(driverId), any(RequestDriver.class)))
                     .thenThrow(new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format("email", testRequestDriver.email())));
 
@@ -205,7 +201,6 @@ class DriverControllerTest {
 
         @Test
         void editDriver_DuplicatePhoneNumber_ShouldReturnConflict() throws Exception {
-            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             when(driverService.editDriver(eq(driverId), any(RequestDriver.class)))
                     .thenThrow(new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format("phoneNumber", testRequestDriver.phoneNumber())));
 
@@ -221,7 +216,6 @@ class DriverControllerTest {
     class DeleteDriverTests {
         @Test
         void deleteDriver_ShouldReturnNoContent() throws Exception {
-            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             doNothing().when(driverService).deleteDriver(driverId);
 
             mockMvc.perform(delete("/api/v1/drivers/{id}", driverId))
@@ -230,7 +224,6 @@ class DriverControllerTest {
 
         @Test
         void deleteDriver_NonExistentDriver_ShouldReturnNotFound() throws Exception {
-            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             doThrow(new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)))
                     .when(driverService).deleteDriver(driverId);
 
@@ -245,7 +238,6 @@ class DriverControllerTest {
     class DeriverExistTests {
         @Test
         void doesDriverExist_ShouldReturnTrue() throws Exception {
-            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             when(driverService.doesDriverExist(driverId)).thenReturn(true);
 
             mockMvc.perform(get("/api/v1/drivers/{id}/exists", driverId))
@@ -255,7 +247,6 @@ class DriverControllerTest {
 
         @Test
         void doesDriverExist_NonExistentDriver_ShouldReturnNotFound() throws Exception {
-            Long driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
             when(driverService.doesDriverExist(driverId))
                     .thenThrow(new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
 

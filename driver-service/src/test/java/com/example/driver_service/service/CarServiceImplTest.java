@@ -47,14 +47,14 @@ class CarServiceImplTest {
     DriverRepository driverRepository;
     @MockBean
     CarMapper carMapper;
-    private Driver testDriver;
+
     private Car testCar;
     private ResponseCar testResponseCar;
     private RequestCar testRequestCar;
-
+    private Long carId;
     @BeforeEach
-    void setUp() {
-        testDriver = CarTestEntityUtils.createTestDriver();
+    void setUp(){
+        carId = CarTestEntityUtils.DEFAULT_CAR_ID;
         testCar = CarTestEntityUtils.createTestCar();
         testResponseCar = CarTestEntityUtils.createTestResponseCar();
         testRequestCar = CarTestEntityUtils.createTestRequestCar();
@@ -62,8 +62,10 @@ class CarServiceImplTest {
 
     @Nested
     class AddCarTests {
+
         @Test
         void addCarOk() {
+            Driver testDriver = CarTestEntityUtils.createTestDriver();
             mockCarRepositoryLicensePlateExists(testRequestCar.licensePlate(), false);
             when(carMapper.requestCarToCar(testRequestCar)).thenReturn(testCar);
             when(driverRepository.findDriverByIdNonDeleted(testRequestCar.driverId()))
@@ -105,9 +107,9 @@ class CarServiceImplTest {
 
     @Nested
     class EditCarTests {
+
         @Test
         void editCarOk() {
-            Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
             Car updatedCar = CarTestEntityUtils.createUpdatedCar();
             ResponseCar expectedResponseCar = CarTestEntityUtils.createUpdatedResponseCar();
 
@@ -125,7 +127,6 @@ class CarServiceImplTest {
 
         @Test
         void editCarEntityNotFound() {
-            Long carId = CarTestEntityUtils.DEFAULT_CAR_ID;
             mockCarNotFound(carId);
 
             assertThrows(EntityNotFoundException.class, () -> carService.editCar(carId, any(RequestCar.class)));
@@ -140,20 +141,20 @@ class CarServiceImplTest {
     class DeleteCarTests {
         @Test
         void deleteCarOk() {
-            when(carRepository.findCarByIdNonDeleted(testCar.getId())).thenReturn(Optional.of(testCar));
+            when(carRepository.findCarByIdNonDeleted(carId)).thenReturn(Optional.of(testCar));
 
-            carService.deleteCar(testCar.getId());
+            carService.deleteCar(carId);
 
             verify(carRepository).delete(testCar);
         }
 
         @Test
         void deleteCarEntityNotFound() {
-            mockCarNotFound(testCar.getId());
+            mockCarNotFound(carId);
 
-            assertThrows(EntityNotFoundException.class, () -> carService.deleteCar(testCar.getId()));
+            assertThrows(EntityNotFoundException.class, () -> carService.deleteCar(carId));
 
-            verify(carRepository).findCarByIdNonDeleted(testCar.getId());
+            verify(carRepository).findCarByIdNonDeleted(carId);
             verifyNoMoreInteractions(carRepository);
         }
     }
@@ -162,20 +163,20 @@ class CarServiceImplTest {
     class GetCarTests {
         @Test
         void getCarByIdOk() {
-            when(carRepository.findById(testCar.getId())).thenReturn(Optional.of(testCar));
+            when(carRepository.findById(carId)).thenReturn(Optional.of(testCar));
             when(carMapper.carToResponseCar(testCar)).thenReturn(testResponseCar);
 
-            ResponseCar responseCar = carService.getCarById(testCar.getId());
+            ResponseCar responseCar = carService.getCarById(carId);
 
             assertEquals(testResponseCar, responseCar);
         }
 
         @Test
         void getCarByIdEntityNotFound() {
-            when(carRepository.findById(testCar.getId()))
-                    .thenThrow(new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(testCar.getId())));
+            when(carRepository.findById(carId))
+                    .thenThrow(new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(carId)));
 
-            assertThrows(EntityNotFoundException.class, () -> carService.getCarById(testCar.getId()));
+            assertThrows(EntityNotFoundException.class, () -> carService.getCarById(carId));
 
             verifyNoMoreInteractions(carMapper);
 
@@ -183,19 +184,19 @@ class CarServiceImplTest {
 
         @Test
         void getCarByIdNonDeletedOk() {
-            when(carRepository.findCarByIdNonDeleted(testCar.getId())).thenReturn(Optional.of(testCar));
+            when(carRepository.findCarByIdNonDeleted(carId)).thenReturn(Optional.of(testCar));
             when(carMapper.carToResponseCar(testCar)).thenReturn(testResponseCar);
 
-            ResponseCar responseCar = carService.getCarByIdNonDeleted(testCar.getId());
+            ResponseCar responseCar = carService.getCarByIdNonDeleted(carId);
 
             assertEquals(testResponseCar, responseCar);
         }
 
         @Test
         void getCarByIdNonDeletedEntityNotFound() {
-            mockCarNotFound(testCar.getId());
+            mockCarNotFound(carId);
 
-            assertThrows(EntityNotFoundException.class, () -> carService.getCarByIdNonDeleted(testCar.getId()));
+            assertThrows(EntityNotFoundException.class, () -> carService.getCarByIdNonDeleted(carId));
 
             verifyNoMoreInteractions(carMapper);
         }
