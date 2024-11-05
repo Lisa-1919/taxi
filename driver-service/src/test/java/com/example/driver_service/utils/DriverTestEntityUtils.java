@@ -125,10 +125,10 @@ public class DriverTestEntityUtils {
     public static PagedResponseDriverList createDefaultPagedResponseDriverList(List<ResponseDriver> drivers) {
         return new PagedResponseDriverList(
                 drivers,
-                DEFAULT_TOTAL_ELEMENTS,
-                DEFAULT_TOTAL_PAGES,
                 DEFAULT_PAGE_NUMBER,
                 DEFAULT_PAGE_SIZE,
+                DEFAULT_TOTAL_ELEMENTS,
+                DEFAULT_TOTAL_PAGES,
                 DEFAULT_LAST_PAGE
         );
     }
