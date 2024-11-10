@@ -12,6 +12,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -62,38 +64,40 @@ class CarControllerTest {
 
     @Nested
     class GetCarTests {
-        @Test
-        void getCarById_ShouldReturnCar() throws Exception {
-            when(carService.getCarById(carId)).thenReturn(testResponseCar);
+        @ParameterizedTest
+        @ValueSource(booleans = {true, false})
+        void getCarById_ShouldReturnCar(boolean active) throws Exception {
+            if(active) {
+                when(carService.getCarByIdNonDeleted(carId)).thenReturn(testResponseCar);
+            } else {
+                when(carService.getCarById(carId)).thenReturn(testResponseCar);
+            }
 
-            mockMvc.perform(get("/api/v1/cars/all/{id}", carId))
+            mockMvc.perform(get("/api/v1/cars/{id}", carId)
+                            .param("active", String.valueOf(active)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(carId))
                     .andExpect(jsonPath("$.licensePlate").value(testResponseCar.licensePlate()))
                     .andExpect(jsonPath("$.mark").value(testResponseCar.mark()));
         }
 
-        @Test
-        void getCarByIdNonDeleted_ShouldReturnCar() throws Exception {
-            when(carService.getCarByIdNonDeleted(carId)).thenReturn(testResponseCar);
-
-            mockMvc.perform(get("/api/v1/cars/{id}", carId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(carId))
-                    .andExpect(jsonPath("$.licensePlate").value(testResponseCar.licensePlate()))
-                    .andExpect(jsonPath("$.mark").value(testResponseCar.mark()));
-        }
-
-        @Test
-        void getAllNonDeletedCars_ShouldReturnPagedResponse() throws Exception {
+        @ParameterizedTest
+        @ValueSource(booleans = {true, false})
+        void getAllCars_ShouldReturnPagedResponse(boolean active) throws Exception {
             PageRequest pageable = CarTestEntityUtils.createDefaultPageRequest();
             PagedResponseCarList carPage = CarTestEntityUtils.createDefaultPagedResponseCarList(List.of(testResponseCar));
 
-            when(carService.getAllNonDeletedCars(pageable)).thenReturn(carPage);
+            if(active) {
+                when(carService.getAllNonDeletedCars(pageable)).thenReturn(carPage);
+            } else {
+                when(carService.getAllCars(pageable)).thenReturn(carPage);
+            }
 
-            mockMvc.perform(get("/api/v1/cars").param("page", String.valueOf(CarTestEntityUtils.DEFAULT_PAGE_NUMBER)).param("size", String.valueOf(CarTestEntityUtils.DEFAULT_PAGE_SIZE)))
+            mockMvc.perform(get("/api/v1/cars")
+                            .param("active", String.valueOf(active))
+                            .param("page", "0")
+                            .param("limit", "10"))
                     .andExpect(status().isOk())
-
                     .andExpect(jsonPath("$.totalElements").value(CarTestEntityUtils.DEFAULT_TOTAL_ELEMENTS));
         }
     }

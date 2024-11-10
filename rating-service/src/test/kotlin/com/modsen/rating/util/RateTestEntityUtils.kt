@@ -32,6 +32,29 @@ object RateTestEntityUtils {
         return RequestRate(userId, userType, rideId, rating, rideCommentary)
     }
 
+
+    fun createTestRequestRate(
+    ): RequestRate {
+        return RequestRate(
+            userId = DEFAULT_USER_ID,
+            userType = UserType.PASSENGER,
+            rideId = DEFAULT_RIDE_ID,
+            rate = DEFAULT_RATING,
+            rideCommentary = DEFAULT_COMMENTARY
+        )
+    }
+
+    fun createTestRate(): Rate {
+        return Rate(
+            id = DEFAULT_RATE_ID,
+            userId = DEFAULT_USER_ID,
+            userType = UserType.PASSENGER,
+            rideId = DEFAULT_RIDE_ID,
+            rate = DEFAULT_RATING,
+            rideCommentary = DEFAULT_COMMENTARY
+        )
+    }
+
     fun createTestRate(
         id: Long = DEFAULT_RATE_ID,
         rideId: Long = DEFAULT_RIDE_ID,

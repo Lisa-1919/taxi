@@ -12,6 +12,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -62,36 +64,40 @@ class DriverControllerTest {
 
     @Nested
     class GetDriverTests {
-        @Test
-        void getDriverById_ShouldReturnDriver() throws Exception {
-            when(driverService.getDriverById(driverId)).thenReturn(testResponseDriver);
+        @ParameterizedTest
+        @ValueSource(booleans = {true, false})
+        void getDriverById_ShouldReturnDriver(boolean active) throws Exception {
+            if(active) {
+                when(driverService.getDriverByIdNonDeleted(driverId)).thenReturn(testResponseDriver);
+            } else {
+                when(driverService.getDriverById(driverId)).thenReturn(testResponseDriver);
+            }
 
-            mockMvc.perform(get("/api/v1/drivers/all/{id}", driverId))
+
+            mockMvc.perform(get("/api/v1/drivers/{id}", driverId)
+                            .param("active", String.valueOf(active)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(driverId))
                     .andExpect(jsonPath("$.firstName").value(testResponseDriver.firstName()))
                     .andExpect(jsonPath("$.lastName").value(testResponseDriver.lastName()));
         }
 
-        @Test
-        void getDriverByIdNonDeleted_ShouldReturnDriver() throws Exception {
-            when(driverService.getDriverByIdNonDeleted(driverId)).thenReturn(testResponseDriver);
-
-            mockMvc.perform(get("/api/v1/drivers/{id}", driverId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(driverId))
-                    .andExpect(jsonPath("$.firstName").value(testResponseDriver.firstName()))
-                    .andExpect(jsonPath("$.lastName").value(testResponseDriver.lastName()));
-        }
-
-        @Test
-        void getAllDrivers_ShouldReturnPagedResponse() throws Exception {
+        @ParameterizedTest
+        @ValueSource(booleans = {true, false})
+        void getAllDrivers_ShouldReturnPagedResponse(boolean active) throws Exception {
             PageRequest pageable = PageRequest.of(0, 10);
             PagedResponseDriverList driverPage = new PagedResponseDriverList(List.of(testResponseDriver), 1, 1, 1, 10, true);
 
-            when(driverService.getAllDrivers(pageable)).thenReturn(driverPage);
+            if(active) {
+                when(driverService.getAllNonDeletedDrivers(pageable)).thenReturn(driverPage);
+            } else {
+                when(driverService.getAllDrivers(pageable)).thenReturn(driverPage);
+            }
 
-            mockMvc.perform(get("/api/v1/drivers/all").param("page", "0").param("size", "10"))
+            mockMvc.perform(get("/api/v1/drivers")
+                            .param("active", String.valueOf(active))
+                            .param("page", "0")
+                            .param("limit", "10"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalElements").value(1));
         }

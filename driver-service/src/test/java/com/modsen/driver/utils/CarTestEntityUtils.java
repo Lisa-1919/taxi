@@ -56,6 +56,15 @@ public class CarTestEntityUtils {
         );
     }
 
+    public static RequestCar createTestRequestCar(Long driverId) {
+        return new RequestCar(
+                DEFAULT_LICENSE_PLATE,
+                DEFAULT_MARK,
+                DEFAULT_COLOUR,
+                driverId
+        );
+    }
+
     public static ResponseCar createTestResponseCar() {
         return new ResponseCar(
                 DEFAULT_CAR_ID,

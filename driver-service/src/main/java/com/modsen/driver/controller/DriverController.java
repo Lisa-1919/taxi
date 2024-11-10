@@ -6,6 +6,7 @@ import com.modsen.driver.dto.ResponseDriver;
 import com.modsen.driver.service.DriverService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -25,30 +27,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class DriverController {
 
-    private final int DEFAULT_SIZE = 10;
     private final DriverService driverService;
 
-    @GetMapping("/all/{id}")
-    public ResponseEntity<ResponseDriver> getDriverById(@PathVariable Long id) {
-        ResponseDriver driverDTO = driverService.getDriverById(id);
-        return ResponseEntity.ok(driverDTO);
-    }
-
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseDriver> getDriverByIdNonDeleted(@PathVariable Long id) {
-        ResponseDriver driverDTO = driverService.getDriverByIdNonDeleted(id);
+    public ResponseEntity<ResponseDriver> getDriverByIdNonDeleted(
+            @PathVariable Long id,
+            @RequestParam(value = "active", defaultValue = "true") boolean active
+    ) {
+        ResponseDriver driverDTO = active ? driverService.getDriverByIdNonDeleted(id)
+                : driverService.getDriverById(id);
         return ResponseEntity.ok(driverDTO);
-    }
-
-    @GetMapping("/all")
-    public ResponseEntity<PagedResponseDriverList> getAllDrivers(@PageableDefault(page = 0, size = DEFAULT_SIZE) Pageable pageable) {
-        PagedResponseDriverList allDrivers = driverService.getAllDrivers(pageable);
-        return ResponseEntity.ok(allDrivers);
     }
 
     @GetMapping
-    public ResponseEntity<PagedResponseDriverList> getAllNonDeletedDrivers(@PageableDefault(page = 0, size = DEFAULT_SIZE) Pageable pageable) {
-        PagedResponseDriverList allNonDeletedDrivers = driverService.getAllNonDeletedDrivers(pageable);
+    public ResponseEntity<PagedResponseDriverList> getAllNonDeletedDrivers(
+            @RequestParam(value = "active", defaultValue = "true") boolean active,
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @RequestParam(value = "limit", defaultValue = "10") Integer limit
+    ) {
+        PagedResponseDriverList allNonDeletedDrivers = active ? driverService.getAllNonDeletedDrivers(PageRequest.of(page, limit))
+                : driverService.getAllDrivers(PageRequest.of(page, limit));
         return ResponseEntity.ok(allNonDeletedDrivers);
     }
 

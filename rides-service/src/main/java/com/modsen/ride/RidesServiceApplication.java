@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
-@EnableFeignClients(basePackages = "com.example.rides_service.client")
+@EnableFeignClients(basePackages = "com.modsen.ride.client")
 public class RidesServiceApplication {
 
 	public static void main(String[] args) {
