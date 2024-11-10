@@ -1,5 +1,6 @@
-package com.example.driver_service.controller;
+package com.example.driver_service.unit.controller;
 
+import com.example.driver_service.controller.DriverController;
 import com.example.driver_service.dto.PagedResponseDriverList;
 import com.example.driver_service.dto.RequestDriver;
 import com.example.driver_service.dto.ResponseDriver;

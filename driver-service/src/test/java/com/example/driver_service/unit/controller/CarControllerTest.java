@@ -1,5 +1,6 @@
-package com.example.driver_service.controller;
+package com.example.driver_service.unit.controller;
 
+import com.example.driver_service.controller.CarController;
 import com.example.driver_service.dto.PagedResponseCarList;
 import com.example.driver_service.dto.RequestCar;
 import com.example.driver_service.dto.ResponseCar;

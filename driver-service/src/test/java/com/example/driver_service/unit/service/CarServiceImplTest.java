@@ -1,4 +1,4 @@
-package com.example.driver_service.service;
+package com.example.driver_service.unit.service;
 
 import com.example.driver_service.dto.PagedResponseCarList;
 import com.example.driver_service.dto.RequestCar;
@@ -8,6 +8,7 @@ import com.example.driver_service.entity.Driver;
 import com.example.driver_service.mapper.CarMapper;
 import com.example.driver_service.repo.CarRepository;
 import com.example.driver_service.repo.DriverRepository;
+import com.example.driver_service.service.CarServiceImpl;
 import com.example.driver_service.util.ExceptionMessages;
 import com.example.driver_service.utils.CarTestEntityUtils;
 import jakarta.persistence.EntityNotFoundException;
