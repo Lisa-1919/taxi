@@ -5,6 +5,8 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <include file="01-changeset-rate-table.xml" relativeToChangelogFile="true"/>
+    <include file="01-changeset-rate-table.xml" relativeToChangelogFile="true" context="default"/>
+    <include file="10-changeset-setup-data-for-e2e.xml" relativeToChangelogFile="true" context="e2e"/>
+
 
 </databaseChangeLog>

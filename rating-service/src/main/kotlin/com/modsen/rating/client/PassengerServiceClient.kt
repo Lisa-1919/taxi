@@ -8,13 +8,12 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 
 @FeignClient(
-    name = "passengerService",
-    url = "\${feign.client.passenger-service-url}",
+    name = "passenger-service",
     fallback = com.modsen.rating.client.PassengerServiceClientFallback::class,
     configuration = [com.modsen.rating.client.RetrieveMessageErrorDecoder::class]
 )
 interface PassengerServiceClient {
-    @GetMapping("/{id}/exists")
+    @GetMapping("/passengers/api/v1/{id}/exists")
     @CircuitBreaker(name = "passengerClient")
     @Retry(name = "passengerClientRetry")
     fun doesPassengerExist(@PathVariable("id") passengerId: Long): ResponseEntity<Boolean>

@@ -1,4 +1,4 @@
-package com.modsen.passenger;
+package com.modsen.passenger.it;
 
 import com.modsen.passenger.dto.RequestPassenger;
 import com.modsen.passenger.entity.Passenger;
@@ -36,7 +36,6 @@ import static org.hamcrest.Matchers.notNullValue;
 @AutoConfigureMockMvc
 @Testcontainers
 @ActiveProfiles("integration-test")
-@Transactional
 public class PassengerIntegrationTest {
 
     @Autowired
