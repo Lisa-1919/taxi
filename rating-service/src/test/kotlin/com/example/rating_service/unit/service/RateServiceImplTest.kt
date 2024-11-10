@@ -1,4 +1,4 @@
-package com.example.rating_service.service
+package com.example.rating_service.unit.service
 
 import com.example.rating_service.client.DriverServiceClient
 import com.example.rating_service.client.PassengerServiceClient
@@ -8,6 +8,7 @@ import com.example.rating_service.dto.ResponseRate
 import com.example.rating_service.entity.Rate
 import com.example.rating_service.mapper.RateMapper
 import com.example.rating_service.repo.RateRepository
+import com.example.rating_service.service.RateService
 import com.example.rating_service.util.RateTestEntityUtils
 import com.example.rating_service.util.UserType
 import jakarta.persistence.EntityNotFoundException

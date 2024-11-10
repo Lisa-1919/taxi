@@ -1,5 +1,6 @@
-package com.example.rating_service.controller
+package com.example.rating_service.unit.controller
 
+import com.example.rating_service.controller.RateController
 import com.example.rating_service.dto.PagedResponseRateList
 import com.example.rating_service.dto.ResponseRate
 import com.example.rating_service.service.RateService
