@@ -1,5 +1,6 @@
 package com.example.rating_service.exception
 
+import com.example.rating_service.dto.ErrorResponse
 import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
@@ -18,28 +19,30 @@ class GlobalExceptionHandler {
     fun handleEntityNotFoundException(
         ex: RuntimeException,
         request: WebRequest
-    ): ResponseEntity<String> {
+    ): ResponseEntity<ErrorResponse> {
         log.error("Error: {}. Request: {}", ex.message, request.getDescription(false))
-
-        return ResponseEntity(ex.message, HttpStatus.NOT_FOUND)
+        val errorResponse = ErrorResponse(ex.message ?: "Entity not found")
+        return ResponseEntity(errorResponse, HttpStatus.NOT_FOUND)
     }
 
     @ExceptionHandler(DataIntegrityViolationException::class)
     fun handleDataIntegrityViolationException(
         ex: DataIntegrityViolationException,
         request: WebRequest
-    ): ResponseEntity<String?> {
+    ): ResponseEntity<ErrorResponse> {
         log.error("Error: {}. Request: {}", ex.message, request.getDescription(false))
-        return ResponseEntity(ex.message, HttpStatus.UNPROCESSABLE_ENTITY)
+        val errorResponse = ErrorResponse(ex.message ?: "Data integrity violation occurred")
+        return ResponseEntity(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY)
     }
 
     @ExceptionHandler(Exception::class)
     fun handleRuntimeException(
         ex: Exception,
         request: WebRequest
-    ): ResponseEntity<String> {
+    ): ResponseEntity<ErrorResponse> {
         log.error("Error: {}. Request: {}", ex.message, request.getDescription(false))
-        return ResponseEntity("There was an error on the server. Try again later.", HttpStatus.INTERNAL_SERVER_ERROR)
+        val errorResponse = ErrorResponse("There was an error on the server. Try again later.")
+        return ResponseEntity(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR)
     }
 
 }
