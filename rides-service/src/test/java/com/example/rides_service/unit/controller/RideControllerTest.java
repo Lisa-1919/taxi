@@ -55,15 +55,16 @@ class RideControllerTest {
     @BeforeEach
     void setUp() {
         rideId = RideTestEntityUtils.DEFAULT_RIDE_ID;
-        testRequestRide = RideTestEntityUtils.createTestRequestRide();
-        testResponseRide = RideTestEntityUtils.createTestResponseRide();
+        testRequestRide = RideTestEntityUtils.createTestRequestRide().build();
+        testResponseRide = RideTestEntityUtils.createTestResponseRide().build();
     }
 
     @Nested
     class GetRideTests {
         @Test
         void getRideById_ShouldReturnRide() throws Exception {
-            when(rideService.getRideById(rideId)).thenReturn(testResponseRide);
+            when(rideService.getRideById(rideId))
+                    .thenReturn(testResponseRide);
 
             mockMvc.perform(get("/api/v1/rides/{id}", rideId))
                     .andExpect(status().isOk())
@@ -91,7 +92,8 @@ class RideControllerTest {
             Pageable pageRequest =  RideTestEntityUtils.createDefaultPageRequest();
             PagedResponseRideList ridePage = RideTestEntityUtils.createPagedResponseRideList(List.of(testResponseRide));
 
-            when(rideService.getAllRides(pageRequest)).thenReturn(ridePage);
+            when(rideService.getAllRides(pageRequest.getPageNumber(), pageRequest.getPageSize()))
+                    .thenReturn(ridePage);
 
             mockMvc.perform(get("/api/v1/rides")
                             .param("page", "0")
@@ -106,7 +108,8 @@ class RideControllerTest {
 
         @Test
         void addRide_ShouldReturnCreated() throws Exception {
-            when(rideService.addRide(any(RequestRide.class))).thenReturn(testResponseRide);
+            when(rideService.addRide(any(RequestRide.class)))
+                    .thenReturn(testResponseRide);
 
             mockMvc.perform(post("/api/v1/rides")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -136,7 +139,8 @@ class RideControllerTest {
 
         @Test
         void editRide_ShouldReturnOk() throws Exception {
-            when(rideService.editRide(eq(rideId), any(RequestRide.class))).thenReturn(testResponseRide);
+            when(rideService.editRide(eq(rideId), any(RequestRide.class)))
+                    .thenReturn(testResponseRide);
 
             mockMvc.perform(put("/api/v1/rides/{id}", rideId)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -191,7 +195,8 @@ class RideControllerTest {
         @Test
         void updateRideStatus_ShouldReturnOk() throws Exception {
             RequestChangeStatus requestChangeStatus = new RequestChangeStatus(RideStatuses.ACCEPTED);
-            when(rideService.updateRideStatus(eq(rideId), any(RequestChangeStatus.class))).thenReturn(testResponseRide);
+            when(rideService.updateRideStatus(eq(rideId), any(RequestChangeStatus.class)))
+                    .thenReturn(testResponseRide);
 
             mockMvc.perform(put("/api/v1/rides/{id}/status", rideId)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -222,7 +227,8 @@ class RideControllerTest {
         @Test
         void doesRideExistForDriver_ShouldReturnOk() throws Exception {
             Long driverId = RideTestEntityUtils.DEFAULT_DRIVER_ID;
-            when(rideService.doesRideExistForDriver(rideId, driverId)).thenReturn(true);
+            when(rideService.doesRideExistForDriver(rideId, driverId))
+                    .thenReturn(true);
 
             mockMvc.perform(get("/api/v1/rides/{id}/driver/{driverId}/exists", rideId, driverId))
                     .andExpect(status().isOk())
@@ -244,7 +250,8 @@ class RideControllerTest {
         @Test
         void doesRideExistForPassenger_ShouldReturnOk() throws Exception {
             Long passengerId = RideTestEntityUtils.DEFAULT_PASSENGER_ID;
-            when(rideService.doesRideExistForPassenger(rideId, passengerId)).thenReturn(true);
+            when(rideService.doesRideExistForPassenger(rideId, passengerId))
+                    .thenReturn(true);
 
             mockMvc.perform(get("/api/v1/rides/{id}/passenger/{passengerId}/exists", rideId, passengerId))
                     .andExpect(status().isOk())
@@ -257,7 +264,7 @@ class RideControllerTest {
 
             String errorMessage = ExceptionMessages.RIDE_NOT_FOUND_FOR_PASSENGER.format(rideId, passengerId);
             doThrow(new EntityNotFoundException(errorMessage))
-                    .when(rideService).doesRideExistForPassenger(rideId, passengerId);
+                    .when(rideService.doesRideExistForPassenger(rideId, passengerId));
 
             mockMvc.perform(get("/api/v1/rides/{id}/passenger/{passengerId}/exists", rideId, passengerId))
                     .andExpect(status().isNotFound())

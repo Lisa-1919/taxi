@@ -4,7 +4,6 @@ import com.example.rides_service.dto.PagedResponseRideList;
 import com.example.rides_service.dto.RequestChangeStatus;
 import com.example.rides_service.dto.RequestRide;
 import com.example.rides_service.dto.ResponseRide;
-import org.springframework.data.domain.Pageable;
 
 public interface RideService {
 
@@ -16,7 +15,7 @@ public interface RideService {
 
     ResponseRide getRideById(Long id);
 
-    PagedResponseRideList getAllRides(Pageable pageable);
+    PagedResponseRideList getAllRides(int page, int limit);
 
     Boolean doesRideExistForDriver(Long id, Long driverId);
 

@@ -27,76 +27,16 @@ public class RideTestEntityUtils {
     public static final long DEFAULT_TOTAL_ELEMENTS = 1L;
     public static final int DEFAULT_TOTAL_PAGES = 1;
 
-    public static Ride createTestRide() {
-        return new Ride(
-                DEFAULT_RIDE_ID,
-                null,
-                DEFAULT_PASSENGER_ID,
-                DEFAULT_FROM_ADDRESS,
-                DEFAULT_TO_ADDRESS,
-                RideStatuses.CREATED,
-                DEFAULT_DATETIME,
-                DEFAULT_PRICE
-        );
+    public static RideBuilder createTestRide() {
+        return new RideBuilder();
     }
 
-    public static RequestRide createTestRequestRide() {
-        return new RequestRide(
-                null,
-                DEFAULT_PASSENGER_ID,
-                DEFAULT_FROM_ADDRESS,
-                DEFAULT_TO_ADDRESS,
-                DEFAULT_PRICE
-        );
+    public static RequestRideBuilder createTestRequestRide() {
+        return new RequestRideBuilder();
     }
 
-    public static ResponseRide createTestResponseRide() {
-        return new ResponseRide(
-                DEFAULT_RIDE_ID,
-                null,
-                DEFAULT_PASSENGER_ID,
-                DEFAULT_FROM_ADDRESS,
-                DEFAULT_TO_ADDRESS,
-                RideStatuses.CREATED,
-                DEFAULT_DATETIME,
-                DEFAULT_PRICE
-        );
-    }
-
-    public static Ride createTestUpdatedRide() {
-        return new Ride(
-                DEFAULT_RIDE_ID,
-                DEFAULT_DRIVER_ID,
-                DEFAULT_PASSENGER_ID,
-                DEFAULT_FROM_ADDRESS,
-                DEFAULT_TO_ADDRESS,
-                RideStatuses.ACCEPTED,
-                DEFAULT_DATETIME,
-                DEFAULT_PRICE
-        );
-    }
-
-    public static RequestRide createUpdateRequestRide() {
-        return new RequestRide(
-                DEFAULT_DRIVER_ID,
-                DEFAULT_PASSENGER_ID,
-                DEFAULT_FROM_ADDRESS,
-                DEFAULT_TO_ADDRESS,
-                DEFAULT_PRICE
-        );
-    }
-
-    public static ResponseRide createTestUpdatedResponseRide() {
-        return new ResponseRide(
-                DEFAULT_DRIVER_ID,
-                DEFAULT_DRIVER_ID,
-                DEFAULT_PASSENGER_ID,
-                DEFAULT_FROM_ADDRESS,
-                DEFAULT_TO_ADDRESS,
-                RideStatuses.ACCEPTED,
-                DEFAULT_DATETIME,
-                DEFAULT_PRICE
-        );
+    public static ResponseRideBuilder createTestResponseRide() {
+        return new ResponseRideBuilder();
     }
 
     public static RequestChangeStatus createChangeStatusRequest(RideStatuses rideStatuses) {

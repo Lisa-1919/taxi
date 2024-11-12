@@ -17,7 +17,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -95,8 +95,8 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    public PagedResponseRideList getAllRides(Pageable pageable) {
-        Page<Ride> ridePage = rideRepository.findAll(pageable);
+    public PagedResponseRideList getAllRides(int page, int limit) {
+        Page<Ride> ridePage = rideRepository.findAll(PageRequest.of(page, limit));
         List<ResponseRide> responseRideList = ridePage
                 .map(rideMapper::rideToResponseRide)
                 .toList();

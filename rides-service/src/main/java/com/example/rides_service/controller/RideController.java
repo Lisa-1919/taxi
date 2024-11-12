@@ -7,7 +7,6 @@ import com.example.rides_service.dto.ResponseRide;
 import com.example.rides_service.service.RideService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,7 +36,7 @@ public class RideController {
             @RequestParam(value = "page", defaultValue = "0") Integer page,
             @RequestParam(value = "limit", defaultValue = "10") Integer limit
     ) {
-        PagedResponseRideList pagedResponseRideList = rideService.getAllRides(PageRequest.of(page, limit));
+        PagedResponseRideList pagedResponseRideList = rideService.getAllRides(page, limit);
         return ResponseEntity.ok(pagedResponseRideList);
     }
 

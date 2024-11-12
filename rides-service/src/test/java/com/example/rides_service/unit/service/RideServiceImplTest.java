@@ -14,6 +14,7 @@ import com.example.rides_service.repo.RideRepository;
 import com.example.rides_service.service.KafkaProducer;
 import com.example.rides_service.service.RideServiceImpl;
 import com.example.rides_service.util.ExceptionMessages;
+import com.example.rides_service.util.RideBuilder;
 import com.example.rides_service.util.RideStatuses;
 import com.example.rides_service.util.RideTestEntityUtils;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -34,7 +36,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -62,21 +63,26 @@ class RideServiceImplTest {
     private RequestRide testRequestRide;
     private ResponseRide testResponseRide;
 
+    private static final String RIDE_STATUS_UPDATE_MESSAGE = "The status of your ride with id %d changed to %s";
+
     @BeforeEach
     void setUp() {
         rideId = RideTestEntityUtils.DEFAULT_RIDE_ID;
-        testRide = RideTestEntityUtils.createTestRide();
-        testRequestRide = RideTestEntityUtils.createTestRequestRide();
-        testResponseRide = RideTestEntityUtils.createTestResponseRide();
+        testRide = RideTestEntityUtils.createTestRide().build();
+        testRequestRide = RideTestEntityUtils.createTestRequestRide().build();
+        testResponseRide = RideTestEntityUtils.createTestResponseRide().build();
     }
 
     @Nested
     class AddRideTests {
         @Test
         void addRideOk() {
-            when(rideMapper.requestRideToRide(any(RequestRide.class))).thenReturn(testRide);
-            when(rideRepository.save(any(Ride.class))).thenReturn(testRide);
-            when(rideMapper.rideToResponseRide(any(Ride.class))).thenReturn(testResponseRide);
+            when(rideMapper.requestRideToRide(testRequestRide))
+                    .thenReturn(testRide);
+            when(rideRepository.save(testRide))
+                    .thenReturn(testRide);
+            when(rideMapper.rideToResponseRide(testRide))
+                    .thenReturn(testResponseRide);
 
             ResponseRide result = rideService.addRide(testRequestRide);
 
@@ -89,7 +95,8 @@ class RideServiceImplTest {
         @Test
         void addRidePassengerNotFound() {
             doThrow(EntityNotFoundException.class)
-                    .when(passengerServiceClient).doesPassengerExists(testRequestRide.passengerId());
+                    .when(passengerServiceClient)
+                    .doesPassengerExists(testRequestRide.passengerId());
 
             assertThrows(EntityNotFoundException.class, () -> rideService.addRide(testRequestRide));
 
@@ -103,30 +110,37 @@ class RideServiceImplTest {
     class EditRideTests {
         @Test
         void editRideOk() {
-            RequestRide requestRide = RideTestEntityUtils.createUpdateRequestRide();
-            Ride updatedRide =  RideTestEntityUtils.createTestUpdatedRide();
-            ResponseRide responseRide = RideTestEntityUtils.createTestUpdatedResponseRide();
-            when(rideRepository.findById(rideId)).thenReturn(Optional.of(testRide));
-            when(rideRepository.save(testRide)).thenReturn(updatedRide);
-            when(rideMapper.rideToResponseRide(updatedRide)).thenReturn(responseRide);
+            RequestRide requestRide = RideTestEntityUtils.createTestRequestRide().driverId(RideTestEntityUtils.DEFAULT_DRIVER_ID).build();
+            Ride updatedRide =  RideTestEntityUtils.createTestRide().driverId(RideTestEntityUtils.DEFAULT_DRIVER_ID).status(RideStatuses.ACCEPTED).build();
+            ResponseRide responseRide = RideTestEntityUtils.createTestResponseRide().status(RideStatuses.ACCEPTED).build();
+            String message = String.format(RIDE_STATUS_UPDATE_MESSAGE, rideId, updatedRide.getRideStatus().toString());
+            UpdateStatusMessage updateStatusMessage = new UpdateStatusMessage(message);
+
+            when(rideRepository.findById(rideId))
+                    .thenReturn(Optional.of(testRide));
+            when(rideRepository.save(testRide))
+                    .thenReturn(updatedRide);
+            when(rideMapper.rideToResponseRide(updatedRide))
+                    .thenReturn(responseRide);
 
             ResponseRide result = rideService.editRide(rideId, requestRide);
 
             assertEquals(responseRide, result);
+
             verify(driverServiceClient).doesDriverExists(requestRide.driverId());
             verify(passengerServiceClient).doesPassengerExists(requestRide.passengerId());
             verify(rideMapper).updateRideFromRideDto(requestRide, testRide);
             verify(rideRepository).save(testRide);
-            verify(kafkaProducer).send(any(UpdateStatusMessage.class));
-
+            verify(kafkaProducer).send(updateStatusMessage);
         }
 
         @Test
         void editRidePassengerNotFound() {
-            RequestRide requestRide = RideTestEntityUtils.createUpdateRequestRide();
+            RequestRide requestRide = RideTestEntityUtils.createTestRequestRide().driverId(RideTestEntityUtils.DEFAULT_DRIVER_ID).build();
 
             doThrow(EntityNotFoundException.class)
-                    .when(passengerServiceClient).doesPassengerExists(requestRide.passengerId());
+                    .when(passengerServiceClient)
+                    .doesPassengerExists(requestRide.passengerId());
 
             assertThrows(EntityNotFoundException.class, () -> rideService.editRide(rideId, requestRide));
 
@@ -139,10 +153,11 @@ class RideServiceImplTest {
 
         @Test
         void editRideDriverNotFound() {
-            RequestRide requestRide = RideTestEntityUtils.createUpdateRequestRide();
+            RequestRide requestRide = RideTestEntityUtils.createTestRequestRide().driverId(RideTestEntityUtils.DEFAULT_DRIVER_ID).build();
 
             doThrow(EntityNotFoundException.class)
-                    .when(driverServiceClient).doesDriverExists(requestRide.driverId());
+                    .when(driverServiceClient)
+                    .doesDriverExists(requestRide.driverId());
 
             assertThrows(EntityNotFoundException.class, () -> rideService.editRide(rideId, requestRide));
 
@@ -153,7 +168,8 @@ class RideServiceImplTest {
 
         @Test
         void editRideNotFound() {
-            RequestRide requestRide = RideTestEntityUtils.createUpdateRequestRide();
+            RequestRide requestRide = RideTestEntityUtils.createTestRequestRide().driverId(RideTestEntityUtils.DEFAULT_DRIVER_ID).build();
+
             when(rideRepository.findById(rideId))
                     .thenThrow(new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND.format(rideId)));
 
@@ -168,25 +184,29 @@ class RideServiceImplTest {
         @Test
         void updateRideStatusOk() {
             RequestChangeStatus requestChangeStatus = RideTestEntityUtils.createChangeStatusRequest(RideStatuses.CANCELED);
-            testRide.setRideStatus(RideStatuses.CREATED);
 
-            when(rideRepository.findById(rideId)).thenReturn(Optional.of(testRide));
-            when(rideRepository.save(any(Ride.class))).thenReturn(testRide);
-            when(rideMapper.rideToResponseRide(any(Ride.class))).thenReturn(testResponseRide);
+            when(rideRepository.findById(rideId))
+                    .thenReturn(Optional.of(testRide));
+            when(rideRepository.save(testRide))
+                    .thenReturn(testRide);
+            when(rideMapper.rideToResponseRide(testRide))
+                    .thenReturn(testResponseRide);
 
             ResponseRide result = rideService.updateRideStatus(rideId, requestChangeStatus);
 
-            verify(rideRepository).save(testRide);
-            verify(kafkaProducer).send(any(UpdateStatusMessage.class));
             assertEquals(testResponseRide, result);
+
+            verify(rideRepository).save(testRide);
         }
 
         @Test
         void updateRideStatusRideNotFound() {
+            RequestChangeStatus requestChangeStatus = RideTestEntityUtils.createChangeStatusRequest(RideStatuses.ACCEPTED);
+
             when(rideRepository.findById(rideId))
                     .thenThrow(new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND.format(rideId)));
 
-            assertThrows(EntityNotFoundException.class, () -> rideService.updateRideStatus(rideId, any(RequestChangeStatus.class)));
+            assertThrows(EntityNotFoundException.class, () -> rideService.updateRideStatus(rideId, requestChangeStatus));
 
             verify(rideRepository).findById(rideId);
             verifyNoMoreInteractions(rideRepository, rideMapper);
@@ -198,13 +218,15 @@ class RideServiceImplTest {
             testRide.setRideStatus(RideStatuses.CREATED);
             String expectedMessage = ExceptionMessages.INVALID_STATUS_TRANSITION.format(testRide.getRideStatus(), requestChangeStatus.newStatus());
 
-            when(rideRepository.findById(rideId)).thenReturn(Optional.of(testRide));
+            when(rideRepository.findById(rideId))
+                    .thenReturn(Optional.of(testRide));
 
             InvalidStatusTransitionException exception = assertThrows(InvalidStatusTransitionException.class, () -> {
                 rideService.updateRideStatus(rideId, requestChangeStatus);
             });
 
             assertEquals(expectedMessage, exception.getMessage());
+
             verify(rideRepository).findById(rideId);
             verifyNoMoreInteractions(rideRepository, rideMapper, kafkaProducer);
         }
@@ -214,14 +236,17 @@ class RideServiceImplTest {
     class GetRideTests {
         @Test
         void getRideByIdOk() {
-            when(rideRepository.findById(rideId)).thenReturn(Optional.of(testRide));
-            when(rideMapper.rideToResponseRide(any(Ride.class))).thenReturn(testResponseRide);
+            when(rideRepository.findById(rideId))
+                    .thenReturn(Optional.of(testRide));
+            when(rideMapper.rideToResponseRide(testRide))
+                    .thenReturn(testResponseRide);
 
             ResponseRide result = rideService.getRideById(rideId);
 
+            assertEquals(testResponseRide, result);
+
             verify(rideRepository).findById(rideId);
             verify(rideMapper).rideToResponseRide(testRide);
-            assertEquals(testResponseRide, result);
         }
 
         @Test
@@ -238,14 +263,17 @@ class RideServiceImplTest {
         void getAllRidesOk() {
             Pageable pageable = RideTestEntityUtils.createDefaultPageRequest();
             Page<Ride> ridePage = RideTestEntityUtils.createDefaultRidePage(List.of(testRide));
-            when(rideRepository.findAll(pageable)).thenReturn(ridePage);
-            when(rideMapper.rideToResponseRide(any(Ride.class))).thenReturn(testResponseRide);
+            when(rideRepository.findAll(pageable))
+                    .thenReturn(ridePage);
+            when(rideMapper.rideToResponseRide(testRide))
+                    .thenReturn(testResponseRide);
 
-            PagedResponseRideList result = rideService.getAllRides(pageable);
+            PagedResponseRideList result = rideService.getAllRides(pageable.getPageNumber(), pageable.getPageSize());
 
-            verify(rideRepository).findAll(pageable);
             assertEquals(1, result.totalElements());
             assertEquals(testResponseRide, result.rides().get(0));
+
+            verify(rideRepository).findAll(pageable);
         }
     }
 
@@ -254,12 +282,14 @@ class RideServiceImplTest {
         @Test
         void doesRideExistForDriverOk() {
             Long driverId = RideTestEntityUtils.DEFAULT_DRIVER_ID;
-            when(rideRepository.existsByIdAndDriverId(rideId, driverId)).thenReturn(true);
+            when(rideRepository.existsByIdAndDriverId(rideId, driverId))
+                    .thenReturn(true);
 
             Boolean result = rideService.doesRideExistForDriver(rideId, driverId);
 
-            verify(rideRepository).existsByIdAndDriverId(rideId, driverId);
             assertTrue(result);
+
+            verify(rideRepository).existsByIdAndDriverId(rideId, driverId);
         }
 
         @Test
@@ -277,7 +307,8 @@ class RideServiceImplTest {
         @Test
         void doesRideExistForPassengerOk() {
             Long passengerId = RideTestEntityUtils.DEFAULT_PASSENGER_ID;
-            when(rideRepository.existsByIdAndPassengerId(rideId, passengerId)).thenReturn(true);
+            when(rideRepository.existsByIdAndPassengerId(rideId, passengerId))
+                    .thenReturn(true);
 
             Boolean result = rideService.doesRideExistForPassenger(rideId, passengerId);
 
