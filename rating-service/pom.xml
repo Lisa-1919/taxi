@@ -5,13 +5,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.example</groupId>
+		<groupId>com.modsen</groupId>
 		<artifactId>taxi</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
-		<relativePath/>
 	</parent>
 
-	<artifactId>rating-service</artifactId>
+	<artifactId>rating</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>rating-service</name>
 	<description>Demo project for Spring Boot</description>
