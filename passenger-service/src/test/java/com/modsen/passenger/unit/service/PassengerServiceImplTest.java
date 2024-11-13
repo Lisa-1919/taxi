@@ -1,14 +1,14 @@
-package com.example.passenger_service.unit.service;
+package com.modsen.passenger.unit.service;
 
-import com.example.passenger_service.dto.PagedResponsePassengerList;
-import com.example.passenger_service.dto.RequestPassenger;
-import com.example.passenger_service.dto.ResponsePassenger;
-import com.example.passenger_service.entity.Passenger;
-import com.example.passenger_service.mapper.PassengerMapper;
-import com.example.passenger_service.repo.PassengerRepository;
-import com.example.passenger_service.service.PassengerServiceImpl;
-import com.example.passenger_service.util.ExceptionMessages;
-import com.example.passenger_service.util.PassengerTestEntityUtils;
+import com.modsen.passenger.dto.PagedResponsePassengerList;
+import com.modsen.passenger.dto.RequestPassenger;
+import com.modsen.passenger.dto.ResponsePassenger;
+import com.modsen.passenger.entity.Passenger;
+import com.modsen.passenger.mapper.PassengerMapper;
+import com.modsen.passenger.repo.PassengerRepository;
+import com.modsen.passenger.service.PassengerServiceImpl;
+import com.modsen.passenger.util.ExceptionMessages;
+import com.modsen.passenger.util.PassengerTestEntityUtils;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;

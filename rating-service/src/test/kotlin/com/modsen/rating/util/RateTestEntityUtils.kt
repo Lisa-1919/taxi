@@ -1,9 +1,9 @@
-package com.example.rating_service.util
+package com.modsen.rating.util
 
-import com.example.rating_service.dto.PagedResponseRateList
-import com.example.rating_service.dto.RequestRate
-import com.example.rating_service.dto.ResponseRate
-import com.example.rating_service.entity.Rate
+import com.modsen.rating.dto.PagedResponseRateList
+import com.modsen.rating.dto.RequestRate
+import com.modsen.rating.dto.ResponseRate
+import com.modsen.rating.entity.Rate
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 

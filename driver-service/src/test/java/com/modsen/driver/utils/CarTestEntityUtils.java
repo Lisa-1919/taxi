@@ -1,10 +1,10 @@
-package com.example.driver_service.utils;
+package com.modsen.driver.utils;
 
-import com.example.driver_service.dto.PagedResponseCarList;
-import com.example.driver_service.dto.RequestCar;
-import com.example.driver_service.dto.ResponseCar;
-import com.example.driver_service.entity.Car;
-import com.example.driver_service.entity.Driver;
+import com.modsen.driver.dto.PagedResponseCarList;
+import com.modsen.driver.dto.RequestCar;
+import com.modsen.driver.dto.ResponseCar;
+import com.modsen.driver.entity.Car;
+import com.modsen.driver.entity.Driver;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;

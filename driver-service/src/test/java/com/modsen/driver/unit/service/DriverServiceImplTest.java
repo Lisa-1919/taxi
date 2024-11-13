@@ -1,14 +1,14 @@
-package com.example.driver_service.unit.service;
+package com.modsen.driver.unit.service;
 
-import com.example.driver_service.dto.PagedResponseDriverList;
-import com.example.driver_service.dto.RequestDriver;
-import com.example.driver_service.dto.ResponseDriver;
-import com.example.driver_service.entity.Driver;
-import com.example.driver_service.mapper.DriverMapper;
-import com.example.driver_service.repo.DriverRepository;
-import com.example.driver_service.service.DriverServiceImpl;
-import com.example.driver_service.util.ExceptionMessages;
-import com.example.driver_service.utils.DriverTestEntityUtils;
+import com.modsen.driver.dto.PagedResponseDriverList;
+import com.modsen.driver.dto.RequestDriver;
+import com.modsen.driver.dto.ResponseDriver;
+import com.modsen.driver.entity.Driver;
+import com.modsen.driver.mapper.DriverMapper;
+import com.modsen.driver.repo.DriverRepository;
+import com.modsen.driver.service.DriverServiceImpl;
+import com.modsen.driver.util.ExceptionMessages;
+import com.modsen.driver.utils.DriverTestEntityUtils;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;

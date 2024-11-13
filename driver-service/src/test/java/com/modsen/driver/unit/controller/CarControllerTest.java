@@ -1,12 +1,12 @@
-package com.example.driver_service.unit.controller;
+package com.modsen.driver.unit.controller;
 
-import com.example.driver_service.controller.CarController;
-import com.example.driver_service.dto.PagedResponseCarList;
-import com.example.driver_service.dto.RequestCar;
-import com.example.driver_service.dto.ResponseCar;
-import com.example.driver_service.service.CarService;
-import com.example.driver_service.util.ExceptionMessages;
-import com.example.driver_service.utils.CarTestEntityUtils;
+import com.modsen.driver.controller.CarController;
+import com.modsen.driver.dto.PagedResponseCarList;
+import com.modsen.driver.dto.RequestCar;
+import com.modsen.driver.dto.ResponseCar;
+import com.modsen.driver.service.CarService;
+import com.modsen.driver.util.ExceptionMessages;
+import com.modsen.driver.utils.CarTestEntityUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;

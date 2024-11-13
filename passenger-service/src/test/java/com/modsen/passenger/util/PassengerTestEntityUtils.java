@@ -1,23 +1,22 @@
-package com.example.driver_service.utils;
+package com.modsen.passenger.util;
 
-import com.example.driver_service.dto.PagedResponseDriverList;
-import com.example.driver_service.dto.RequestDriver;
-import com.example.driver_service.dto.ResponseDriver;
-import com.example.driver_service.entity.Driver;
+import com.modsen.passenger.dto.PagedResponsePassengerList;
+import com.modsen.passenger.dto.RequestPassenger;
+import com.modsen.passenger.dto.ResponsePassenger;
+import com.modsen.passenger.entity.Passenger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 
-public class DriverTestEntityUtils {
+public class PassengerTestEntityUtils {
 
-    public static final Long DEFAULT_DRIVER_ID = 1L;
+    public static final Long DEFAULT_PASSENGER_ID = 1L;
     public static final String DEFAULT_FIRST_NAME = "John";
     public static final String DEFAULT_LAST_NAME = "Doe";
     public static final String DEFAULT_EMAIL = "john@example.com";
     public static final String DEFAULT_PHONE_NUMBER = "1234567890";
-    public static final String DEFAULT_SEX = "male";
     public static final boolean DEFAULT_IS_DELETED = false;
 
     public static final String NEW_EMAIL = "new.john@example.com";
@@ -33,85 +32,74 @@ public class DriverTestEntityUtils {
     public static final boolean DEFAULT_LAST_PAGE = true;
 
 
-    public static Driver createTestDriver() {
-        return new Driver(
-                DEFAULT_DRIVER_ID,
+    public static Passenger createTestPassenger() {
+        return new Passenger(
+                DEFAULT_PASSENGER_ID,
                 DEFAULT_FIRST_NAME,
                 DEFAULT_LAST_NAME,
                 DEFAULT_EMAIL,
                 DEFAULT_PHONE_NUMBER,
-                DEFAULT_SEX,
-                null,
                 DEFAULT_IS_DELETED
         );
     }
 
-    public static RequestDriver createTestRequestDriver() {
-        return new RequestDriver(
+    public static RequestPassenger createTestRequestPassenger() {
+        return new RequestPassenger(
+                DEFAULT_FIRST_NAME,
+                DEFAULT_LAST_NAME,
+                DEFAULT_EMAIL,
+                DEFAULT_PHONE_NUMBER
+        );
+    }
+
+    public static ResponsePassenger createTestResponsePassenger() {
+        return new ResponsePassenger(
+                DEFAULT_PASSENGER_ID,
                 DEFAULT_FIRST_NAME,
                 DEFAULT_LAST_NAME,
                 DEFAULT_EMAIL,
                 DEFAULT_PHONE_NUMBER,
-                DEFAULT_SEX
-        );
-    }
-
-    public static ResponseDriver createTestResponseDriver() {
-        return new ResponseDriver(
-                DEFAULT_DRIVER_ID,
-                DEFAULT_FIRST_NAME,
-                DEFAULT_LAST_NAME,
-                DEFAULT_EMAIL,
-                DEFAULT_PHONE_NUMBER,
-                DEFAULT_SEX,
-                null,
                 DEFAULT_IS_DELETED
         );
     }
 
-    public static Driver createUpdatedDriver() {
-        return new Driver(
-                DEFAULT_DRIVER_ID,
+    public static Passenger createUpdatedPassenger() {
+        return new Passenger(
+                DEFAULT_PASSENGER_ID,
                 DEFAULT_FIRST_NAME,
                 DEFAULT_LAST_NAME,
                 NEW_EMAIL,
                 NEW_PHONE_NUMBER,
-                DEFAULT_SEX,
-                null,
                 DEFAULT_IS_DELETED
         );
     }
 
-    public static RequestDriver createUpdateRequestDriver() {
-        return new RequestDriver(
+    public static RequestPassenger createUpdateRequestPassenger() {
+        return new RequestPassenger(
                 DEFAULT_FIRST_NAME,
                 DEFAULT_LAST_NAME,
                 NEW_EMAIL,
-                NEW_PHONE_NUMBER,
-                DEFAULT_SEX
+                NEW_PHONE_NUMBER
         );
     }
 
-    public static ResponseDriver createUpdatedResponseDriver() {
-        return new ResponseDriver(
-                DEFAULT_DRIVER_ID,
+    public static ResponsePassenger createUpdatedResponsePassenger() {
+        return new ResponsePassenger(
+                DEFAULT_PASSENGER_ID,
                 DEFAULT_FIRST_NAME,
                 DEFAULT_LAST_NAME,
                 NEW_EMAIL,
                 NEW_PHONE_NUMBER,
-                DEFAULT_SEX,
-                null,
                 DEFAULT_IS_DELETED
         );
     }
 
-    public static RequestDriver createInvalidRequestDriver() {
-        return new RequestDriver(
+    public static RequestPassenger createInvalidRequestPassenger() {
+        return new RequestPassenger(
                 DEFAULT_FIRST_NAME,
                 DEFAULT_LAST_NAME,
                 INVALID_EMAIL,
-                INVALID_PHONE_NUMBER,
-                DEFAULT_SEX
+                INVALID_PHONE_NUMBER
         );
     }
 
@@ -119,13 +107,13 @@ public class DriverTestEntityUtils {
         return PageRequest.of(DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE);
     }
 
-    public static Page<Driver> createDefaultDriverPage(List<Driver> drivers) {
-        return new PageImpl<>(drivers, createDefaultPageRequest(), DEFAULT_TOTAL_ELEMENTS);
+    public static Page<Passenger> createDefaultPassengerPage(List<Passenger> passengers) {
+        return new PageImpl<>(passengers, createDefaultPageRequest(), DEFAULT_TOTAL_ELEMENTS);
     }
 
-    public static PagedResponseDriverList createDefaultPagedResponseDriverList(List<ResponseDriver> drivers) {
-        return new PagedResponseDriverList(
-                drivers,
+    public static PagedResponsePassengerList createDefaultPagedResponsePassengerList(List<ResponsePassenger> passengers) {
+        return new PagedResponsePassengerList(
+                passengers,
                 DEFAULT_PAGE_NUMBER,
                 DEFAULT_PAGE_SIZE,
                 DEFAULT_TOTAL_ELEMENTS,

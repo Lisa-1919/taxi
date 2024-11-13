@@ -1,12 +1,12 @@
-package com.example.rating_service.unit.controller
+package com.modsen.rating.unit.controller
 
-import com.example.rating_service.controller.RateController
-import com.example.rating_service.dto.PagedResponseRateList
-import com.example.rating_service.dto.ResponseRate
-import com.example.rating_service.service.RateService
-import com.example.rating_service.util.ExceptionMessages
-import com.example.rating_service.util.RateTestEntityUtils
-import com.example.rating_service.util.UserType
+import com.modsen.rating.controller.RateController
+import com.modsen.rating.dto.PagedResponseRateList
+import com.modsen.rating.dto.ResponseRate
+import com.modsen.rating.service.RateService
+import com.modsen.rating.util.ExceptionMessages
+import com.modsen.rating.util.RateTestEntityUtils
+import com.modsen.rating.util.UserType
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.persistence.EntityNotFoundException
 import org.junit.jupiter.api.BeforeEach
