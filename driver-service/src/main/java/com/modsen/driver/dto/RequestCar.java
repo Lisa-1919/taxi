@@ -17,5 +17,5 @@ public record RequestCar(
         @NotNull(message = "Driver id cannot be null")
         Long driverId
 ) {
-    private static final String LICENSE_PLATE_REGEX = "^[A-Z0-9]{1,4}[- ]?[A-Z0-9]{1,4}[- ]?[A-Z0-9]{1,4}$";
+    private static final String LICENSE_PLATE_REGEX = "^\\b([A-Z]{1} \\d{4} [A-Z]{2}-\\d|\\d{4} [A-Z]-\\d|[A-Z]{2} \\d{4}-\\d)\\b$";
 }

@@ -6,4 +6,6 @@ object ExceptionMessages {
     const val UNABLE_TO_REACH_RIDES_SERVICE = "Unable to reach Rides Service. Please try again later"
     const val UNABLE_TO_REACH_PASSENGER_SERVICE = "Unable to reach Passenger Service. Please try again later"
     const val UNABLE_TO_REACH_DRIVER_SERVICE = "Unable to reach Driver Service. Please try again later"
+
+    fun rateNotFound(id: Long) = "Rate with id $id not found"
 }

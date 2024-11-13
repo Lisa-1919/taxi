@@ -53,7 +53,7 @@ class RateController(
 
     @GetMapping("/from-drivers/{driverId}")
     fun getAllRatesByDriverId(@PathVariable driverId: Long, @PageableDefault(page = 0, size = 10) pageable: Pageable): ResponseEntity<PagedResponseRateList> {
-        val responseRateList = rateService.getAllRatesByPassengerId(driverId, pageable)
+        val responseRateList = rateService.getAllRatesByDriverId(driverId, pageable)
         return ResponseEntity.ok(responseRateList)
     }
 

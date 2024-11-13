@@ -6,8 +6,7 @@ import com.modsen.passenger.dto.PagedResponsePassengerList;
 import com.modsen.passenger.service.PassengerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
@@ -24,30 +24,27 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/passengers")
 public class PassengerController {
 
-    private final static int DEFAULT_SIZE = 10;
     private final PassengerService passengerService;
 
-    @GetMapping("/all{id}")
-    public ResponseEntity<ResponsePassenger> getPassengerById(@PathVariable Long id) {
-        ResponsePassenger passengerDto = passengerService.getPassengerById(id);
-        return ResponseEntity.ok(passengerDto);
-    }
-
     @GetMapping("/{id}")
-    public ResponseEntity<ResponsePassenger> getPassengerByIdNonDeleted(@PathVariable Long id) {
-        ResponsePassenger passengerDto = passengerService.getPassengerByIdNonDeleted(id);
+    public ResponseEntity<ResponsePassenger> getPassengerById(
+            @PathVariable Long id,
+            @RequestParam(value = "active", defaultValue = "true") boolean active
+    ) {
+        ResponsePassenger passengerDto = active ? passengerService.getPassengerByIdNonDeleted(id)
+            : passengerService.getPassengerById(id);
         return ResponseEntity.ok(passengerDto);
-    }
-
-    @GetMapping("/all")
-    public ResponseEntity<PagedResponsePassengerList> getAllPassengers(@PageableDefault(page = 0, size = DEFAULT_SIZE) Pageable pageable) {
-        PagedResponsePassengerList pagedResponsePassengerList = passengerService.getAllPassengers(pageable);
-        return ResponseEntity.ok(pagedResponsePassengerList);
     }
 
     @GetMapping
-    public ResponseEntity<PagedResponsePassengerList> getAllNonDeletedPassengers(@PageableDefault(page = 0, size = DEFAULT_SIZE) Pageable pageable) {
-        PagedResponsePassengerList pagedResponsePassengerList = passengerService.getAllNonDeletedPassengers(pageable);
+    public ResponseEntity<PagedResponsePassengerList> getAllPassengers(
+            @RequestParam(value = "active", defaultValue = "true") boolean active,
+            @RequestParam(value = "page", defaultValue = "0") Integer offset,
+            @RequestParam(value = "limit", defaultValue = "10") Integer limit
+    ) {
+        PagedResponsePassengerList pagedResponsePassengerList = active ?
+                passengerService.getAllNonDeletedPassengers(PageRequest.of(offset, limit))
+                : passengerService.getAllPassengers(PageRequest.of(offset, limit));
         return ResponseEntity.ok(pagedResponsePassengerList);
     }
 

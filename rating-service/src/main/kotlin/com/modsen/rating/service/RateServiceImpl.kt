@@ -9,7 +9,9 @@ import com.modsen.rating.dto.ResponseRate
 import com.modsen.rating.entity.Rate
 import com.modsen.rating.mapper.RateMapper
 import com.modsen.rating.repo.RateRepository
+import com.modsen.rating.util.ExceptionMessages
 import com.modsen.rating.util.UserType
+import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -37,7 +39,8 @@ open class RateServiceImpl(
     }
 
     override fun getRateById(id: Long): ResponseRate {
-        val rate = rateRepository.getReferenceById(id)
+        val rate = rateRepository.findById(id)
+            .orElseThrow{ EntityNotFoundException(ExceptionMessages.rateNotFound(id)) }
         return rateMapper.rateToResponseRate(rate)
     }
 

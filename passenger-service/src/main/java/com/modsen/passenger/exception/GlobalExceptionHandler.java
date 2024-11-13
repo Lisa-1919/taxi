@@ -8,48 +8,49 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<String> handleEntityNotFoundException(RuntimeException ex, WebRequest request) {
-        log.error("Error: {}. Request: {}", ex.getMessage(), request.getDescription(false));
+    public ResponseEntity<String> handleEntityNotFoundException(RuntimeException ex) {
+        log.warn("Error: {}", ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
-        log.error("Error: {}. Request: {}", ex.getMessage(), request.getDescription(false));
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
+        log.warn("Error: {}", ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException ex, WebRequest request) {
-        log.error("Error: {}. Request: {}", ex.getMessage(), request.getDescription(false));
+    public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        log.error("Error: {}", ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<String> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, WebRequest request) {
-        log.error("Validation error: {}. Request: {}", ex.getMessage(), request.getDescription(false));
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public ValidationErrorResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        log.warn("Validation error: {}", ex.getMessage());
 
-        StringBuilder errors = new StringBuilder();
-        ex.getBindingResult().getFieldErrors().forEach(error -> {
-            errors.append("Field '").append(error.getField())
-                    .append("' ").append(error.getDefaultMessage())
-                    .append(". Rejected value: ").append(error.getRejectedValue())
-                    .append("; ");
-        });
-
-        return new ResponseEntity<>(errors.toString(), HttpStatus.BAD_REQUEST);
+        final List<Violation> violations = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> new Violation(error.getField(), error.getDefaultMessage()))
+                .collect(Collectors.toList());
+        return new ValidationErrorResponse(violations);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGlobalException(Exception ex, WebRequest request) {
-        log.error("Error: {}. Request: {}", ex.getMessage(), request.getDescription(false));
+    public ResponseEntity<String> handleGlobalException(Exception ex) {
+        log.error("Error: {}", ex.getMessage());
         return new ResponseEntity<>("There was an error on the server. Try again later.", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
