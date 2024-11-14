@@ -24,7 +24,7 @@ public class GatewayConfiguration {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                .route("driver-service", r->r.path("/api/v1/drivers/**")
+                .route("driver-service", r->r.path("/api/v1/drivers/**", "/api/v1/cars/**")
                         .uri(driverServiceUri))
                 .route("passenger-service", r->r.path("/api/v1/passengers/**")
                         .uri(passengerServiceUri))
