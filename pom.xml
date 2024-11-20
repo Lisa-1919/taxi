@@ -15,6 +15,7 @@
         <module>rides-service</module>
         <module>rating-service</module>
         <module>config-service</module>
+        <module>eureka</module>
     </modules>
 
     <groupId>com.modsen</groupId>
@@ -60,6 +61,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
