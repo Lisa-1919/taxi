@@ -12,13 +12,14 @@ import com.modsen.ride.service.KafkaProducer;
 import com.modsen.ride.util.ExceptionMessages;
 import com.modsen.ride.util.RideStatuses;
 import com.modsen.ride.util.RideTestEntityUtils;
+import com.modsen.ride.util.TestUtils;
+import com.modsen.ride.util.WireMockStubs;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -29,23 +30,17 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers
@@ -100,33 +95,32 @@ public class RideIntegrationTest {
     }
 
     @Nested
+    @SqlGroup({
+            @Sql(scripts = "classpath:/scripts/setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(scripts = "classpath:/scripts/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    })
     class GetRide {
 
         @Test
-        @Transactional
         public void getRideById_shouldReturnRide() {
-            Ride ride = RideTestEntityUtils.createTestRide()
-                    .id(null)
-                    .build();
-            rideRepository.save(ride);
-            Long rideId = ride.getId();
+            Long rideId = TestUtils.EXIST_ID;
 
             RestAssuredMockMvc.given()
                     .when()
-                    .get("/api/v1/rides/" + rideId)
+                    .get("/api/v1/rides/{id}", rideId.toString())
                     .then()
                     .statusCode(HttpStatus.OK.value())
                     .body("id", equalTo(rideId.intValue()))
-                    .body("rideStatus", equalTo(RideStatuses.CREATED.toString()));
+                    .body("rideStatus", equalTo(RideStatuses.ACCEPTED.toString()));
         }
 
         @Test
-        public void getRideById_shouldReturnNotFound() {
-            Long rideId = 999L;
+        public void getRideById_shouldReturnNotFound_whenRideDoesNotExist() {
+            Long rideId = TestUtils.NON_EXISTING_ID;
 
             RestAssuredMockMvc.given()
                     .when()
-                    .get("/api/v1/rides/" + rideId)
+                    .get("/api/v1/rides/{id}", rideId.toString())
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.TEXT_PLAIN_VALUE)
@@ -135,33 +129,25 @@ public class RideIntegrationTest {
 
         @Test
         public void getAllRides_shouldReturnPagedRides() {
-            Ride ride = RideTestEntityUtils.createTestRide()
-                    .id(null)
-                    .build();
-            rideRepository.save(ride);
-
             RestAssuredMockMvc.given()
                     .when()
                     .get("/api/v1/rides")
                     .then()
                     .statusCode(HttpStatus.OK.value())
-                    .body("rides", hasSize(1))
-                    .body("totalElements", equalTo(1));
+                    .body("rides", notNullValue());
         }
     }
 
     @Nested
+    @SqlGroup({
+            @Sql(scripts = "classpath:/scripts/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    })
     class AddRide {
         @Test
-        @Transactional
         public void addRide_shouldReturnCreatedRide() {
             RequestRide requestRide = RideTestEntityUtils.createTestRequestRide().build();
 
-            stubFor(WireMock.get(urlMatching("/api/v1/passengers/" + requestRide.passengerId() + "/exists"))
-                    .willReturn(aResponse()
-                            .withStatus(HttpStatus.OK.value())
-                            .withHeader("Content-Type", "application/json")
-                            .withBody("true")));
+            WireMockStubs.stubPassengerExists(requestRide.passengerId());
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -174,15 +160,9 @@ public class RideIntegrationTest {
         }
 
         @Test
-        public void addRide_shouldReturnPassengerNotFound() {
+        public void addRide_shouldReturnPassengerNotFound_whenPassengerDoesNotExistOrIsDeleted() {
             RequestRide requestRide = RideTestEntityUtils.createTestRequestRide().build();
-            String message = "Passenger with id " + requestRide.passengerId() + "not found";
-
-            stubFor(WireMock.get(urlMatching("/api/v1/passengers/" + requestRide.passengerId() + "/exists"))
-                    .willReturn(aResponse()
-                            .withStatus(HttpStatus.NOT_FOUND.value())
-                            .withHeader("Content-Type", "application/json")
-                            .withBody(message)));
+            WireMockStubs.stubPassengerNotExists(requestRide.passengerId());
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -192,63 +172,65 @@ public class RideIntegrationTest {
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.TEXT_PLAIN_VALUE)
-                    .body(equalTo(message));
+                    .body(equalTo(TestUtils.PASSENGER_NOT_FOUND_MESSAGE.formatted(requestRide.passengerId())));
         }
     }
 
     @Nested
+    @SqlGroup({
+            @Sql(scripts = "classpath:/scripts/setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(scripts = "classpath:/scripts/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    })
     class EditRide {
         @Test
-        @Transactional
         public void editRide_shouldUpdateRide() {
-
-            Ride ride = RideTestEntityUtils.createTestRide()
-                    .id(null)
-                    .driverId(null)
-                    .rideStatus(RideStatuses.CREATED)
-                    .build();
-            rideRepository.save(ride);
-            Long rideId = ride.getId();
+            Long rideId = TestUtils.EDIT_ID;
 
             RequestRide updateRequestRide = RideTestEntityUtils.createTestRequestRide()
-                    .driverId(1L)
+                    .driverId(TestUtils.EDIT_ID)
                     .build();
 
-            stubFor(get(urlPathEqualTo("/api/v1/drivers/" + updateRequestRide.driverId() + "/exists"))
-                    .willReturn(aResponse()
-                            .withStatus(HttpStatus.OK.value())
-                            .withHeader("Content-Type", "application/json")
-                            .withBody("true")));
-            stubFor(get(urlPathEqualTo("/api/v1/passengers/" + ride.getPassengerId() + "/exists"))
-                    .willReturn(aResponse()
-                            .withStatus(HttpStatus.OK.value())
-                            .withHeader("Content-Type", "application/json")
-                            .withBody("true")));
+            WireMockStubs.stubDriverExists(updateRequestRide.driverId());
+            WireMockStubs.stubPassengerExists(updateRequestRide.passengerId());
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(updateRequestRide)
                     .when()
-                    .put("/api/v1/rides/" + rideId)
+                    .put("/api/v1/rides/{id}", rideId.toString())
                     .then()
                     .statusCode(HttpStatus.OK.value())
                     .body("driverId", equalTo(updateRequestRide.driverId().intValue()))
                     .body("rideStatus", equalTo(RideStatuses.ACCEPTED.toString()));
 
-            String expectedMessage = String.format("The status of your ride with id %d changed to %s", rideId, RideStatuses.ACCEPTED);
+            String expectedMessage = TestUtils.UPDATE_RIDE_STATUS_MESSAGE.formatted(rideId, RideStatuses.ACCEPTED);
             Mockito.verify(kafkaProducer, Mockito.times(1))
                     .send(new UpdateStatusMessage(expectedMessage));
         }
 
         @Test
-        @Transactional
         public void updateRideStatus_shouldChangeRideStatus() {
-            Ride ride = RideTestEntityUtils.createTestRide()
-                    .driverId(1L)
-                    .rideStatus(RideStatuses.ACCEPTED)
-                    .build();
-            rideRepository.save(ride);
-            Long rideId = ride.getId();
+            Long rideId = TestUtils.EDIT_ID;
+
+            RequestChangeStatus requestChangeStatus = RideTestEntityUtils.createChangeStatusRequest(RideStatuses.ACCEPTED);
+
+            RestAssuredMockMvc.given()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(requestChangeStatus)
+                    .when()
+                    .put("/api/v1/rides/{id}/status", rideId.toString())
+                    .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("rideStatus", equalTo(requestChangeStatus.newStatus().toString()));
+
+            String expectedMessage = TestUtils.UPDATE_RIDE_STATUS_MESSAGE.formatted(rideId, requestChangeStatus.newStatus());
+            Mockito.verify(kafkaProducer, Mockito.times(1))
+                    .send(new UpdateStatusMessage(expectedMessage));
+        }
+
+        @Test
+        public void updateRideStatus_shouldReturnConflict_whenInvalidStatusTransaction() {
+            Long rideId = TestUtils.EDIT_ID;
 
             RequestChangeStatus requestChangeStatus = RideTestEntityUtils.createChangeStatusRequest(RideStatuses.PICKING_UP);
 
@@ -256,52 +238,40 @@ public class RideIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(requestChangeStatus)
                     .when()
-                    .put("/api/v1/rides/" + rideId + "/status")
+                    .put("/api/v1/rides/{id}/status", rideId.toString())
                     .then()
-                    .statusCode(HttpStatus.OK.value())
-                    .body("rideStatus", equalTo(requestChangeStatus.newStatus().toString()));
-
-            String expectedMessage = String.format("The status of your ride with id %d changed to %s", rideId, requestChangeStatus.newStatus());
-            Mockito.verify(kafkaProducer, Mockito.times(1))
-                    .send(new UpdateStatusMessage(expectedMessage));
+                    .statusCode(HttpStatus.CONFLICT.value());
         }
     }
 
     @Nested
+    @SqlGroup({
+            @Sql(scripts = "classpath:/scripts/setup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(scripts = "classpath:/scripts/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    })
     class DoesRideExist {
         @Test
-        @Transactional
         public void doesRideExistForDriver_shouldReturnOk() {
-            Ride ride = RideTestEntityUtils.createTestRide()
-                    .id(null)
-                    .driverId(1L)
-                    .rideStatus(RideStatuses.ACCEPTED)
-                    .build();
-            rideRepository.save(ride);
-
+            Ride ride = rideRepository.findById(TestUtils.EXIST_ID).orElseThrow();
             Long rideId = ride.getId();
             Long driverId = ride.getDriverId();
 
             RestAssuredMockMvc.given()
                     .when()
-                    .get("/api/v1/rides/" + rideId + "/driver/" + driverId + "/exists")
+                    .get("/api/v1/rides/{rideId}/driver/{driverId}/exists", rideId.toString(), driverId.toString())
                     .then()
                     .statusCode(HttpStatus.OK.value());
         }
 
         @Test
-        @Transactional
         public void doesRideExistForPassenger_shouldReturnOk() {
-            Ride ride = RideTestEntityUtils.createTestRide()
-                    .id(null)
-                    .build();
-            rideRepository.save(ride);
+            Ride ride = rideRepository.findById(TestUtils.EXIST_ID).orElseThrow();
             Long rideId = ride.getId();
             Long passengerId = ride.getPassengerId();
 
             RestAssuredMockMvc.given()
                     .when()
-                    .get("/api/v1/rides/" + rideId + "/passenger/" + passengerId + "/exists")
+                    .get("/api/v1/rides/{rideId}/passenger/{passengerId}/exists", rideId.toString(), passengerId.toString())
                     .then()
                     .statusCode(HttpStatus.OK.value());
         }

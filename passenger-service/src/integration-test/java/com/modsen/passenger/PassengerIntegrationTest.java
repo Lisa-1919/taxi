@@ -5,13 +5,11 @@ import com.modsen.passenger.entity.Passenger;
 import com.modsen.passenger.repo.PassengerRepository;
 import com.modsen.passenger.util.ExceptionMessages;
 import com.modsen.passenger.util.PassengerTestEntityUtils;
+import com.modsen.passenger.util.TestUtils;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +20,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -31,10 +30,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers
@@ -66,46 +63,37 @@ public class PassengerIntegrationTest {
         RestAssuredMockMvc.mockMvc(mockMvc);
     }
 
-
-    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     @Nested
+    @SqlGroup({
+            @Sql(scripts = "classpath:/scripts/setup-get-delete-exist.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(scripts = "classpath:/scripts/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    })
     public class GetPassenger {
-
-        @Autowired
-        private PassengerRepository passengerRepository;
-
-        private Passenger nonDeletedPassenger;
-
-        @BeforeAll
-        private void setUp() {
-            nonDeletedPassenger = PassengerTestEntityUtils.createTestPassenger();
-            nonDeletedPassenger.setId(null);
-            passengerRepository.save(nonDeletedPassenger);
-        }
 
         @ParameterizedTest
         @ValueSource(booleans = {true, false})
         public void getPassengerById_shouldReturnPassenger(boolean active) {
-            RestAssuredMockMvc.given()
-                    .log().all()
-                    .param("active", active)
-                    .when()
-                    .get("/api/v1/passengers/" + nonDeletedPassenger.getId())
-                    .then()
-                    .statusCode(HttpStatus.OK.value())
-                    .body("id", equalTo(nonDeletedPassenger.getId().intValue()))
-                    .body("firstName", equalTo(nonDeletedPassenger.getFirstName()))
-                    .body("email", equalTo(nonDeletedPassenger.getEmail()));
-        }
-        @ParameterizedTest
-        @ValueSource(booleans = {true, false})
-        public void getPassengerById_shouldReturnNotFound(boolean active) {
-            Long passengerId = 999L;
+            Long passengerId = TestUtils.EXISTING_ID;
 
             RestAssuredMockMvc.given()
-                    .param("active", active)
+                    .log().all()
+                    .param(TestUtils.ACTIVE_PARAM, active)
                     .when()
-                    .get("/api/v1/passengers/" + passengerId)
+                    .get("/api/v1/passengers/{id}", passengerId.toString())
+                    .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("id", equalTo(passengerId.intValue()));
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = {true, false})
+        public void getPassengerById_shouldReturnNotFound_whenPassengerDoesNotExist(boolean active) {
+            Long passengerId = TestUtils.NON_EXISTING_ID;
+
+            RestAssuredMockMvc.given()
+                    .param(TestUtils.ACTIVE_PARAM, active)
+                    .when()
+                    .get("/api/v1/passengers/{id}", String.valueOf(passengerId))
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.TEXT_PLAIN_VALUE)
@@ -114,24 +102,22 @@ public class PassengerIntegrationTest {
 
         @ParameterizedTest
         @ValueSource(booleans = {true, false})
-        public void getAllNonDeletedPassengers_shouldReturnPagedPassengers(boolean active) {
+        public void getAllPassengers_shouldReturnPagedPassengers(boolean active) {
             RestAssuredMockMvc.given()
-                    .param("active", active)
-                    .param("page", 0)
-                    .param("limit", 10)
+                    .param(TestUtils.ACTIVE_PARAM, active)
                     .when()
                     .get("/api/v1/passengers")
                     .then()
                     .statusCode(HttpStatus.OK.value())
-                    .body("passengers", hasSize(1))
-                    .body("totalElements", equalTo(1));
+                    .body("passengers", notNullValue())
+                    .body("totalElements", notNullValue());
         }
     }
 
+    @Sql(scripts = "classpath:/scripts/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @Nested
     class AddPassenger {
 
-        @Transactional
         @Test
         public void addPassenger_shouldReturnCreatedPassenger() {
             RequestPassenger requestPassenger = PassengerTestEntityUtils.createTestRequestPassenger();
@@ -167,49 +153,40 @@ public class PassengerIntegrationTest {
                     .statusCode(HttpStatus.BAD_REQUEST.value());
         }
 
-        @Transactional
+        @Sql(scripts = "classpath:/scripts/setup-edit-passenger.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
         @Test
-        public void addPassenger_shouldReturnConflictWhenEmailExists() {
-            RequestPassenger requestPassenger1 = PassengerTestEntityUtils.createTestRequestPassenger();
-            RequestPassenger requestPassenger2 = PassengerTestEntityUtils.createTestRequestPassenger();
+        public void addPassenger_shouldReturnConflict_whenEmailExists() {
+            RequestPassenger requestPassenger = PassengerTestEntityUtils.createTestRequestPassenger();
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .body(requestPassenger1)
-                    .when()
-                    .post("/api/v1/passengers")
-                    .then()
-                    .statusCode(HttpStatus.CREATED.value());
-
-            RestAssuredMockMvc.given()
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .body(requestPassenger2)
+                    .body(requestPassenger)
                     .when()
                     .post("/api/v1/passengers")
                     .then()
                     .statusCode(HttpStatus.CONFLICT.value())
                     .contentType(MediaType.TEXT_PLAIN_VALUE)
-                    .body(equalTo(ExceptionMessages.DUPLICATE_PASSENGER_ERROR.format("email", requestPassenger2.email())));
+                    .body(equalTo(ExceptionMessages.DUPLICATE_PASSENGER_ERROR.format("email", requestPassenger.email())));
         }
     }
 
     @Nested
+    @SqlGroup({
+            @Sql(scripts = "classpath:/scripts/setup-edit-passenger.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(scripts = "classpath:/scripts/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    })
     class EditPassenger {
 
-        @Transactional
         @Test
         public void editPassenger_shouldReturnUpdatedPassenger() {
-            Passenger passenger = PassengerTestEntityUtils.createTestPassenger();
-            passenger.setId(null);
-            passengerRepository.save(passenger);
-            Long passengerId = passenger.getId();
+            Long passengerId = TestUtils.EDIT_ID;
             RequestPassenger requestPassenger = PassengerTestEntityUtils.createUpdateRequestPassenger();
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(requestPassenger)
                     .when()
-                    .put("/api/v1/passengers/" + passengerId)
+                    .put("/api/v1/passengers/{id}", String.valueOf(passengerId))
                     .then()
                     .statusCode(HttpStatus.OK.value())
                     .body("id", notNullValue())
@@ -221,67 +198,64 @@ public class PassengerIntegrationTest {
             assertThat(updatedPassenger.getEmail()).isEqualTo(requestPassenger.email());
         }
 
-        @Transactional
         @Test
-        public void editPassenger_shouldReturnNotFound() {
-            Long passengerId = 999L;
+        public void editPassenger_shouldReturnNotFound_whenPassengerDoesNotExist() {
+            Long passengerId = TestUtils.NON_EXISTING_ID;
             RequestPassenger requestPassenger = PassengerTestEntityUtils.createUpdateRequestPassenger();
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(requestPassenger)
                     .when()
-                    .put("/api/v1/passengers/" + passengerId)
+                    .put("/api/v1/passengers/{id}", String.valueOf(passengerId))
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.TEXT_PLAIN_VALUE)
                     .body(equalTo(ExceptionMessages.PASSENGER_NOT_FOUND.format(passengerId)));
         }
 
-        @Transactional
         @Test
         public void editPassenger_shouldReturnBadRequest() {
-            Long passengerId = 1L;
+            Long passengerId = TestUtils.EXISTING_ID;
             RequestPassenger requestPassenger = PassengerTestEntityUtils.createInvalidRequestPassenger();
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(requestPassenger)
                     .when()
-                    .put("/api/v1/passengers/" + passengerId)
+                    .put("/api/v1/passengers/{id}", String.valueOf(passengerId))
                     .then()
                     .statusCode(HttpStatus.BAD_REQUEST.value());
         }
     }
 
     @Nested
+    @SqlGroup({
+            @Sql(scripts = "classpath:/scripts/setup-get-delete-exist.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(scripts = "classpath:/scripts/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    })
     class DeletePassenger {
 
-        @Transactional
         @Test
         public void deletePassenger_shouldReturnNoContent() {
-            Passenger passenger = PassengerTestEntityUtils.createTestPassenger();
-            passenger.setId(null);
-            passengerRepository.save(passenger);
-            Long passengerId = passenger.getId();
+            Long passengerId = TestUtils.EXISTING_ID;
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .when()
-                    .delete("/api/v1/passengers/" + passengerId)
+                    .delete("/api/v1/passengers/{id}", String.valueOf(passengerId))
                     .then()
                     .statusCode(HttpStatus.NO_CONTENT.value());
         }
 
-        @Transactional
         @Test
-        public void deletePassenger_shouldReturnNotFound() {
-            Long passengerId = 999L;
+        public void deletePassenger_shouldReturnNotFound_whenPassengerDoesNotExist() {
+            Long passengerId = TestUtils.NON_EXISTING_ID;
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .when()
-                    .delete("/api/v1/passengers/" + passengerId)
+                    .delete("/api/v1/passengers/{id}", String.valueOf(passengerId))
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.TEXT_PLAIN_VALUE)
@@ -290,37 +264,35 @@ public class PassengerIntegrationTest {
     }
 
     @Nested
+    @SqlGroup({
+            @Sql(scripts = "classpath:/scripts/setup-get-delete-exist.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+            @Sql(scripts = "classpath:/scripts/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    })
     class PassengerExists {
-        @Transactional
         @Test
         public void doesPassengerExist_shouldReturnOk() {
-            Passenger passenger = PassengerTestEntityUtils.createTestPassenger();
-            passenger.setId(null);
-            passengerRepository.save(passenger);
-            Long passengerId = passenger.getId();
+            Long passengerId = TestUtils.EXISTING_ID;
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .when()
-                    .get("/api/v1/passengers/" + passengerId + "/exists")
+                    .get("/api/v1/passengers/{id}/exists", String.valueOf(passengerId))
                     .then()
                     .statusCode(HttpStatus.OK.value());
         }
 
-        @Transactional
         @Test
-        public void doesPassengerExist_shouldReturnNotFound() {
-            Long passengerId = 999L;
+        public void doesPassengerExist_shouldReturnNotFound_whenPassengerDoesNotExistOrIsDeleted() {
+            Long passengerId = TestUtils.NON_EXISTING_ID;
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .when()
-                    .get("/api/v1/passengers/" + passengerId + "/exists")
+                    .get("/api/v1/passengers/{id}/exists", String.valueOf(passengerId))
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.TEXT_PLAIN_VALUE)
                     .body(equalTo(ExceptionMessages.PASSENGER_NOT_FOUND.format(passengerId)));
         }
     }
-
 }

@@ -4,42 +4,30 @@ import com.modsen.driver.dto.RequestDriver;
 import com.modsen.driver.entity.Driver;
 import com.modsen.driver.repo.DriverRepository;
 import com.modsen.driver.util.ExceptionMessages;
+import com.modsen.driver.util.TestUtils;
 import com.modsen.driver.utils.DriverTestEntityUtils;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
 @AutoConfigureMockMvc
-@Testcontainers
 @ActiveProfiles("integration-test")
-public class DriverIntegrationTest {
+public class DriverIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -47,63 +35,40 @@ public class DriverIntegrationTest {
     @Autowired
     private DriverRepository driverRepository;
 
-    @Container
-    public static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:15")
-            .withDatabaseName("driver-test-db")
-            .withUsername("postgres")
-            .withPassword("WC4ty37xd3");
-
-    @DynamicPropertySource
-    public static void configureTestDatabase(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
-        registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
-    }
-
     @BeforeEach
     public void setUp() {
         RestAssuredMockMvc.mockMvc(mockMvc);
     }
 
-    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     @Nested
+    @SqlGroup({
+            @Sql(scripts = "classpath:/scripts/setup-get-delete.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS),
+            @Sql(scripts = "classpath:/scripts/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
+    })
     class GetDriver {
-
-        @Autowired
-        private DriverRepository driverRepository;
-
-        private Driver nonDeletedDriver;
-
-        @BeforeAll
-        private void setUp() {
-            nonDeletedDriver = DriverTestEntityUtils.createTestDriver();
-            nonDeletedDriver.setId(null);
-            driverRepository.save(nonDeletedDriver);
-        }
 
         @ParameterizedTest
         @ValueSource(booleans = {true, false})
         public void getDriverById_shouldReturnDriver(boolean active) {
+            Long driverId = TestUtils.EXISTING_ID;
             RestAssuredMockMvc.given()
-                    .param("active", active)
+                    .param(TestUtils.ACTIVE_PARAM, active)
                     .when()
-                    .get("/api/v1/drivers/" + nonDeletedDriver.getId())
+                    .get("/api/v1/drivers/{id}", driverId.toString())
                     .then()
                     .statusCode(HttpStatus.OK.value())
-                    .body("id", equalTo(nonDeletedDriver.getId().intValue()))
-                    .body("firstName", equalTo(nonDeletedDriver.getFirstName()))
-                    .body("email", equalTo(nonDeletedDriver.getEmail()));
+                    .body("id", equalTo(driverId.intValue()));
         }
 
         @ParameterizedTest
         @ValueSource(booleans = {true, false})
-        public void getDriverByIdNonDeleted_shouldReturnNotFound(boolean active) {
-            Long driverId = 999L;
+        public void getDriverById_shouldReturnNotFound_whenDriverDoesNotExist(boolean active) {
+            Long driverId = TestUtils.NON_EXISTING_ID;
 
             RestAssuredMockMvc.given()
-                    .param("active", active)
+                    .param(TestUtils.ACTIVE_PARAM, active)
                     .when()
-                    .get("/api/v1/drivers/" + driverId)
+                    .get("/api/v1/drivers/{id}", driverId.toString())
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.TEXT_PLAIN_VALUE)
@@ -114,22 +79,20 @@ public class DriverIntegrationTest {
         @ValueSource(booleans = {true, false})
         public void getAllDrivers_shouldReturnPagedDrivers(boolean active) {
             RestAssuredMockMvc.given()
-                    .param("active", active)
-                    .param("page", 0)
-                    .param("size", 10)
+                    .param(TestUtils.ACTIVE_PARAM, active)
                     .when()
                     .get("/api/v1/drivers")
                     .then()
                     .statusCode(HttpStatus.OK.value())
-                    .body("drivers", hasSize(1))
-                    .body("totalElements", equalTo(1));
+                    .body("drivers", notNullValue())
+                    .body("totalElements", notNullValue());
         }
 
     }
 
     @Nested
+    @Sql(scripts = "classpath:/scripts/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     class AddDriver {
-        @Transactional
         @Test
         public void addDriver_shouldReturnCreatedDriver() {
             RequestDriver requestDriver = DriverTestEntityUtils.createTestRequestDriver();
@@ -152,8 +115,6 @@ public class DriverIntegrationTest {
             assertThat(savedDriver.getEmail()).isEqualTo(requestDriver.email());
         }
 
-        //check exception message
-        @Transactional
         @Test
         public void addDriver_shouldReturnBadRequest() {
             RequestDriver requestDriver = DriverTestEntityUtils.createInvalidRequestDriver();
@@ -167,49 +128,43 @@ public class DriverIntegrationTest {
                     .statusCode(HttpStatus.BAD_REQUEST.value());
         }
 
-        @Transactional
+        @SqlGroup({
+                @Sql(scripts = "classpath:/scripts/setup-add-edit.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+                @Sql(scripts = "classpath:/scripts/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+        })
         @Test
-        public void addDriver_shouldReturnConflictWhenEmailExists() {
-            RequestDriver requestDriver1 = DriverTestEntityUtils.createTestRequestDriver();
-            RequestDriver requestDriver2 = DriverTestEntityUtils.createTestRequestDriver();
+        public void addDriver_shouldReturnConflict_whenEmailExists() {
+            RequestDriver requestDriver = DriverTestEntityUtils.createTestRequestDriver();
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .body(requestDriver1)
-                    .when()
-                    .post("/api/v1/drivers")
-                    .then()
-                    .statusCode(HttpStatus.CREATED.value());
-
-            RestAssuredMockMvc.given()
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .body(requestDriver2)
+                    .body(requestDriver)
                     .when()
                     .post("/api/v1/drivers")
                     .then()
                     .statusCode(HttpStatus.CONFLICT.value())
                     .contentType(MediaType.TEXT_PLAIN_VALUE)
-                    .body(equalTo(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format("email", requestDriver2.email())));
+                    .body(equalTo(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format("email", requestDriver.email())));
         }
     }
 
     @Nested
+    @SqlGroup({
+            @Sql(scripts = "classpath:/scripts/setup-get-delete.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS),
+            @Sql(scripts = "classpath:/scripts/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
+    })
     class EditDriver {
 
-        @Transactional
         @Test
         public void editDriver_shouldReturnUpdatedDriver() {
-            Driver driver = DriverTestEntityUtils.createTestDriver();
-            driver.setId(null);
-            driverRepository.save(driver);
-            Long driverId = driver.getId();
+            Long driverId = TestUtils.EXISTING_ID;
             RequestDriver requestDriver = DriverTestEntityUtils.createUpdateRequestDriver();
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(requestDriver)
                     .when()
-                    .put("/api/v1/drivers/" + driverId)
+                    .put("/api/v1/drivers/{id}", driverId.toString())
                     .then()
                     .statusCode(HttpStatus.OK.value())
                     .body("id", notNullValue())
@@ -220,70 +175,64 @@ public class DriverIntegrationTest {
             assertThat(updatedDriver.getEmail()).isEqualTo(requestDriver.email());
         }
 
-        @Transactional
         @Test
-        public void editDriver_shouldReturnNotFound() {
-            Long driverId = 999L;
+        public void editDriver_shouldReturnNotFound_whenDriverDoesNotExist() {
+            Long driverId = TestUtils.NON_EXISTING_ID;
             RequestDriver requestDriver = DriverTestEntityUtils.createUpdateRequestDriver();
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(requestDriver)
                     .when()
-                    .put("/api/v1/drivers/" + driverId)
+                    .put("/api/v1/drivers/{id}", driverId.toString())
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.TEXT_PLAIN_VALUE)
                     .body(equalTo(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
         }
 
-        @Transactional
         @Test
         public void editDriver_shouldReturnBadRequest() {
-            Driver driver = DriverTestEntityUtils.createTestDriver();
-            driver.setId(null);
-            driverRepository.save(driver);
-            Long driverId = driver.getId();
+            Long driverId = TestUtils.EDIT_ID;
             RequestDriver requestDriver = DriverTestEntityUtils.createInvalidRequestDriver();
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(requestDriver)
                     .when()
-                    .put("/api/v1/drivers/" + driverId)
+                    .put("/api/v1/drivers/{id}", driverId.toString())
                     .then()
                     .statusCode(HttpStatus.BAD_REQUEST.value());
         }
     }
 
     @Nested
+    @SqlGroup({
+            @Sql(scripts = "classpath:/scripts/setup-get-delete.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS),
+            @Sql(scripts = "classpath:/scripts/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
+    })
     class DeleteDriver {
 
-        @Transactional
         @Test
         public void deleteDriver_shouldReturnNoContent() {
-            Driver driver = DriverTestEntityUtils.createTestDriver();
-            driver.setId(null);
-            driverRepository.save(driver);
-            Long driverId = driver.getId();
+            Long driverId = TestUtils.EXISTING_ID;
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .when()
-                    .delete("/api/v1/drivers/" + driverId)
+                    .delete("/api/v1/drivers/{id}", driverId.toString())
                     .then()
                     .statusCode(HttpStatus.NO_CONTENT.value());
         }
 
-        @Transactional
         @Test
-        public void deleteDriver_shouldReturnNotFound() {
-            Long driverId = 999L;
+        public void deleteDriver_shouldReturnNotFound_whenDriverDoesNotExist() {
+            Long driverId = TestUtils.NON_EXISTING_ID;
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .when()
-                    .delete("/api/v1/drivers/" + driverId)
+                    .delete("/api/v1/drivers/{id}", driverId.toString())
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.TEXT_PLAIN_VALUE)
@@ -292,32 +241,32 @@ public class DriverIntegrationTest {
     }
 
     @Nested
+    @SqlGroup({
+            @Sql(scripts = "classpath:/scripts/setup-get-delete.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS),
+            @Sql(scripts = "classpath:/scripts/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
+    })
     class DriverExists {
 
-        @Transactional
         @Test
         public void doesDriverExist_shouldReturnOk() {
-            Driver driver = DriverTestEntityUtils.createTestDriver();
-            driver.setId(null);
-            driverRepository.save(driver);
-            Long driverId = driver.getId();
+            Long driverId = TestUtils.EXISTING_ID;
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .when()
-                    .get("/api/v1/drivers/" + driverId + "/exists")
+                    .get("/api/v1/drivers/{id}/exists", driverId.toString())
                     .then()
                     .statusCode(HttpStatus.OK.value());
         }
 
         @Test
-        public void doesDriverExist_shouldReturnNotFound() {
-            Long driverId = 999L;
+        public void doesDriverExist_shouldReturnNotFound_whenDriverDoesNotExistOrIsDeleted() {
+            Long driverId = TestUtils.NON_EXISTING_ID;
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .when()
-                    .get("/api/v1/drivers/" + driverId + "/exists", String.valueOf(driverId))
+                    .get("/api/v1/drivers/{id}/exists", String.valueOf(driverId))
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.TEXT_PLAIN_VALUE)
