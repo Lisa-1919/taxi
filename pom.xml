@@ -34,7 +34,6 @@
         <resilience4j.spring.boot3.verison>2.1.0</resilience4j.spring.boot3.verison>
         <mockito.all.version>1.10.19</mockito.all.version>
         <io.rest.version>4.4.0</io.rest.version>
-        <logcaptor.version>2.9.3</logcaptor.version>
         <spring.context.version>6.1.14</spring.context.version>
         <commons-compress.version>1.26.1</commons-compress.version>
         <junit.jupiter.version>1.17.6</junit.jupiter.version>
@@ -156,12 +155,6 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.github.hakky54</groupId>
-            <artifactId>logcaptor</artifactId>
-            <version>${logcaptor.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

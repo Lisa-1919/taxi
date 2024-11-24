@@ -103,7 +103,7 @@ public class RatingIntegrationTest {
 
             RestAssuredMockMvc.given()
                     .when()
-                    .get("/api/v1/rates/{id}", rateId.toString())
+                    .get(TestUtils.RATE_BY_ID_URL, rateId.toString())
                     .then()
                     .statusCode(HttpStatus.OK.value())
                     .body("id", equalTo(rateId.intValue()));
@@ -115,7 +115,7 @@ public class RatingIntegrationTest {
 
             RestAssuredMockMvc.given()
                     .when()
-                    .get("/api/v1/rates/{id}", rateId.toString())
+                    .get(TestUtils.RATE_BY_ID_URL, rateId.toString())
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .body("message", equalTo(ExceptionMessages.INSTANCE.rateNotFound(rateId)));
@@ -125,7 +125,7 @@ public class RatingIntegrationTest {
         public void getRates_shouldReturnPagedResponse() {
             RestAssuredMockMvc.given()
                     .when()
-                    .get("/api/v1/rates")
+                    .get(TestUtils.RATE_BASE_URL)
                     .then()
                     .statusCode(HttpStatus.OK.value())
                     .body("list", hasSize(TestUtils.TOTAL_ELEMENTS))
@@ -177,7 +177,7 @@ public class RatingIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(requestRate)
                     .when()
-                    .post("/api/v1/rates")
+                    .post(TestUtils.RATE_BASE_URL)
                     .then()
                     .statusCode(HttpStatus.CREATED.value())
                     .body("id", notNullValue());
@@ -194,7 +194,7 @@ public class RatingIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(requestRate)
                     .when()
-                    .post("/api/v1/rates")
+                    .post(TestUtils.RATE_BASE_URL)
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .body("message", equalTo(message));

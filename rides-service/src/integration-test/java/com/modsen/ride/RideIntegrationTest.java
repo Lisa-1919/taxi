@@ -38,7 +38,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 
 @SpringBootTest
@@ -107,7 +106,7 @@ public class RideIntegrationTest {
 
             RestAssuredMockMvc.given()
                     .when()
-                    .get("/api/v1/rides/{id}", rideId.toString())
+                    .get(TestUtils.RIDE_BY_ID_URL, rideId.toString())
                     .then()
                     .statusCode(HttpStatus.OK.value())
                     .body("id", equalTo(rideId.intValue()))
@@ -120,7 +119,7 @@ public class RideIntegrationTest {
 
             RestAssuredMockMvc.given()
                     .when()
-                    .get("/api/v1/rides/{id}", rideId.toString())
+                    .get(TestUtils.RIDE_BY_ID_URL, rideId.toString())
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.TEXT_PLAIN_VALUE)
@@ -131,7 +130,7 @@ public class RideIntegrationTest {
         public void getAllRides_shouldReturnPagedRides() {
             RestAssuredMockMvc.given()
                     .when()
-                    .get("/api/v1/rides")
+                    .get(TestUtils.RIDE_BASE_URL)
                     .then()
                     .statusCode(HttpStatus.OK.value())
                     .body("rides", notNullValue());
@@ -153,7 +152,7 @@ public class RideIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(requestRide)
                     .when()
-                    .post("/api/v1/rides")
+                    .post(TestUtils.RIDE_BASE_URL)
                     .then()
                     .statusCode(HttpStatus.CREATED.value())
                     .body("id", notNullValue());
@@ -168,7 +167,7 @@ public class RideIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(requestRide)
                     .when()
-                    .post("/api/v1/rides")
+                    .post(TestUtils.RIDE_BASE_URL)
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.TEXT_PLAIN_VALUE)
@@ -197,7 +196,7 @@ public class RideIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(updateRequestRide)
                     .when()
-                    .put("/api/v1/rides/{id}", rideId.toString())
+                    .put(TestUtils.RIDE_BY_ID_URL, rideId.toString())
                     .then()
                     .statusCode(HttpStatus.OK.value())
                     .body("driverId", equalTo(updateRequestRide.driverId().intValue()))
@@ -218,7 +217,7 @@ public class RideIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(requestChangeStatus)
                     .when()
-                    .put("/api/v1/rides/{id}/status", rideId.toString())
+                    .put(TestUtils.RIDE_STATUS_URL, rideId.toString())
                     .then()
                     .statusCode(HttpStatus.OK.value())
                     .body("rideStatus", equalTo(requestChangeStatus.newStatus().toString()));
@@ -238,7 +237,7 @@ public class RideIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(requestChangeStatus)
                     .when()
-                    .put("/api/v1/rides/{id}/status", rideId.toString())
+                    .put(TestUtils.RIDE_STATUS_URL, rideId.toString())
                     .then()
                     .statusCode(HttpStatus.CONFLICT.value());
         }
@@ -258,7 +257,7 @@ public class RideIntegrationTest {
 
             RestAssuredMockMvc.given()
                     .when()
-                    .get("/api/v1/rides/{rideId}/driver/{driverId}/exists", rideId.toString(), driverId.toString())
+                    .get(TestUtils.RIDE_EXISTS_FOR_DRIVER_URL, rideId.toString(), driverId.toString())
                     .then()
                     .statusCode(HttpStatus.OK.value());
         }
@@ -271,7 +270,7 @@ public class RideIntegrationTest {
 
             RestAssuredMockMvc.given()
                     .when()
-                    .get("/api/v1/rides/{rideId}/passenger/{passengerId}/exists", rideId.toString(), passengerId.toString())
+                    .get(TestUtils.RIDE_EXISTS_FOR_PASSENGER_URL, rideId.toString(), passengerId.toString())
                     .then()
                     .statusCode(HttpStatus.OK.value());
         }
