@@ -6,8 +6,7 @@ import com.modsen.driver.dto.PagedResponseCarList;
 import com.modsen.driver.service.CarService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -24,30 +24,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class CarController {
 
-    private final int DEFAULT_SIZE = 10;
     private final CarService carService;
 
-    @GetMapping("/all/{id}")
-    public ResponseEntity<ResponseCar> getCarById(@PathVariable Long id) {
-        ResponseCar responseCar = carService.getCarById(id);
-        return ResponseEntity.ok(responseCar);
-    }
-
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseCar> getCarByIdNonDeleted(@PathVariable Long id) {
-        ResponseCar responseCar = carService.getCarByIdNonDeleted(id);
+    public ResponseEntity<ResponseCar> getCarById(
+            @PathVariable Long id,
+            @RequestParam(value = "active", defaultValue = "true") boolean active) {
+        ResponseCar responseCar = active ? carService.getCarByIdNonDeleted(id)
+                : carService.getCarById(id);
         return ResponseEntity.ok(responseCar);
-    }
-
-    @GetMapping("/all")
-    public ResponseEntity<PagedResponseCarList> getAllCars(@PageableDefault(page = 0, size = DEFAULT_SIZE) Pageable pageable) {
-        PagedResponseCarList pagedResponseCarList = carService.getAllCars(pageable);
-        return ResponseEntity.ok(pagedResponseCarList);
     }
 
     @GetMapping
-    public ResponseEntity<PagedResponseCarList> getAllNonDeletedCars(@PageableDefault(page = 0, size = DEFAULT_SIZE) Pageable pageable) {
-        PagedResponseCarList pagedResponseCarList = carService.getAllNonDeletedCars(pageable);
+    public ResponseEntity<PagedResponseCarList> getAllCars(
+            @RequestParam(value = "active", defaultValue = "true") boolean active,
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @RequestParam(value = "limit", defaultValue = "10") Integer limit
+    ) {
+        PagedResponseCarList pagedResponseCarList = active ? carService.getAllNonDeletedCars(PageRequest.of(page, limit))
+                : carService.getAllCars(PageRequest.of(page, limit));
         return ResponseEntity.ok(pagedResponseCarList);
     }
 
