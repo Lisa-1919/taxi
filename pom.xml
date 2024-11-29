@@ -16,6 +16,7 @@
         <module>rating-service</module>
         <module>config-service</module>
         <module>eureka</module>
+        <module>gateway</module>
     </modules>
 
     <groupId>com.modsen</groupId>
