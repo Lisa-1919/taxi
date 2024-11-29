@@ -1,4 +1,4 @@
-package com.modsen.ride;
+package com.modsen.ride.it;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;

@@ -1,4 +1,4 @@
-package com.modsen.driver;
+package com.modsen.driver.it;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;

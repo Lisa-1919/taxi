@@ -9,14 +9,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 
 @FeignClient(
-        name = "driverService",
-        url = "${feign.client.driver-service-url}",
+        name = "driver-service",
         fallback = DriverServiceClientFallback.class,
         configuration = RetrieveMessageErrorDecoder.class
 )
 public interface DriverServiceClient {
 
-    @GetMapping("/{id}/exists")
+    @GetMapping("/api/v1/drivers/{id}/exists")
     @CircuitBreaker(name = "driverClient")
     @Retry(name = "driverClientRetry")
     ResponseEntity<Boolean> doesDriverExists(@PathVariable("id") Long driverId);

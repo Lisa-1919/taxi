@@ -1,4 +1,4 @@
-package com.modsen.driver;
+package com.modsen.driver.it;
 
 import com.modsen.driver.dto.RequestDriver;
 import com.modsen.driver.entity.Driver;

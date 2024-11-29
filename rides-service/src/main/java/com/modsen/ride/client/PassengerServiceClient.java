@@ -9,14 +9,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(
-        name = "passengerService",
-        url = "${feign.client.passenger-service-url}",
+        name = "passenger-service",
         fallback = PassengerServiceClientFallback.class,
         configuration = RetrieveMessageErrorDecoder.class
 )
 public interface PassengerServiceClient {
 
-    @GetMapping("/{id}/exists")
+    @GetMapping("/api/v1/passengers/{id}/exists")
     @CircuitBreaker(name = "passengerClient")
     @Retry(name = "passengerClientRetry")
     ResponseEntity<Boolean> doesPassengerExists(@PathVariable("id") Long passengerId);

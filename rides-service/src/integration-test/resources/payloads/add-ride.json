@@ -1,0 +1,6 @@
+{
+  "passengerId":101,
+  "fromAddress": "from",
+  "toAddress": "to",
+  "cost": 10
+}

@@ -1,4 +1,4 @@
-package com.modsen.rating;
+package com.modsen.rating.it;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -44,7 +44,6 @@ import static org.hamcrest.Matchers.notNullValue;
 @AutoConfigureMockMvc
 @Testcontainers
 @ActiveProfiles("integration-test")
-@Transactional
 public class RatingIntegrationTest {
 
     @Autowired

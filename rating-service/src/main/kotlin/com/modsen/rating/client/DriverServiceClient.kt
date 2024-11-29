@@ -8,13 +8,12 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 
 @FeignClient(
-    name = "driverService",
-    url = "\${feign.client.driver-service-url}",
+    name = "driver-service",
     fallback = com.modsen.rating.client.DriverServiceClientFallback::class,
     configuration = [com.modsen.rating.client.RetrieveMessageErrorDecoder::class]
 )
 interface DriverServiceClient {
-    @GetMapping("/{id}/exists")
+    @GetMapping("/api/v1/drivers/{id}/exists")
     @CircuitBreaker(name = "driverClient")
     @Retry(name = "driverClientRetry")
     fun doesDriverExist(@PathVariable("id") driverId: Long): ResponseEntity<Boolean>
