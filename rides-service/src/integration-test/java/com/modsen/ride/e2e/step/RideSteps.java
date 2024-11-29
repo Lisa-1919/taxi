@@ -18,7 +18,6 @@ import java.nio.file.Paths;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
-@Component
 public class RideSteps {
 
     private Response response;
