@@ -1,0 +1,239 @@
+services:
+  eureka:
+    image: eureka:latest
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8761" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    build:
+      context: ./eureka
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+    networks:
+      - microservices-net
+
+  gateway:
+    image: gateway:latest
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8765:8765"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
+    depends_on:
+      eureka:
+        condition: service_healthy
+    networks:
+      - microservices-net
+
+  config-service:
+    image: config-service:latest
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail --silent http://localhost:8888/actuator/health | grep UP || exit 1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    build:
+      context: ./config-service
+      dockerfile: Dockerfile
+    ports:
+      - "8888:8888"
+    environment:
+      SPRING_PROFILES_ACTIVE: git
+      SPRING_CLOUD_CONFIG_SERVER_GIT_URI: https://github.com/Lisa-1919/taxi-config.git
+      SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME: ${GIT_USER_NAME}
+      SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD: ${GIT_PASSWORD}
+      SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL: main
+      SPRING_CLOUD_CONFIG_SERVER_GIT_SEARCH_PATH: common,{application},{application}/{profile}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
+    depends_on:
+      eureka:
+        condition: service_healthy
+    networks:
+      - microservices-net
+
+  driver-service:
+    image: driver-service:latest
+    build:
+      context: ./driver-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://driver-db:5432/driver-service
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      eureka:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      driver-db:
+        condition: service_started
+    networks:
+      - microservices-net
+
+  passenger-service:
+    image: passenger-service:latest
+    build:
+      context: ./passenger-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://passenger-db:5432/passenger-service
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      eureka:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      passenger-db:
+        condition: service_started
+      kafka:
+        condition: service_started
+    networks:
+      - microservices-net
+
+  rides-service:
+    image: rides-service:latest
+    build:
+      context: ./rides-service
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://rides-db:5432/rides-service
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      eureka:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      rides-db:
+        condition: service_started
+      kafka:
+        condition: service_started
+    networks:
+      - microservices-net
+
+  rating-service:
+    image: rating-service:latest
+    build:
+      context: ./rating-service
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://rating-db:5432/rating-service
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      eureka:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      rating-db:
+        condition: service_started
+    networks:
+      - microservices-net
+
+  driver-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: driver-service
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - driver_data:/var/lib/postgresql/data
+    networks:
+      - microservices-net
+
+  passenger-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: passenger-service
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - passenger_data:/var/lib/postgresql/data
+    networks:
+      - microservices-net
+
+  rides-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: rides-service
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5434:5432"
+    volumes:
+      - rides_data:/var/lib/postgresql/data
+    networks:
+      - microservices-net
+
+  rating-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: rating-service
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5435:5432"
+    volumes:
+      - rating_data:/var/lib/postgresql/data
+    networks:
+      - microservices-net
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOO_ENABLE_AUTH: "no"
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+    networks:
+      - microservices-net
+
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+    depends_on:
+      - zookeeper
+    networks:
+      - microservices-net
+
+
+networks:
+  microservices-net:
+
+volumes:
+  driver_data:
+  passenger_data:
+  rides_data:
+  rating_data:
