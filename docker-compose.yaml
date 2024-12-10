@@ -1,14 +1,14 @@
 services:
   eureka:
     image: eureka:latest
+    build:
+      context: ./eureka
+      dockerfile: Dockerfile
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:8761" ]
       interval: 10s
       timeout: 10s
       retries: 5
-    build:
-      context: ./eureka
-      dockerfile: Dockerfile
     ports:
       - "8761:8761"
     networks:
@@ -228,9 +228,36 @@ services:
     networks:
       - microservices-net
 
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus:/prometheus
+    networks:
+      microservices-net:
+      monitoring:
+        aliases:
+          - prometheus
+
+  grafana:
+    build: './config/grafana'
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      monitoring:
+        aliases:
+          - grafana
 
 networks:
   microservices-net:
+  monitoring:
 
 volumes:
   driver_data:
