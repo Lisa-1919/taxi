@@ -1,0 +1,87 @@
+{
+  "uid": "driver-service-dashboard",
+  "title": "Driver Service Metrics",
+  "tags": ["driver-service", "JVM", "performance"],
+  "timezone": "browser",
+  "schemaVersion": 30,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "JVM Memory Usage",
+      "targets": [
+        {
+          "expr": "jvm_memory_used_bytes{instance=\"driver-service:8081\"}",
+          "legendFormat": "{{area}}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "graph",
+      "title": "Request Latency",
+      "targets": [
+        {
+          "expr": "http_server_requests_seconds_max{instance=\"driver-service:8081\"}",
+          "legendFormat": "{{uri}}",
+          "refId": "B"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Service Availability",
+      "targets": [
+        {
+          "expr": "up{instance=\"driver-service:8081\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "C"
+        }
+      ],
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["last"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "horizontal"
+      }
+    },
+    {
+      "type": "graph",
+      "title": "Throughput",
+      "targets": [
+        {
+          "expr": "rate(http_server_requests_seconds_count{instance=\"driver-service:8081\"}[1m])",
+          "legendFormat": "{{method}}",
+          "refId": "D"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      }
+    }
+  ]
+}
