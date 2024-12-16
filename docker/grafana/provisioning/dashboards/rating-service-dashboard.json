@@ -1,7 +1,7 @@
 {
-  "uid": "passenger-service-dashboard",
-  "title": "Passenger Service Metrics",
-  "tags": ["passenger-service", "JVM", "performance"],
+  "uid": "rating-service-dashboard",
+  "title": "Rating Service Metrics",
+  "tags": ["RATING-SERVICE", "JVM", "performance"],
   "timezone": "browser",
   "schemaVersion": 30,
   "version": 1,
@@ -12,8 +12,8 @@
       "title": "JVM Memory Usage",
       "targets": [
         {
-          "expr": "jvm_memory_used_bytes{instance=\"passenger-service:8082\"}",
-          "legendFormat": "{{area}}",
+          "expr": "jvm_memory_used_bytes{job=\"RATING-SERVICE\"}",
+          "legendFormat": "{{area}} - {{id}}",
           "refId": "A"
         }
       ],
@@ -29,8 +29,8 @@
       "title": "Request Latency",
       "targets": [
         {
-          "expr": "http_server_requests_seconds_max{instance=\"passenger-service:8082\"}",
-          "legendFormat": "{{uri}}",
+          "expr": "http_server_requests_seconds_max{job=\"RATING-SERVICE\"}",
+          "legendFormat": "{{status}} - {{method}} - {{uri}}",
           "refId": "B"
         }
       ],
@@ -46,7 +46,7 @@
       "title": "Service Availability",
       "targets": [
         {
-          "expr": "up{instance=\"passenger-service:8082\"}",
+          "expr": "up{job=\"RATING-SERVICE\"}",
           "legendFormat": "{{instance}}",
           "refId": "C"
         }
@@ -71,8 +71,8 @@
       "title": "Throughput",
       "targets": [
         {
-          "expr": "rate(http_server_requests_seconds_count{instance=\"passenger-service:8082\"}[1m])",
-          "legendFormat": "{{method}}",
+          "expr": "rate(http_server_requests_seconds_count{job=\"RATING-SERVICE\"}[1m])",
+          "legendFormat": "{{status}} - {{method}} - {{uri}}",
           "refId": "D"
         }
       ],
