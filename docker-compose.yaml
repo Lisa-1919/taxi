@@ -44,8 +44,6 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: git
       SPRING_CLOUD_CONFIG_SERVER_GIT_URI: https://github.com/Lisa-1919/taxi-config.git
-      SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME: ${GIT_USER_NAME}
-      SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD: ${GIT_PASSWORD}
       SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL: main
       SPRING_CLOUD_CONFIG_SERVER_GIT_SEARCH_PATH: common,{application},{application}/{profile}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
@@ -74,7 +72,7 @@ services:
       config-service:
         condition: service_healthy
       driver-db:
-        condition: service_started
+        condition: service_healthy
     networks:
       - microservices-net
 
@@ -97,7 +95,7 @@ services:
       config-service:
         condition: service_healthy
       passenger-db:
-        condition: service_started
+        condition: service_healthy
       kafka:
         condition: service_started
     networks:
@@ -122,7 +120,7 @@ services:
       config-service:
         condition: service_healthy
       rides-db:
-        condition: service_started
+        condition: service_healthy
       kafka:
         condition: service_started
     networks:
@@ -147,7 +145,7 @@ services:
       config-service:
         condition: service_healthy
       rating-db:
-        condition: service_started
+        condition: service_healthy
     networks:
       - microservices-net
 
@@ -157,6 +155,12 @@ services:
       POSTGRES_DB: driver-service
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
     ports:
       - "5432:5432"
     volumes:
@@ -170,6 +174,12 @@ services:
       POSTGRES_DB: passenger-service
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
     ports:
       - "5433:5432"
     volumes:
@@ -183,6 +193,12 @@ services:
       POSTGRES_DB: rides-service
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
     ports:
       - "5434:5432"
     volumes:
@@ -196,6 +212,12 @@ services:
       POSTGRES_DB: rating-service
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
     ports:
       - "5435:5432"
     volumes:
@@ -233,8 +255,7 @@ services:
     ports:
       - 9090:9090
     volumes:
-      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./prometheus:/prometheus
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
       microservices-net:
       monitoring:
@@ -242,11 +263,11 @@ services:
           - prometheus
 
   grafana:
-    build: './config/grafana'
+    build: 'docker/grafana'
     ports:
       - 3000:3000
     volumes:
-      - ./grafana:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
