@@ -1,0 +1,193 @@
+{
+  "info": {
+    "_postman_id": "1cb36151-b1e4-4412-8766-9999bb887456",
+    "name": "taxi-demo",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "32931761"
+  },
+  "item": [
+    {
+      "name": "add driver",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"firstName\":\"firstName\",\r\n    \"lastName\":\"lastName\",\r\n    \"email\":\"email@gmail.com\",\r\n    \"phoneNumber\":\"+375 25 950 44 22\",\r\n    \"sex\":\"male\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8765/api/v1/drivers",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8765",
+          "path": [
+            "api",
+            "v1",
+            "drivers"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "add car",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"licensePlate\":\"AB 9876-9\",\r\n    \"mark\":\"1\",\r\n    \"colour\":\"black\",\r\n    \"driverId\":1\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8765/api/v1/cars",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8765",
+          "path": [
+            "api",
+            "v1",
+            "cars"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "add passenger",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"firstName\":\"firstName\",\r\n    \"lastName\":\"lastName\",\r\n    \"email\":\"email@gmail.com\",\r\n    \"phoneNumber\":\"+375 44 978 67 21\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8765/api/v1/passengers",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8765",
+          "path": [
+            "api",
+            "v1",
+            "passengers"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "add ride",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"passengerId\":1,\r\n    \"fromAddress\": \"from\",\r\n    \"toAddress\": \"to\",\r\n    \"cost\": 10\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8765/api/v1/rides",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8765",
+          "path": [
+            "api",
+            "v1",
+            "rides"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "change ride",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"driverId\": 1,\r\n    \"passengerId\": 1,\r\n    \"fromAddress\": \"from\",\r\n    \"toAddress\": \"to\",\r\n    \"rideStatus\": \"CREATED\",\r\n    \"orderDateTime\": \"2024-10-10T12:33:07.6141081\",\r\n    \"cost\": 10\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8765/api/v1/rides/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8765",
+          "path": [
+            "api",
+            "v1",
+            "rides",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "change status",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8083/api/v1/rides/1/COMPLETED",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8083",
+          "path": [
+            "api",
+            "v1",
+            "rides",
+            "1",
+            "COMPLETED"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
