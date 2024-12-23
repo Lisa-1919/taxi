@@ -5,10 +5,11 @@ services:
       context: ./eureka
       dockerfile: Dockerfile
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:8761" ]
-      interval: 10s
-      timeout: 10s
-      retries: 5
+      test: [ "CMD-SHELL", "curl --fail --silent http://localhost:8761/eureka/apps | grep applications || exit 1" ]
+      interval: 30s
+      timeout: 20s
+      retries: 10
+      start_period: 40s
     ports:
       - "8761:8761"
     networks:
@@ -37,9 +38,10 @@ services:
       dockerfile: Dockerfile
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail --silent http://localhost:8888/actuator/health | grep UP || exit 1" ]
-      interval: 10s
-      timeout: 10s
-      retries: 5
+      interval: 30s
+      timeout: 20s
+      retries: 10
+      start_period: 40s
     ports:
       - "8888:8888"
     environment:
