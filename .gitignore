@@ -34,3 +34,5 @@ build/
 .vscode/
 /prometheus/
 /grafana/
+/loki-data/
+
