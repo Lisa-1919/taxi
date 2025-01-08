@@ -8,7 +8,7 @@ import com.modsen.rating.dto.ResponseRate
 import com.modsen.rating.entity.Rate
 import com.modsen.rating.mapper.RateMapper
 import com.modsen.rating.repo.RateRepository
-import com.modsen.rating.service.RateService
+import com.modsen.rating.service.RateServiceImpl
 import com.modsen.rating.util.RateTestEntityUtils
 import com.modsen.rating.util.UserType
 import jakarta.persistence.EntityNotFoundException
@@ -17,39 +17,43 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.mockito.BDDMockito.given
+import org.mockito.InjectMocks
+import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.junit.jupiter.MockitoSettings
+import org.mockito.quality.Strictness
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.test.context.ActiveProfiles
 
-@SpringBootTest
 @ActiveProfiles("test")
+@ExtendWith(MockitoExtension::class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class RateServiceImplTest {
 
-    @Autowired
-    private lateinit var rateService: RateService
+    @InjectMocks
+    private lateinit var rateService: RateServiceImpl
 
-    @MockBean
+    @Mock
     private lateinit var rateRepository: RateRepository
 
-    @MockBean
+    @Mock
     private lateinit var rateMapper: RateMapper
 
-    @MockBean
+    @Mock
     private lateinit var rideServiceClient: RideServiceClient
 
-    @MockBean
+    @Mock
     private lateinit var passengerServiceClient: PassengerServiceClient
 
-    @MockBean
+    @Mock
     private lateinit var driverServiceClient: DriverServiceClient
 
     @Nested
