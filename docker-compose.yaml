@@ -6,9 +6,9 @@ services:
       dockerfile: Dockerfile
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:8761" ]
-      interval: 10s
-      timeout: 10s
-      retries: 5
+      interval: 30s
+      timeout: 20s
+      retries: 10
     ports:
       - "8761:8761"
     networks:
@@ -23,8 +23,11 @@ services:
       - "8765:8765"
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET: ${TAXI_CLIENT_SECRET}
     depends_on:
       eureka:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
     networks:
       - microservices-net
@@ -37,9 +40,9 @@ services:
       dockerfile: Dockerfile
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail --silent http://localhost:8888/actuator/health | grep UP || exit 1" ]
-      interval: 10s
-      timeout: 10s
-      retries: 5
+      interval: 30s
+      timeout: 20s
+      retries: 10
     ports:
       - "8888:8888"
     environment:
@@ -74,6 +77,8 @@ services:
         condition: service_healthy
       driver-db:
         condition: service_healthy
+      keycloak:
+        condition: service_healthy
     networks:
       - microservices-net
       - monitoring
@@ -100,6 +105,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_started
+      keycloak:
+        condition: service_healthy
     networks:
       - microservices-net
       - monitoring
@@ -126,6 +133,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_started
+      keycloak:
+        condition: service_healthy
     networks:
       - microservices-net
       - monitoring
@@ -149,6 +158,8 @@ services:
       config-service:
         condition: service_healthy
       rating-db:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
     networks:
       - microservices-net
@@ -317,6 +328,60 @@ services:
     networks:
       - monitoring
 
+  keycloak:
+    build:
+      context: ./docker/keycloak
+      dockerfile: Dockerfile
+    container_name: keycloak
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --head -fsS http://localhost:9000/health/ready || exit 1" ]
+      interval: 30s
+      timeout: 20s
+      retries: 10
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: ${POSTGRES_USER}
+      DB_DATABASE: keycloak-db
+      DB_SCHEMA: public
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_IMPORT: /opt/keycloak/data/import/realm.json
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+    volumes:
+      - ./docker/keycloak:/opt/keycloak/data/import
+    command: start-dev --import-realm
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    ports:
+      - 8080:8080
+      - 9000:9000
+    networks:
+      - microservices-net
+
+  keycloak-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: keycloak-db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+    ports:
+      - "5436:5432"
+    volumes:
+      - keycloak_data:/var/lib/postgresql/data
+    networks:
+      - microservices-net
+
+
 networks:
   microservices-net:
   monitoring:
@@ -326,3 +391,4 @@ volumes:
   passenger_data:
   rides_data:
   rating_data:
+  keycloak_data:
