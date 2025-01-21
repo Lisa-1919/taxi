@@ -1,5 +1,6 @@
 package com.modsen.passenger.service;
 
+import com.modsen.passenger.dto.CreatePassengerRequest;
 import com.modsen.passenger.dto.PagedResponsePassengerList;
 import com.modsen.passenger.dto.RequestPassenger;
 import com.modsen.passenger.dto.ResponsePassenger;
@@ -7,6 +8,7 @@ import com.modsen.passenger.entity.Passenger;
 import com.modsen.passenger.mapper.PassengerMapper;
 import com.modsen.passenger.repo.PassengerRepository;
 import com.modsen.passenger.util.ExceptionMessages;
+import com.modsen.passenger.util.JwtTokenUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 @Service
@@ -29,22 +32,24 @@ public class PassengerServiceImpl implements PassengerService {
 
     private final PassengerRepository passengerRepository;
     private final PassengerMapper passengerMapper;
+    private final JwtTokenUtil jwtTokenUtil;
 
     @Override
     @Transactional
-    public ResponsePassenger addPassenger(RequestPassenger requestPassenger) {
+    public ResponsePassenger addPassenger(CreatePassengerRequest createPassengerRequest) {
 
-        checkUniqueField(EMAIL, requestPassenger.email(), passengerRepository::existsByEmail);
-        checkUniqueField(PHONE_NUMBER, requestPassenger.phoneNumber(), passengerRepository::existsByPhoneNumber);
+        checkUniqueField(EMAIL, createPassengerRequest.email(), passengerRepository::existsByEmail);
+        checkUniqueField(PHONE_NUMBER, createPassengerRequest.phoneNumber(), passengerRepository::existsByPhoneNumber);
 
-        Passenger passenger = passengerMapper.requestPassengerToPassenger(requestPassenger);
+        Passenger passenger = passengerMapper.createPassengerRequestToPassenger(createPassengerRequest);
         return passengerMapper.passengerToResponsePassenger(passengerRepository.save(passenger));
 
     }
 
     @Override
     @Transactional
-    public ResponsePassenger editPassenger(Long id, RequestPassenger requestPassenger) {
+    public ResponsePassenger editPassenger(UUID id, RequestPassenger requestPassenger) {
+        jwtTokenUtil.validateAccess(id);
         Passenger passengerFromDb = getOrThrow(id);
 
         if (!passengerFromDb.getEmail().equals(requestPassenger.email())){
@@ -62,13 +67,13 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     @Transactional
-    public void deletePassenger(Long id) {
+    public void deletePassenger(UUID id) {
         Passenger passenger = getOrThrow(id);
         passengerRepository.delete(passenger);
     }
 
     @Override
-    public ResponsePassenger getPassengerById(Long id) {
+    public ResponsePassenger getPassengerById(UUID id) {
         Passenger passenger = passengerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.PASSENGER_NOT_FOUND.format(id)));
 
@@ -76,7 +81,7 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
-    public ResponsePassenger getPassengerByIdNonDeleted(Long id) {
+    public ResponsePassenger getPassengerByIdNonDeleted(UUID id) {
         Passenger passenger = getOrThrow(id);
         return passengerMapper.passengerToResponsePassenger(passenger);
     }
@@ -94,13 +99,13 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
-    public boolean doesPassengerExist(Long id) {
+    public boolean doesPassengerExist(UUID id) {
         boolean exists = passengerRepository.existsByIdAndIsDeletedFalse(id);
         if(exists) return true;
         else throw new EntityNotFoundException(ExceptionMessages.PASSENGER_NOT_FOUND.format(id));
     }
 
-    private Passenger getOrThrow(Long id) {
+    private Passenger getOrThrow(UUID id) {
         return passengerRepository.findPassengerByIdNonDeleted(id)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.PASSENGER_NOT_FOUND.format(id)));
     }

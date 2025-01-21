@@ -1,25 +1,28 @@
 package com.modsen.passenger.service;
 
+import com.modsen.passenger.dto.CreatePassengerRequest;
 import com.modsen.passenger.dto.RequestPassenger;
 import com.modsen.passenger.dto.ResponsePassenger;
 import com.modsen.passenger.dto.PagedResponsePassengerList;
 import org.springframework.data.domain.Pageable;
 
+import java.util.UUID;
+
 public interface PassengerService {
 
-    ResponsePassenger addPassenger(RequestPassenger requestPassenger);
+    ResponsePassenger addPassenger(CreatePassengerRequest createPassengerRequest);
 
-    ResponsePassenger editPassenger(Long id, RequestPassenger requestPassenger);
+    ResponsePassenger editPassenger(UUID id, RequestPassenger requestPassenger);
 
-    void deletePassenger(Long id);
+    void deletePassenger(UUID id);
 
-    ResponsePassenger getPassengerById(Long id);
+    ResponsePassenger getPassengerById(UUID id);
 
-    ResponsePassenger getPassengerByIdNonDeleted(Long id);
+    ResponsePassenger getPassengerByIdNonDeleted(UUID id);
 
     PagedResponsePassengerList getAllPassengers(Pageable pageable);
 
     PagedResponsePassengerList getAllNonDeletedPassengers(Pageable pageable);
 
-    boolean doesPassengerExist(Long id);
+    boolean doesPassengerExist(UUID id);
 }

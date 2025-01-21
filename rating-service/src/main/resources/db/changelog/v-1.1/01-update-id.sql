@@ -1,0 +1,2 @@
+ALTER TABLE rate ALTER COLUMN user_id TYPE UUID;
+GO

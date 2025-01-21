@@ -17,6 +17,7 @@
         <module>config-service</module>
         <module>eureka</module>
         <module>gateway</module>
+        <module>account</module>
     </modules>
 
     <groupId>com.modsen</groupId>
@@ -377,6 +378,16 @@
             <id>e2e</id>
             <properties>
                 <spring.profiles.active>e2e</spring.profiles.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>skip-tests</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <skipTests>true</skipTests>
+                <maven.test.skip>true</maven.test.skip>
             </properties>
         </profile>
     </profiles>

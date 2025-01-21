@@ -1,5 +1,6 @@
 package com.modsen.passenger.controller;
 
+import com.modsen.passenger.dto.CreatePassengerRequest;
 import com.modsen.passenger.dto.RequestPassenger;
 import com.modsen.passenger.dto.ResponsePassenger;
 import com.modsen.passenger.dto.PagedResponsePassengerList;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/passengers")
@@ -28,7 +31,7 @@ public class PassengerController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ResponsePassenger> getPassengerById(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @RequestParam(value = "active", defaultValue = "true") boolean active
     ) {
         ResponsePassenger passengerDto = active ? passengerService.getPassengerByIdNonDeleted(id)
@@ -49,25 +52,25 @@ public class PassengerController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponsePassenger> addPassenger(@Valid @RequestBody RequestPassenger requestPassenger) {
-        ResponsePassenger responsePassenger = passengerService.addPassenger(requestPassenger);
+    public ResponseEntity<ResponsePassenger> addPassenger(@Valid @RequestBody CreatePassengerRequest createPassengerRequest) {
+        ResponsePassenger responsePassenger = passengerService.addPassenger(createPassengerRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(responsePassenger);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResponsePassenger> editPassenger(@PathVariable Long id, @Valid @RequestBody RequestPassenger requestPassenger) {
+    public ResponseEntity<ResponsePassenger> editPassenger(@PathVariable UUID id, @Valid @RequestBody RequestPassenger requestPassenger) {
         ResponsePassenger responsePassenger = passengerService.editPassenger(id, requestPassenger);
         return ResponseEntity.ok(responsePassenger);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePassenger(@PathVariable Long id) {
+    public ResponseEntity<Void> deletePassenger(@PathVariable UUID id) {
         passengerService.deletePassenger(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @GetMapping("/{id}/exists")
-    public ResponseEntity<Boolean> doesPassengerExist(@PathVariable Long id) {
+    public ResponseEntity<Boolean> doesPassengerExist(@PathVariable UUID id) {
         boolean exists = passengerService.doesPassengerExist(id);
         return ResponseEntity.ok(exists);
     }

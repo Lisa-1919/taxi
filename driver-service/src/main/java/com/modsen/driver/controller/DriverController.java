@@ -1,5 +1,6 @@
 package com.modsen.driver.controller;
 
+import com.modsen.driver.dto.CreateDriverRequest;
 import com.modsen.driver.dto.PagedResponseDriverList;
 import com.modsen.driver.dto.RequestDriver;
 import com.modsen.driver.dto.ResponseDriver;
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/v1/drivers")
 @RequiredArgsConstructor
@@ -29,11 +32,12 @@ public class DriverController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ResponseDriver> getDriverByIdNonDeleted(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @RequestParam(value = "active", defaultValue = "true") boolean active
     ) {
         ResponseDriver driverDTO = active ? driverService.getDriverByIdNonDeleted(id)
                 : driverService.getDriverById(id);
+        System.out.println("Create a driver with id " + driverDTO.id());
         return ResponseEntity.ok(driverDTO);
     }
 
@@ -49,25 +53,25 @@ public class DriverController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponseDriver> addDriver(@Validated @RequestBody RequestDriver requestDriver) {
-        ResponseDriver responseDriver = driverService.addDriver(requestDriver);
+    public ResponseEntity<ResponseDriver> addDriver(@Validated @RequestBody CreateDriverRequest createDriverRequest) {
+        ResponseDriver responseDriver = driverService.addDriver(createDriverRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDriver);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResponseDriver> editDriver(@PathVariable Long id, @Valid @RequestBody RequestDriver requestDriver) {
+    public ResponseEntity<ResponseDriver> editDriver(@PathVariable UUID id, @Valid @RequestBody RequestDriver requestDriver) {
         ResponseDriver responseDriver = driverService.editDriver(id, requestDriver);
         return ResponseEntity.ok(responseDriver);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDriver(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteDriver(@PathVariable UUID id) {
         driverService.deleteDriver(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @GetMapping("/{id}/exists")
-    public ResponseEntity<Boolean> doesDriverExist(@PathVariable Long id) {
+    public ResponseEntity<Boolean> doesDriverExist(@PathVariable UUID id) {
         boolean exists = driverService.doesDriverExist(id);
         return ResponseEntity.ok(exists);
     }

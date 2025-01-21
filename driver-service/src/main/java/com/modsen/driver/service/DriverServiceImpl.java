@@ -1,5 +1,6 @@
 package com.modsen.driver.service;
 
+import com.modsen.driver.dto.CreateDriverRequest;
 import com.modsen.driver.dto.PagedResponseDriverList;
 import com.modsen.driver.dto.RequestDriver;
 import com.modsen.driver.dto.ResponseDriver;
@@ -7,6 +8,7 @@ import com.modsen.driver.entity.Driver;
 import com.modsen.driver.mapper.DriverMapper;
 import com.modsen.driver.repo.DriverRepository;
 import com.modsen.driver.util.ExceptionMessages;
+import com.modsen.driver.util.JwtTokenUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,10 +16,12 @@ import org.hibernate.Hibernate;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 @Service
@@ -30,21 +34,22 @@ public class DriverServiceImpl implements DriverService {
 
     private final DriverRepository driverRepository;
     private final DriverMapper driverMapper;
+    private final JwtTokenUtil jwtTokenUtil;
 
     @Override
     @Transactional
-    public ResponseDriver addDriver(RequestDriver requestDriver) {
+    public ResponseDriver addDriver(CreateDriverRequest createDriverRequest) {
+        checkUniqueField(EMAIL, createDriverRequest.email(), driverRepository::existsByEmail);
+        checkUniqueField(PHONE_NUMBER, createDriverRequest.phoneNumber(), driverRepository::existsByPhoneNumber);
 
-        checkUniqueField(EMAIL, requestDriver.email(), driverRepository::existsByEmail);
-        checkUniqueField(PHONE_NUMBER, requestDriver.phoneNumber(), driverRepository::existsByPhoneNumber);
-
-        Driver driver = driverMapper.requestDriverToDriver(requestDriver);
+        Driver driver = driverMapper.createDriverRequestToDriver(createDriverRequest);
         return driverMapper.driverToResponseDriver(driverRepository.save(driver));
     }
 
     @Override
     @Transactional
-    public ResponseDriver editDriver(Long id, RequestDriver requestDriver) {
+    public ResponseDriver editDriver(UUID id, RequestDriver requestDriver) {
+        jwtTokenUtil.validateAccess(id);
         Driver driverFromDB = getOrThrow(id);
 
         if (!driverFromDB.getEmail().equals(requestDriver.email())) {
@@ -63,13 +68,13 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     @Transactional
-    public void deleteDriver(Long id) {
+    public void deleteDriver(UUID id) {
         Driver driver = getOrThrow(id);
         driverRepository.delete(driver);
     }
 
     @Override
-    public ResponseDriver getDriverById(Long id) {
+    public ResponseDriver getDriverById(UUID id) {
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id)));
 
@@ -77,7 +82,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public ResponseDriver getDriverByIdNonDeleted(Long id) {
+    public ResponseDriver getDriverByIdNonDeleted(UUID id) {
         Driver driver = getOrThrow(id);
         if (driver.getCar() != null) {
             Hibernate.initialize(driver.getCar());
@@ -99,13 +104,13 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public boolean doesDriverExist(Long id) {
+    public boolean doesDriverExist(UUID id) {
         boolean exists = driverRepository.existsByIdAndIsDeletedFalse(id);
         if (exists) return true;
         else throw new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id));
     }
 
-    private Driver getOrThrow(Long id) {
+    private Driver getOrThrow(UUID id) {
         return driverRepository.findDriverByIdNonDeleted(id)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id)));
     }

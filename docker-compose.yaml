@@ -24,6 +24,8 @@ services:
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET: ${TAXI_CLIENT_SECRET}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWK_JWKSETURI: ${JWK_SET_URI}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_ISSUER_URI: ${ISSUER_URI}
     depends_on:
       eureka:
         condition: service_healthy
@@ -70,6 +72,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://driver-db:5432/driver-service
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWK_JWKSETURI: ${JWK_SET_URI}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_ISSUER_URI: ${ISSUER_URI}
     depends_on:
       eureka:
         condition: service_healthy
@@ -96,6 +100,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://passenger-db:5432/passenger-service
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWK_JWKSETURI: ${JWK_SET_URI}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_ISSUER_URI: ${ISSUER_URI}
     depends_on:
       eureka:
         condition: service_healthy
@@ -124,6 +130,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://rides-db:5432/rides-service
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWK_JWKSETURI: ${JWK_SET_URI}
     depends_on:
       eureka:
         condition: service_healthy
@@ -152,6 +159,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://rating-db:5432/rating-service
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWK_JWKSETURI: ${JWK_SET_URI}
     depends_on:
       eureka:
         condition: service_healthy
@@ -321,7 +329,7 @@ services:
     ports:
       - "9411:9411"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9411/health || exit 1"]
+      test: [ "CMD-SHELL", "curl -f http://localhost:9411/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -381,6 +389,27 @@ services:
     networks:
       - microservices-net
 
+  account-service:
+    image: account-service:latest
+    build:
+      context: ./account
+      dockerfile: Dockerfile
+    ports:
+      - "8085:8085"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
+      AUTH_SERVER_URL: ${AUTH_SERVER_URL}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET: ${TAXI_CLIENT_SECRET}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWK_JWKSETURI: ${JWK_SET_URI}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_ISSUER_URI: ${ISSUER_URI}
+    depends_on:
+      eureka:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    networks:
+      - microservices-net
+      - monitoring
 
 networks:
   microservices-net:

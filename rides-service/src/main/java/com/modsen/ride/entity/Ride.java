@@ -17,6 +17,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Builder
 @AllArgsConstructor
@@ -32,10 +33,10 @@ public class Ride {
     private Long id;
 
     @Column(name = "driver_id")
-    private Long driverId;
+    private UUID driverId;
 
     @Column(name = "passenger_id")
-    private Long passengerId;
+    private UUID passengerId;
 
     @Column(name = "from_address")
     private String fromAddress;

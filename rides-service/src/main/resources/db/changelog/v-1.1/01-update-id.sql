@@ -1,0 +1,5 @@
+ALTER TABLE ride ALTER COLUMN driver_id TYPE UUID;
+GO
+
+ALTER TABLE ride ALTER COLUMN passenger_id TYPE UUID;
+GO

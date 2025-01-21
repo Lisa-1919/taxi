@@ -4,6 +4,7 @@ import com.modsen.rating.dto.RequestRate
 import com.modsen.rating.dto.ResponseRate
 import com.modsen.rating.dto.PagedResponseRateList
 import com.modsen.rating.service.RateService
+import java.util.UUID
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
@@ -40,7 +41,7 @@ class RateController(
     }
 
     @GetMapping("/from-passengers/{passengerId}")
-    fun getAllRatesByPassengerId(@PathVariable passengerId: Long, @PageableDefault(page = 0, size = 10) pageable: Pageable): ResponseEntity<PagedResponseRateList> {
+    fun getAllRatesByPassengerId(@PathVariable passengerId: UUID, @PageableDefault(page = 0, size = 10) pageable: Pageable): ResponseEntity<PagedResponseRateList> {
         val responseRateList = rateService.getAllRatesByPassengerId(passengerId, pageable)
         return ResponseEntity.ok(responseRateList)
     }
@@ -52,7 +53,7 @@ class RateController(
     }
 
     @GetMapping("/from-drivers/{driverId}")
-    fun getAllRatesByDriverId(@PathVariable driverId: Long, @PageableDefault(page = 0, size = 10) pageable: Pageable): ResponseEntity<PagedResponseRateList> {
+    fun getAllRatesByDriverId(@PathVariable driverId: UUID, @PageableDefault(page = 0, size = 10) pageable: Pageable): ResponseEntity<PagedResponseRateList> {
         val responseRateList = rateService.getAllRatesByDriverId(driverId, pageable)
         return ResponseEntity.ok(responseRateList)
     }
