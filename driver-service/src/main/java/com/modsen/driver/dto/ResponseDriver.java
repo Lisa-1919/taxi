@@ -1,8 +1,10 @@
 package com.modsen.driver.dto;
 
+import java.util.UUID;
+
 public record ResponseDriver(
 
-        Long id,
+        UUID id,
         String firstName,
         String lastName,
         String email,

@@ -3,6 +3,7 @@ package com.modsen.rating.service
 import com.modsen.rating.dto.RequestRate
 import com.modsen.rating.dto.ResponseRate
 import com.modsen.rating.dto.PagedResponseRateList
+import java.util.UUID
 import org.springframework.data.domain.Pageable
 
 interface RateService {
@@ -12,6 +13,6 @@ interface RateService {
     fun getAllRates(pageable: Pageable): PagedResponseRateList
     fun getAllRatesFromPassengers(pageable: Pageable): PagedResponseRateList
     fun getAllRatesFromDrivers(pageable: Pageable): PagedResponseRateList
-    fun getAllRatesByPassengerId(passengerId: Long, pageable: Pageable): PagedResponseRateList
-    fun getAllRatesByDriverId(driverId: Long, pageable: Pageable): PagedResponseRateList
+    fun getAllRatesByPassengerId(passengerId: UUID, pageable: Pageable): PagedResponseRateList
+    fun getAllRatesByDriverId(driverId: UUID, pageable: Pageable): PagedResponseRateList
 }

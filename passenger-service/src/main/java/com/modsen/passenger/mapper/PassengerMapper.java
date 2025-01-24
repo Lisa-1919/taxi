@@ -1,5 +1,6 @@
 package com.modsen.passenger.mapper;
 
+import com.modsen.passenger.dto.CreatePassengerRequest;
 import com.modsen.passenger.dto.RequestPassenger;
 import com.modsen.passenger.dto.ResponsePassenger;
 import com.modsen.passenger.entity.Passenger;
@@ -8,6 +9,8 @@ import org.mapstruct.MappingTarget;
 
 @Mapper
 public interface PassengerMapper {
+
+    Passenger createPassengerRequestToPassenger(CreatePassengerRequest createPassengerRequest);
 
     Passenger requestPassengerToPassenger(RequestPassenger requestPassenger);
 

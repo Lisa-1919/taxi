@@ -21,17 +21,23 @@ public class GatewayConfiguration {
     @Value("${route.rides-service.uri}")
     private String ridesServiceUri;
 
+    @Value("${route.account-service.uri}")
+    private String accountServiceUri;
+
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                .route("driver-service", r->r.path("/api/v1/drivers/**", "/api/v1/cars/**")
+                .route("driver-service", r -> r.path("/api/v1/drivers/**", "/api/v1/cars/**")
                         .uri(driverServiceUri))
-                .route("passenger-service", r->r.path("/api/v1/passengers/**")
+                .route("passenger-service", r -> r.path("/api/v1/passengers/**")
                         .uri(passengerServiceUri))
-                .route("rating-service", r->r.path("/api/v1/rates/**")
+                .route("rating-service", r -> r.path("/api/v1/rates/**")
                         .uri(ratingServiceUri))
-                .route("rides-service", r->r.path("/api/v1/rides/**")
+                .route("rides-service", r -> r.path("/api/v1/rides/**")
                         .uri(ridesServiceUri))
+                .route("account-service", r -> r.path("/api/v1/account/**")
+                        .uri(accountServiceUri))
                 .build();
     }
+
 }

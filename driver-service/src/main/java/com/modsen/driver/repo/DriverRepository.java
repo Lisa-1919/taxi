@@ -9,20 +9,21 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface DriverRepository extends JpaRepository<Driver, Long> {
+public interface DriverRepository extends JpaRepository<Driver, UUID> {
 
     @Query("SELECT d FROM Driver d WHERE d.isDeleted = false")
     Page<Driver> findAllNonDeleted(Pageable pageable);
 
     @Query("SELECT d FROM Driver d WHERE d.id = :id and d.isDeleted = false")
-    Optional<Driver> findDriverByIdNonDeleted(@Param("id") Long id);
+    Optional<Driver> findDriverByIdNonDeleted(@Param("id") UUID id);
 
     boolean existsByEmail(String email);
 
     boolean existsByPhoneNumber(String phoneNumber);
 
-    boolean existsByIdAndIsDeletedFalse(Long id);
+    boolean existsByIdAndIsDeletedFalse(UUID id);
 
 }

@@ -8,6 +8,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
+import java.util.UUID;
+
 @Mapper
 public interface RideMapper {
 
@@ -19,14 +21,14 @@ public interface RideMapper {
     @Mapping(target = "driverId", expression = "java(updateDriver(requestRide.driverId(), rideFromDB))")
     void updateRideFromRideDto(RequestRide requestRide, @MappingTarget Ride rideFromDB);
 
-    default Long updateDriver(Long newDriverId, Ride rideFromDB) {
+    default UUID updateDriver(UUID newDriverId, Ride rideFromDB) {
         if (rideFromDB.getDriverId() == null) {
             return newDriverId;
         }
         return rideFromDB.getDriverId();
     }
 
-    default RideStatuses updateStatusBasedOnDriver(Long newDriverId, Ride rideFromDB) {
+    default RideStatuses updateStatusBasedOnDriver(UUID newDriverId, Ride rideFromDB) {
         if (rideFromDB.getDriverId() == null && newDriverId != null) {
             return RideStatuses.ACCEPTED;
         }

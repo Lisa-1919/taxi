@@ -9,19 +9,20 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface PassengerRepository extends JpaRepository<Passenger, Long> {
+public interface PassengerRepository extends JpaRepository<Passenger, UUID> {
 
     @Query("SELECT p FROM Passenger p WHERE p.isDeleted = false")
     Page<Passenger> findAllNonDeleted(Pageable pageable);
 
     @Query("SELECT p FROM Passenger p WHERE p.id = :id and p.isDeleted = false")
-    Optional<Passenger> findPassengerByIdNonDeleted(@Param("id") Long id);
+    Optional<Passenger> findPassengerByIdNonDeleted(@Param("id") UUID id);
 
     boolean existsByEmail(String email);
 
     boolean existsByPhoneNumber(String phoneNumber);
 
-    boolean existsByIdAndIsDeletedFalse(Long id);
+    boolean existsByIdAndIsDeletedFalse(UUID id);
 }

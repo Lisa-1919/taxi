@@ -3,6 +3,8 @@ package com.modsen.driver.dto;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
+import java.util.UUID;
+
 public record RequestCar(
         @NotNull(message = "License plate cannot be null")
         @Pattern(regexp = LICENSE_PLATE_REGEX, message = "Invalid license plate format")
@@ -15,7 +17,7 @@ public record RequestCar(
         String colour,
 
         @NotNull(message = "Driver id cannot be null")
-        Long driverId
+        UUID driverId
 ) {
     private static final String LICENSE_PLATE_REGEX = "^\\b([A-Z]{1} \\d{4} [A-Z]{2}-\\d|\\d{4} [A-Z]-\\d|[A-Z]{2} \\d{4}-\\d)\\b$";
 }

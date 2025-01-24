@@ -12,6 +12,7 @@ import com.modsen.rating.repo.RateRepository
 import com.modsen.rating.util.ExceptionMessages
 import com.modsen.rating.util.UserType
 import jakarta.persistence.EntityNotFoundException
+import java.util.UUID
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -59,23 +60,23 @@ open class RateServiceImpl(
         return createPagedResponse(ratePage)
     }
 
-    override fun getAllRatesByPassengerId(passengerId: Long, pageable: Pageable): PagedResponseRateList {
+    override fun getAllRatesByPassengerId(passengerId: UUID, pageable: Pageable): PagedResponseRateList {
         val ratePage = rateRepository.getAllRatesByPassengerId(passengerId, pageable)
         return createPagedResponse(ratePage)
     }
 
-    override fun getAllRatesByDriverId(driverId: Long, pageable: Pageable): PagedResponseRateList {
+    override fun getAllRatesByDriverId(driverId: UUID, pageable: Pageable): PagedResponseRateList {
         val ratePage = rateRepository.getAllRatesByDriverId(driverId, pageable)
         return createPagedResponse(ratePage)
     }
 
-    private fun isRideExists(rideId: Long, userId: Long, userType: UserType): Boolean? =
+    private fun isRideExists(rideId: Long, userId: UUID, userType: UserType): Boolean? =
         when(userType) {
             UserType.DRIVER -> rideServiceClient.doesRideExistForDriver(rideId, userId).body
             UserType.PASSENGER -> rideServiceClient.doesRideExistForPassenger(rideId, userId).body
         }
 
-    private fun isUserExists(userId: Long, userType: UserType): Boolean? =
+    private fun isUserExists(userId: UUID, userType: UserType): Boolean? =
         when (userType) {
             UserType.DRIVER -> driverServiceClient.doesDriverExist(userId).body
             UserType.PASSENGER -> passengerServiceClient.doesPassengerExist(userId).body

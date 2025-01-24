@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
@@ -111,14 +112,14 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    public Boolean doesRideExistForDriver(Long id, Long driverId) {
+    public Boolean doesRideExistForDriver(Long id, UUID driverId) {
         boolean exists = rideRepository.existsByIdAndDriverId(id, driverId);
         if (exists) return true;
         else throw new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND_FOR_DRIVER.format(id, driverId));
     }
 
     @Override
-    public Boolean doesRideExistForPassenger(Long id, Long passengerId) {
+    public Boolean doesRideExistForPassenger(Long id, UUID passengerId) {
         boolean exists = rideRepository.existsByIdAndPassengerId(id, passengerId);
         if (exists) return true;
         else throw new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND_FOR_PASSENGER.format(id, passengerId));
@@ -129,11 +130,11 @@ public class RideServiceImpl implements RideService {
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND.format(id)));
     }
 
-    private void doesDriverExist(Long driverId) {
+    private void doesDriverExist(UUID driverId) {
         driverServiceClient.doesDriverExists(driverId);
     }
 
-    private void doesPassengerExist(Long passengerId) {
+    private void doesPassengerExist(UUID passengerId) {
         passengerServiceClient.doesPassengerExists(passengerId);
     }
 

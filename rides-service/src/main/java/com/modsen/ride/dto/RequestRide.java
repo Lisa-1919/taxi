@@ -5,14 +5,15 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Builder
 public record RequestRide(
 
-        Long driverId,
+        UUID driverId,
 
         @NotNull(message = "Passenger id cannot be null")
-        Long passengerId,
+        UUID passengerId,
 
         @NotNull(message = "Departure address cannot be null")
         String fromAddress,

@@ -1,5 +1,6 @@
 package com.modsen.driver.mapper;
 
+import com.modsen.driver.dto.CreateDriverRequest;
 import com.modsen.driver.dto.RequestDriver;
 import com.modsen.driver.dto.ResponseDriver;
 import com.modsen.driver.entity.Driver;
@@ -9,6 +10,8 @@ import org.mapstruct.MappingTarget;
 
 @Mapper(uses = CarMapper.class)
 public interface DriverMapper {
+
+    Driver createDriverRequestToDriver(CreateDriverRequest createDriverRequest);
 
     Driver requestDriverToDriver(RequestDriver requestDriver);
 

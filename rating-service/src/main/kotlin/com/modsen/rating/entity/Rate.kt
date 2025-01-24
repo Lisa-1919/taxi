@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import java.util.UUID
 
 @Table(name = "rate")
 @Entity
@@ -19,7 +20,7 @@ class Rate(
     var id: Long,
 
     @Column(name = "user_id")
-    var userId: Long,
+    var userId: UUID,
 
     @Column(name = "user_type")
     @Enumerated(EnumType.STRING)
@@ -35,5 +36,5 @@ class Rate(
     var rideCommentary: String,
 
     ) {
-    constructor() : this(0L, 0L, UserType.PASSENGER,0L, 0.0, "")
+    constructor() : this(0L, UUID.randomUUID(), UserType.PASSENGER,0L, 0.0, "")
 }

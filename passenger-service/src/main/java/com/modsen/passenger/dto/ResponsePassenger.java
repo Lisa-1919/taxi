@@ -1,7 +1,9 @@
 package com.modsen.passenger.dto;
 
+import java.util.UUID;
+
 public record ResponsePassenger(
-        Long id,
+        UUID id,
         String firstName,
         String lastName,
         String email,

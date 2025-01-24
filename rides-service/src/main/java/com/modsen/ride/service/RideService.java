@@ -5,6 +5,8 @@ import com.modsen.ride.dto.RequestChangeStatus;
 import com.modsen.ride.dto.RequestRide;
 import com.modsen.ride.dto.ResponseRide;
 
+import java.util.UUID;
+
 public interface RideService {
 
     ResponseRide addRide(RequestRide requestRide);
@@ -17,8 +19,8 @@ public interface RideService {
 
     PagedResponseRideList getAllRides(int page, int limit);
 
-    Boolean doesRideExistForDriver(Long id, Long driverId);
+    Boolean doesRideExistForDriver(Long id, UUID driverId);
 
-    Boolean doesRideExistForPassenger(Long id, Long passengerId);
+    Boolean doesRideExistForPassenger(Long id, UUID passengerId);
 
 }

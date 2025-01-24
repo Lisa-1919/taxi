@@ -1,6 +1,7 @@
 package com.modsen.rating.repo
 
 import com.modsen.rating.entity.Rate
+import java.util.UUID
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
@@ -17,8 +18,8 @@ interface RateRepository: JpaRepository<Rate, Long> {
     fun getAllRatesFromDrivers(pageable: Pageable): Page<Rate>
 
     @Query("SELECT r FROM Rate r WHERE r.userId = :id AND r.userType = UserType.PASSENGER")
-    fun getAllRatesByPassengerId(id: Long, pageable: Pageable): Page<Rate>
+    fun getAllRatesByPassengerId(id: UUID, pageable: Pageable): Page<Rate>
 
     @Query("SELECT r FROM Rate r WHERE r.userId = :id AND r.userType = UserType.DRIVER")
-    fun getAllRatesByDriverId(id: Long, pageable: Pageable): Page<Rate>
+    fun getAllRatesByDriverId(id: UUID, pageable: Pageable): Page<Rate>
 }

@@ -5,13 +5,14 @@ import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Builder
 public record ResponseRide(
 
         Long id,
-        Long driverId,
-        Long passengerId,
+        UUID driverId,
+        UUID passengerId,
         String fromAddress,
         String toAddress,
         RideStatuses rideStatus,
