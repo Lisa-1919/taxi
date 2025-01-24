@@ -1,6 +1,7 @@
 package com.modsen.account.controller;
 
 import com.modsen.account.dto.RegistrationRequest;
+import com.modsen.account.dto.UserResponse;
 import com.modsen.account.service.KeycloakService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,9 +24,9 @@ public class AccountController {
     private final KeycloakService keycloakService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Validated @RequestBody RegistrationRequest request) throws Exception {
-        keycloakService.createUser(request);
-        return ResponseEntity.ok("User registered successfully");
+    public ResponseEntity<UserResponse> register(@Validated @RequestBody RegistrationRequest request) throws Exception {
+        UserResponse userResponse = keycloakService.createUser(request);
+        return ResponseEntity.ok(userResponse);
     }
 
     @DeleteMapping("/{userId}")

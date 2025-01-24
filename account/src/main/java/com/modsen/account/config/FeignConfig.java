@@ -4,6 +4,7 @@ import com.modsen.account.util.FeignErrorDecoder;
 import feign.RequestInterceptor;
 import feign.codec.ErrorDecoder;
 import lombok.RequiredArgsConstructor;
+import org.apache.http.HttpHeaders;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,8 +18,11 @@ public class FeignConfig {
     @Bean
     public RequestInterceptor requestInterceptor() {
         return requestTemplate -> {
-            String accessToken = keycloak.tokenManager().getAccessToken().getToken();
-            requestTemplate.header("Authorization", "Bearer " + accessToken);
+            String accessToken = keycloak
+                    .tokenManager()
+                    .getAccessToken()
+                    .getToken();
+            requestTemplate.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
         };
     }
 
@@ -26,4 +30,5 @@ public class FeignConfig {
     public ErrorDecoder errorDecoder() {
         return new FeignErrorDecoder();
     }
+
 }

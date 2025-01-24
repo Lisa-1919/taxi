@@ -29,31 +29,43 @@ class RateController(
     }
 
     @GetMapping
-    fun getAllRates(@PageableDefault(page = 0, size = 10) pageable: Pageable): ResponseEntity<PagedResponseRateList> {
+    fun getAllRates(
+        @PageableDefault(page = 0, size = 10) pageable: Pageable
+    ): ResponseEntity<PagedResponseRateList> {
         val responseRateList = rateService.getAllRates(pageable)
         return ResponseEntity.ok(responseRateList)
     }
 
     @GetMapping("/from-passengers")
-    fun getAllRatesFromPassengers(@PageableDefault(page = 0, size = 10) pageable: Pageable): ResponseEntity<PagedResponseRateList> {
+    fun getAllRatesFromPassengers(
+        @PageableDefault(page = 0, size = 10) pageable: Pageable
+    ): ResponseEntity<PagedResponseRateList> {
         val responseRateList = rateService.getAllRatesFromPassengers(pageable)
         return ResponseEntity.ok(responseRateList)
     }
 
     @GetMapping("/from-passengers/{passengerId}")
-    fun getAllRatesByPassengerId(@PathVariable passengerId: UUID, @PageableDefault(page = 0, size = 10) pageable: Pageable): ResponseEntity<PagedResponseRateList> {
+    fun getAllRatesByPassengerId(
+        @PathVariable passengerId: UUID,
+        @PageableDefault(page = 0, size = 10) pageable: Pageable
+    ): ResponseEntity<PagedResponseRateList> {
         val responseRateList = rateService.getAllRatesByPassengerId(passengerId, pageable)
         return ResponseEntity.ok(responseRateList)
     }
 
     @GetMapping("/from-drivers")
-    fun getAllRatesFromDrivers(@PageableDefault(page = 0, size = 10) pageable: Pageable): ResponseEntity<PagedResponseRateList> {
+    fun getAllRatesFromDrivers(
+        @PageableDefault(page = 0, size = 10) pageable: Pageable
+    ): ResponseEntity<PagedResponseRateList> {
         val responseRateList = rateService.getAllRatesFromDrivers(pageable)
         return ResponseEntity.ok(responseRateList)
     }
 
     @GetMapping("/from-drivers/{driverId}")
-    fun getAllRatesByDriverId(@PathVariable driverId: UUID, @PageableDefault(page = 0, size = 10) pageable: Pageable): ResponseEntity<PagedResponseRateList> {
+    fun getAllRatesByDriverId(
+        @PathVariable driverId: UUID,
+        @PageableDefault(page = 0, size = 10) pageable: Pageable
+    ): ResponseEntity<PagedResponseRateList> {
         val responseRateList = rateService.getAllRatesByDriverId(driverId, pageable)
         return ResponseEntity.ok(responseRateList)
     }

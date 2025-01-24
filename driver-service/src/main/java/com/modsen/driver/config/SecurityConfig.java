@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private static final String AUTH_SERVICE_AUD = "account-service";
+    private static final String AUTH_SERVICE_AUD = "auth-service";
 
     @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
     private String jwkSetUri;

@@ -3,7 +3,9 @@ package com.modsen.account.service;
 import com.modsen.account.client.DriverServiceClient;
 import com.modsen.account.client.PassengerServiceClient;
 import com.modsen.account.dto.RegistrationRequest;
+import com.modsen.account.dto.UserResponse;
 import com.modsen.account.mapper.RequestMapper;
+import com.modsen.account.mapper.ResponseMapper;
 import com.modsen.account.util.ExceptionMessages;
 import com.modsen.account.util.JwtTokenUtil;
 import com.modsen.account.util.Roles;
@@ -17,6 +19,7 @@ import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -33,19 +36,20 @@ public class KeycloakServiceImpl implements KeycloakService {
     private final DriverServiceClient driverServiceClient;
     private final PassengerServiceClient passengerServiceClient;
     private final RequestMapper requestMapper;
+    private final ResponseMapper responseMapper;
     private final JwtTokenUtil jwtTokenUtil;
 
     @Value("${keycloak.realm}")
     private String realm;
 
     @Override
-    public void createUser(RegistrationRequest registrationRequest) throws Exception {
+    public UserResponse createUser(RegistrationRequest registrationRequest) throws Exception {
         UserRepresentation user = getUserRepresentation(registrationRequest);
         UsersResource usersResource = getUsersResource();
 
         Response response = usersResource.create(user);
 
-        if (response.getStatus() != 201) {
+        if (response.getStatus() != HttpStatus.CREATED.value()) {
             throw new Exception(ExceptionMessages.CREATE_USER_ERROR.format());
         }
 
@@ -66,8 +70,10 @@ public class KeycloakServiceImpl implements KeycloakService {
             }
         } catch (Exception ex) {
             hardDelete(userId);
-            throw new Exception(ExceptionMessages.CREATE_USER_ERROR.format(), ex);
+            throw new RuntimeException(ExceptionMessages.CREATE_USER_ERROR.format(), ex);
         }
+
+        return responseMapper.toUserResponse(UUID.fromString(userId), registrationRequest);
     }
 
     @Override
@@ -77,7 +83,10 @@ public class KeycloakServiceImpl implements KeycloakService {
         UsersResource usersResource = getUsersResource();
         UserResource userResource = usersResource.get(String.valueOf(userId));
 
-        List<String> realmRoles = userResource.roles().realmLevel().listEffective()
+        List<String> realmRoles = userResource
+                .roles()
+                .realmLevel()
+                .listEffective()
                 .stream()
                 .map(RoleRepresentation::getName)
                 .toList();
@@ -130,13 +139,20 @@ public class KeycloakServiceImpl implements KeycloakService {
     private void addRealmRoleToUser(String userId, String roleName) {
         RealmResource realmResource = keycloak.realm(realm);
 
-        RoleRepresentation role = realmResource.roles().get(roleName).toRepresentation();
+        RoleRepresentation role = realmResource
+                .roles()
+                .get(roleName)
+                .toRepresentation();
+
         if (role == null) {
             throw new IllegalArgumentException(ExceptionMessages.ROLE_DOES_NOT_EXIST.format(roleName));
         }
 
         UserResource userResource = realmResource.users().get(userId);
-        userResource.roles().realmLevel().add(Collections.singletonList(role));
+        userResource
+                .roles()
+                .realmLevel()
+                .add(Collections.singletonList(role));
     }
 
     private void hardDelete(String userId) {

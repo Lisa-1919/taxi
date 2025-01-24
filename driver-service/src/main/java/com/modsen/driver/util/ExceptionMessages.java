@@ -1,5 +1,8 @@
 package com.modsen.driver.util;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 public enum ExceptionMessages {
 
     DRIVER_NOT_FOUND("Driver with id '%s' not found"),
@@ -9,10 +12,6 @@ public enum ExceptionMessages {
     ACCESS_DENIED("Access denied");
 
     private final String message;
-
-    ExceptionMessages(String message) {
-        this.message = message;
-    }
 
     public String format(Object... args) {
         return String.format(message, args);

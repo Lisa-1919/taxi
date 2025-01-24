@@ -1,5 +1,8 @@
 package com.modsen.account.util;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 public enum ExceptionMessages {
 
     UNABLE_TO_READ_ERROR_RESPONSE("Unable to read error response"),
@@ -10,11 +13,8 @@ public enum ExceptionMessages {
     CREATE_USER_ERROR("Failed to create user"),
     DELETE_USER_ERROR("Failed to dalete user"),
     UNKNOWN_ERROR("Unknown error");
-    private String message;
 
-    ExceptionMessages(String message) {
-        this.message = message;
-    }
+    private String message;
 
     public String format(Object... args) {
         return String.format(message, args);
