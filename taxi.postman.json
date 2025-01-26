@@ -1,41 +1,11 @@
 {
   "info": {
-    "_postman_id": "1cb36151-b1e4-4412-8766-9999bb887456",
+    "_postman_id": "d3b1c528-8c6d-4e84-b1b5-b52761ef900a",
     "name": "taxi-demo",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "32931761"
   },
   "item": [
-    {
-      "name": "add driver",
-      "request": {
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n    \"firstName\":\"firstName\",\r\n    \"lastName\":\"lastName\",\r\n    \"email\":\"email@gmail.com\",\r\n    \"phoneNumber\":\"+375 25 950 44 22\",\r\n    \"sex\":\"male\"\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:8765/api/v1/drivers",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8765",
-          "path": [
-            "api",
-            "v1",
-            "drivers"
-          ]
-        }
-      },
-      "response": []
-    },
     {
       "name": "add car",
       "request": {
@@ -61,36 +31,6 @@
             "api",
             "v1",
             "cars"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "add passenger",
-      "request": {
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n    \"firstName\":\"firstName\",\r\n    \"lastName\":\"lastName\",\r\n    \"email\":\"email@gmail.com\",\r\n    \"phoneNumber\":\"+375 44 978 67 21\"\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:8765/api/v1/passengers",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8765",
-          "path": [
-            "api",
-            "v1",
-            "passengers"
           ]
         }
       },
@@ -164,7 +104,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "",
+          "raw": "{\r\n    \"newStatus\": \"COMPLETED\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -172,18 +112,336 @@
           }
         },
         "url": {
-          "raw": "http://localhost:8083/api/v1/rides/1/COMPLETED",
+          "raw": "http://localhost:8765/api/v1/rides/1/status",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8083",
+          "port": "8765",
           "path": [
             "api",
             "v1",
             "rides",
             "1",
-            "COMPLETED"
+            "status"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "admin access_token",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "grant_type",
+              "value": "password",
+              "type": "text"
+            },
+            {
+              "key": "client_id",
+              "value": "taxi",
+              "type": "text"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "text"
+            },
+            {
+              "key": "password",
+              "value": "password",
+              "type": "text"
+            },
+            {
+              "key": "client_secret",
+              "value": "YTyIyZjMyCvJDnxWarZWrqLHHBPNrlEg",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/realms/taxi/protocol/openid-connect/token",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "realms",
+            "taxi",
+            "protocol",
+            "openid-connect",
+            "token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "passenger access_token",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "grant_type",
+              "value": "password",
+              "type": "text"
+            },
+            {
+              "key": "client_id",
+              "value": "taxi",
+              "type": "text"
+            },
+            {
+              "key": "username",
+              "value": "admin",
+              "type": "text"
+            },
+            {
+              "key": "password",
+              "value": "password",
+              "type": "text"
+            },
+            {
+              "key": "client_secret",
+              "value": "YTyIyZjMyCvJDnxWarZWrqLHHBPNrlEg",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/realms/taxi/protocol/openid-connect/token",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "realms",
+            "taxi",
+            "protocol",
+            "openid-connect",
+            "token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "driver access_token",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "grant_type",
+              "value": "password",
+              "type": "text"
+            },
+            {
+              "key": "client_id",
+              "value": "taxi",
+              "type": "text"
+            },
+            {
+              "key": "username",
+              "value": "driver",
+              "type": "text"
+            },
+            {
+              "key": "password",
+              "value": "password",
+              "type": "text"
+            },
+            {
+              "key": "client_secret",
+              "value": "YTyIyZjMyCvJDnxWarZWrqLHHBPNrlEg",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/realms/taxi/protocol/openid-connect/token",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "realms",
+            "taxi",
+            "protocol",
+            "openid-connect",
+            "token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "http://localhost:8765/api/v1/drivers",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8765/api/v1/drivers",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8765",
+          "path": [
+            "api",
+            "v1",
+            "drivers"
+          ]
+        },
+        "description": "This endpoint makes an HTTP GET request to retrieve information about drivers."
+      },
+      "response": []
+    },
+    {
+      "name": "get drivers",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8765/api/v1/drivers",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8765",
+          "path": [
+            "api",
+            "v1",
+            "drivers"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get rates",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8765/api/v1/rates/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8765",
+          "path": [
+            "api",
+            "v1",
+            "rates",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "passenger registration",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"firstName\":\"firstName\",\r\n    \"lastName\":\"lastName\",\r\n    \"email\":\"passenger@gmail.com\",\r\n    \"phoneNumber\":\"+375 25 000 00 11\",\r\n    \"sex\":\"male\",\r\n    \"role\": \"PASSENGER\",\r\n    \"password\": \"password\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8765/api/v1/account/register",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8765",
+          "path": [
+            "api",
+            "v1",
+            "account",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "create rate",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"driverId\": 1,\r\n    \"passengerId\": 1,\r\n    \"rideId\": 1,\r\n    \"rate\": 4.2,\r\n    \"rideCommentary\": \"comment\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8765/api/v1/rates",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8765",
+          "path": [
+            "api",
+            "v1",
+            "rates"
           ]
         }
       },
