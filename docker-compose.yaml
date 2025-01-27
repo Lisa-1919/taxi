@@ -6,9 +6,9 @@ services:
       dockerfile: Dockerfile
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:8761" ]
-      interval: 10s
-      timeout: 10s
-      retries: 5
+      interval: 30s
+      timeout: 20s
+      retries: 10
     ports:
       - "8761:8761"
     networks:
@@ -23,8 +23,19 @@ services:
       - "8765:8765"
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET: ${TAXI_CLIENT_SECRET}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWK_JWKSETURI: ${JWK_SET_URI}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_ISSUER_URI: ${ISSUER_URI}
+      ZIPKIN_TRACING_ENDPOINT: ${ZIPKIN_TRACING_ENDPOINT}
+      DRIVER_SERVICE_URL: http://driver-service:8081
+      PASSENGER_SERVICE_URL: http://passenger-service:8082
+      RIDES_SERVICE_URL: http://rides-service:8083
+      RATING_SERVICE_URL: http://rating-service:8084
+      ACCOUNT_SERVICE_URL: http://account-service:8085
     depends_on:
       eureka:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
     networks:
       - microservices-net
@@ -37,9 +48,9 @@ services:
       dockerfile: Dockerfile
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail --silent http://localhost:8888/actuator/health | grep UP || exit 1" ]
-      interval: 10s
-      timeout: 10s
-      retries: 5
+      interval: 30s
+      timeout: 20s
+      retries: 10
     ports:
       - "8888:8888"
     environment:
@@ -67,12 +78,17 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://driver-db:5432/driver-service
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWK_JWKSETURI: ${JWK_SET_URI}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_ISSUER_URI: ${ISSUER_URI}
+      ZIPKIN_TRACING_ENDPOINT: ${ZIPKIN_TRACING_ENDPOINT}
     depends_on:
       eureka:
         condition: service_healthy
       config-service:
         condition: service_healthy
       driver-db:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
     networks:
       - microservices-net
@@ -91,6 +107,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://passenger-db:5432/passenger-service
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWK_JWKSETURI: ${JWK_SET_URI}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_ISSUER_URI: ${ISSUER_URI}
+      ZIPKIN_TRACING_ENDPOINT: ${ZIPKIN_TRACING_ENDPOINT}
     depends_on:
       eureka:
         condition: service_healthy
@@ -100,6 +119,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_started
+      keycloak:
+        condition: service_healthy
     networks:
       - microservices-net
       - monitoring
@@ -117,6 +138,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://rides-db:5432/rides-service
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWK_JWKSETURI: ${JWK_SET_URI}
+      ZIPKIN_TRACING_ENDPOINT: ${ZIPKIN_TRACING_ENDPOINT}
     depends_on:
       eureka:
         condition: service_healthy
@@ -126,6 +149,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_started
+      keycloak:
+        condition: service_healthy
     networks:
       - microservices-net
       - monitoring
@@ -143,12 +168,16 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://rating-db:5432/rating-service
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWK_JWKSETURI: ${JWK_SET_URI}
+      ZIPKIN_TRACING_ENDPOINT: ${ZIPKIN_TRACING_ENDPOINT}
     depends_on:
       eureka:
         condition: service_healthy
       config-service:
         condition: service_healthy
       rating-db:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
     networks:
       - microservices-net
@@ -310,11 +339,87 @@ services:
     ports:
       - "9411:9411"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9411/health || exit 1"]
+      test: [ "CMD-SHELL", "curl -f http://localhost:9411/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3
     networks:
+      - monitoring
+
+  keycloak:
+    build:
+      context: ./docker/keycloak
+      dockerfile: Dockerfile
+    container_name: keycloak
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --head -fsS http://localhost:9000/health/ready || exit 1" ]
+      interval: 30s
+      timeout: 20s
+      retries: 10
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: ${POSTGRES_USER}
+      DB_DATABASE: keycloak-db
+      DB_SCHEMA: public
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_IMPORT: /opt/keycloak/data/import/realm.json
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+    volumes:
+      - ./docker/keycloak:/opt/keycloak/data/import
+    command: start-dev --import-realm
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    ports:
+      - 8080:8080
+      - 9000:9000
+    networks:
+      - microservices-net
+
+  keycloak-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: keycloak-db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+    ports:
+      - "5436:5432"
+    volumes:
+      - keycloak_data:/var/lib/postgresql/data
+    networks:
+      - microservices-net
+
+  account-service:
+    image: account-service:latest
+    build:
+      context: ./account
+      dockerfile: Dockerfile
+    ports:
+      - "8085:8085"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
+      AUTH_SERVER_URL: ${AUTH_SERVER_URL}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET: ${TAXI_CLIENT_SECRET}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWK_JWKSETURI: ${JWK_SET_URI}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_ISSUER_URI: ${ISSUER_URI}
+      ZIPKIN_TRACING_ENDPOINT: ${ZIPKIN_TRACING_ENDPOINT}
+    depends_on:
+      eureka:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    networks:
+      - microservices-net
       - monitoring
 
 networks:
@@ -326,3 +431,4 @@ volumes:
   passenger_data:
   rides_data:
   rating_data:
+  keycloak_data:

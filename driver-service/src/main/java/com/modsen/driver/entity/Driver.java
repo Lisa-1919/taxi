@@ -17,6 +17,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 
+import java.util.UUID;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -27,9 +29,8 @@ import org.hibernate.annotations.SQLDelete;
 public class Driver {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long id;
+    private UUID id;
 
     @Column(name = "first_name")
     private String firstName;

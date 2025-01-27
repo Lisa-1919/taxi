@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/rides")
@@ -59,13 +61,13 @@ public class RideController {
     }
 
     @GetMapping("/{id}/driver/{driverId}/exists")
-    public ResponseEntity<Boolean> doesRideExistForDriver(@PathVariable("id") Long id, @PathVariable("driverId") Long driverId) {
+    public ResponseEntity<Boolean> doesRideExistForDriver(@PathVariable("id") Long id, @PathVariable("driverId") UUID driverId) {
         Boolean exists = rideService.doesRideExistForDriver(id, driverId);
         return ResponseEntity.ok(exists);
     }
 
     @GetMapping("/{id}/passenger/{passengerId}/exists")
-    public ResponseEntity<Boolean> doesRideExistForPassenger(@PathVariable("id") Long id, @PathVariable("passengerId") Long passengerId) {
+    public ResponseEntity<Boolean> doesRideExistForPassenger(@PathVariable("id") Long id, @PathVariable("passengerId") UUID passengerId) {
         Boolean exists = rideService.doesRideExistForPassenger(id, passengerId);
         return ResponseEntity.ok(exists);
     }

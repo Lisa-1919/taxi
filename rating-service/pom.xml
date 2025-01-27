@@ -142,7 +142,6 @@
 						<configuration>
 							<sourceDirs>
 								<sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
-								<sourceDir>${project.basedir}/src/main/java</sourceDir>
 							</sourceDirs>
 							<jvmTarget>${kotlin.compiler.jvmTarget}</jvmTarget>
 						</configuration>

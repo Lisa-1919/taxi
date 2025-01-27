@@ -1,5 +1,8 @@
 package com.modsen.ride.util;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 public enum ExceptionMessages {
 
     RIDE_NOT_FOUND("Ride with id '%s' not found"),
@@ -10,11 +13,8 @@ public enum ExceptionMessages {
     UNABLE_TO_REACH_PASSENGER_SERVICE("Unable to reach Passenger Service. Please try again later"),
     UNABLE_TO_REACH_DRIVER_SERVICE("Unable to reach Driver Service. Please try again later"),
     UNKNOWN_ERROR("Unknown error");
-    private String message;
 
-    ExceptionMessages(String message) {
-        this.message = message;
-    }
+    private String message;
 
     public String format(Object... args) {
         return String.format(message, args);
