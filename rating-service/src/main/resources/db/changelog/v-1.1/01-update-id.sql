@@ -1,2 +1,4 @@
-ALTER TABLE rate ALTER COLUMN user_id TYPE UUID;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+ALTER TABLE rate ALTER COLUMN user_id TYPE UUID USING gen_random_uuid();
 GO

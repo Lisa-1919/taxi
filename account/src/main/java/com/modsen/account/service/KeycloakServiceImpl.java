@@ -4,6 +4,7 @@ import com.modsen.account.client.DriverServiceClient;
 import com.modsen.account.client.PassengerServiceClient;
 import com.modsen.account.dto.RegistrationRequest;
 import com.modsen.account.dto.UserResponse;
+import com.modsen.account.exception.CreateUserException;
 import com.modsen.account.mapper.RequestMapper;
 import com.modsen.account.mapper.ResponseMapper;
 import com.modsen.account.util.ExceptionMessages;
@@ -50,7 +51,7 @@ public class KeycloakServiceImpl implements KeycloakService {
         Response response = usersResource.create(user);
 
         if (response.getStatus() != HttpStatus.CREATED.value()) {
-            throw new Exception(ExceptionMessages.CREATE_USER_ERROR.format());
+            throw new CreateUserException(ExceptionMessages.CREATE_USER_ERROR.format());
         }
 
         String locationHeader = response.getHeaderString("Location");
@@ -70,7 +71,7 @@ public class KeycloakServiceImpl implements KeycloakService {
             }
         } catch (Exception ex) {
             hardDelete(userId);
-            throw new RuntimeException(ExceptionMessages.CREATE_USER_ERROR.format(), ex);
+            throw new CreateUserException(ExceptionMessages.CREATE_USER_ERROR.format(), ex);
         }
 
         return responseMapper.toUserResponse(UUID.fromString(userId), registrationRequest);
