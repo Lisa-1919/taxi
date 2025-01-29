@@ -1,7 +1,9 @@
 package com.modsen.account.service;
 
 import com.modsen.account.client.DriverServiceClient;
+import com.modsen.account.client.KeycloakClient;
 import com.modsen.account.client.PassengerServiceClient;
+import com.modsen.account.dto.AuthenticateRequest;
 import com.modsen.account.dto.RegistrationRequest;
 import com.modsen.account.dto.UserResponse;
 import com.modsen.account.exception.CreateUserException;
@@ -9,9 +11,11 @@ import com.modsen.account.mapper.RequestMapper;
 import com.modsen.account.mapper.ResponseMapper;
 import com.modsen.account.util.ExceptionMessages;
 import com.modsen.account.util.JwtTokenUtil;
+import com.modsen.account.util.KeycloakParameters;
 import com.modsen.account.util.Roles;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
+import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
@@ -39,9 +43,29 @@ public class KeycloakServiceImpl implements KeycloakService {
     private final RequestMapper requestMapper;
     private final ResponseMapper responseMapper;
     private final JwtTokenUtil jwtTokenUtil;
+    private final KeycloakClient keycloakClient;
 
     @Value("${keycloak.realm}")
     private String realm;
+
+    @Value("${spring.security.oauth2.client.registration.keycloak.client-id}")
+    private String clientId;
+    @Value("${spring.security.oauth2.client.registration.keycloak.client-secret}")
+    private String clientSecret;
+    @Value("${keycloak.auth-server-url}")
+    private String serverUrl;
+
+    @Override
+    public Map<String, Object> login(AuthenticateRequest request) {
+        Map<String, String> data = new HashMap<>();
+        data.put(KeycloakParameters.CLIENT_ID.name(), clientId);
+        data.put(KeycloakParameters.CLIENT_SECRET.name(), clientSecret);
+        data.put(KeycloakParameters.GRANT_TYPE.name(), OAuth2Constants.PASSWORD);
+        data.put(KeycloakParameters.USERNAME.name(), request.username());
+        data.put(KeycloakParameters.PASSWORD.name(), request.password());
+
+        return keycloakClient.getToken(data);
+    }
 
     @Override
     public UserResponse createUser(RegistrationRequest registrationRequest) throws Exception {

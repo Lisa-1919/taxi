@@ -1,5 +1,6 @@
 package com.modsen.account.controller;
 
+import com.modsen.account.dto.AuthenticateRequest;
 import com.modsen.account.dto.RegistrationRequest;
 import com.modsen.account.dto.UserResponse;
 import com.modsen.account.service.KeycloakService;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -22,6 +24,12 @@ import java.util.UUID;
 public class AccountController {
 
     private final KeycloakService keycloakService;
+
+    @PostMapping("/login")
+    public ResponseEntity<?> authenticate(@Validated @RequestBody AuthenticateRequest request) throws Exception{
+        Map<String, Object> response = keycloakService.login(request);
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Validated @RequestBody RegistrationRequest request) throws Exception {

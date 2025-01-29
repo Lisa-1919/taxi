@@ -36,6 +36,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/passengers").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/passengers/*").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/v1/passengers/*").hasAnyRole("ADMIN", "PASSENGER")
