@@ -11,6 +11,7 @@ import com.modsen.account.mapper.RequestMapper;
 import com.modsen.account.mapper.ResponseMapper;
 import com.modsen.account.util.ExceptionMessages;
 import com.modsen.account.util.JwtTokenUtil;
+import com.modsen.account.util.KeycloakParameters;
 import com.modsen.account.util.Roles;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
@@ -57,11 +58,11 @@ public class KeycloakServiceImpl implements KeycloakService {
     @Override
     public Map<String, Object> login(AuthenticateRequest request) {
         Map<String, String> data = new HashMap<>();
-        data.put("client_id", clientId);
-        data.put("client_secret", clientSecret);
-        data.put("grant_type", OAuth2Constants.PASSWORD);
-        data.put("username", request.username());
-        data.put("password", request.password());
+        data.put(KeycloakParameters.CLIENT_ID.name(), clientId);
+        data.put(KeycloakParameters.CLIENT_SECRET.name(), clientSecret);
+        data.put(KeycloakParameters.GRANT_TYPE.name(), OAuth2Constants.PASSWORD);
+        data.put(KeycloakParameters.USERNAME.name(), request.username());
+        data.put(KeycloakParameters.PASSWORD.name(), request.password());
 
         return keycloakClient.getToken(data);
     }
