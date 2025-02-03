@@ -25,7 +25,7 @@ public class JwtTokenUtil {
     public void validateAccess(UUID requestedId) {
         String currentUserId = getCurrentUserId();
         if (!requestedId.toString().equals(currentUserId)) {
-            throw new AccessDeniedException(String.valueOf(ExceptionMessages.ACCESS_DENIED));
+            throw new AccessDeniedException(ExceptionMessages.ACCESS_DENIED.format());
         }
     }
 }
