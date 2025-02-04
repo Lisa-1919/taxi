@@ -6,13 +6,14 @@ import com.modsen.account.client.PassengerServiceClient;
 import com.modsen.account.dto.AuthenticateRequest;
 import com.modsen.account.dto.RegistrationRequest;
 import com.modsen.account.dto.UserResponse;
-import com.modsen.account.exception.CreateUserException;
 import com.modsen.account.mapper.RequestMapper;
 import com.modsen.account.mapper.ResponseMapper;
 import com.modsen.account.util.ExceptionMessages;
 import com.modsen.account.util.JwtTokenUtil;
 import com.modsen.account.util.KeycloakParameters;
+import com.modsen.account.util.KeycloakResponseValidator;
 import com.modsen.account.util.Roles;
+import com.modsen.exception_handler.exception.CreateUserException;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.OAuth2Constants;
@@ -24,7 +25,6 @@ import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -58,11 +58,11 @@ public class KeycloakServiceImpl implements KeycloakService {
     @Override
     public Map<String, Object> login(AuthenticateRequest request) {
         Map<String, String> data = new HashMap<>();
-        data.put(KeycloakParameters.CLIENT_ID.name(), clientId);
-        data.put(KeycloakParameters.CLIENT_SECRET.name(), clientSecret);
-        data.put(KeycloakParameters.GRANT_TYPE.name(), OAuth2Constants.PASSWORD);
-        data.put(KeycloakParameters.USERNAME.name(), request.username());
-        data.put(KeycloakParameters.PASSWORD.name(), request.password());
+        data.put(KeycloakParameters.CLIENT_ID, clientId);
+        data.put(KeycloakParameters.CLIENT_SECRET, clientSecret);
+        data.put(KeycloakParameters.GRANT_TYPE, OAuth2Constants.PASSWORD);
+        data.put(KeycloakParameters.USERNAME, request.username());
+        data.put(KeycloakParameters.PASSWORD, request.password());
 
         return keycloakClient.getToken(data);
     }
@@ -74,9 +74,7 @@ public class KeycloakServiceImpl implements KeycloakService {
 
         Response response = usersResource.create(user);
 
-        if (response.getStatus() != HttpStatus.CREATED.value()) {
-            throw new CreateUserException(ExceptionMessages.CREATE_USER_ERROR.format());
-        }
+        KeycloakResponseValidator.validateCreateUserResponse(response);
 
         String locationHeader = response.getHeaderString("Location");
         String userId = locationHeader.substring(locationHeader.lastIndexOf("/") + 1);
@@ -123,7 +121,7 @@ public class KeycloakServiceImpl implements KeycloakService {
             }
 
         } catch (Exception ex) {
-            throw new Exception(ExceptionMessages.DELETE_USER_ERROR.format(), ex);
+            throw new RuntimeException(ExceptionMessages.DELETE_USER_ERROR.format(), ex);
         }
 
         disableUser(userResource);

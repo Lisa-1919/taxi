@@ -1,9 +1,11 @@
-package com.modsen.ride.exception;
+package com.modsen.exception_handler.exception;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,22 +21,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<String> handleEntityNotFoundException(RuntimeException ex) {
-        log.warn("Error: {}.", ex.getMessage());
+        log.warn("Error: {}", ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
-        log.warn("Error: {}.", ex.getMessage());
+        log.warn("Error: {}", ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(InvalidStatusTransitionException.class)
-    public ResponseEntity<String> handleInvalidStatusTransitionException(InvalidStatusTransitionException ex) {
-        log.error("Error: {}.", ex.getMessage());
+    @ExceptionHandler({DataIntegrityViolationException.class, UserAlreadyExistsException.class})
+    public ResponseEntity<String> handleConflictExceptions(RuntimeException ex) {
+        log.error("Error: {}", ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
-
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -48,9 +49,15 @@ public class GlobalExceptionHandler {
         return new ValidationErrorResponse(violations);
     }
 
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<String> handleAccessDeniedException(AccessDeniedException ex){
+        log.error("Error: {}", ex.getMessage());
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler({IllegalStateException.class, CreateUserException.class, Exception.class})
     public ResponseEntity<String> handleGlobalException(Exception ex) {
-        log.error("Error: {}.", ex.getMessage());
+        log.error("Error: {}", ex.getMessage());
         return new ResponseEntity<>("There was an error on the server. Try again later.", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

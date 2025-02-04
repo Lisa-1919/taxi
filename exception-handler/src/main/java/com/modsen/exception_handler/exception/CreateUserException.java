@@ -1,4 +1,4 @@
-package com.modsen.account.exception;
+package com.modsen.exception_handler.exception;
 
 public class CreateUserException extends RuntimeException{
 

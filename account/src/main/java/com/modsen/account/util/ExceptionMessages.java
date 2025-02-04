@@ -11,10 +11,10 @@ public enum ExceptionMessages {
     ACCESS_DENIED("Access denied"),
     ROLE_DOES_NOT_EXIST("Role '%s' does not exist in the realm"),
     CREATE_USER_ERROR("Failed to create user"),
-    DELETE_USER_ERROR("Failed to dalete user"),
+    DELETE_USER_ERROR("Failed to delete user"),
     UNKNOWN_ERROR("Unknown error");
 
-    private String message;
+    private final String message;
 
     public String format(Object... args) {
         return String.format(message, args);
