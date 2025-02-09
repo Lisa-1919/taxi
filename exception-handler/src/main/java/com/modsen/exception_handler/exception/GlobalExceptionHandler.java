@@ -1,5 +1,6 @@
 package com.modsen.exception_handler.exception;
 
+import com.modsen.exception_handler.dto.ErrorResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -20,21 +21,25 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<String> handleEntityNotFoundException(RuntimeException ex) {
+    public ResponseEntity<ErrorResponse> handleEntityNotFoundException(RuntimeException ex) {
         log.warn("Error: {}", ex.getMessage());
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(ex.getMessage()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
         log.warn("Error: {}", ex.getMessage());
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(ex.getMessage()));
     }
 
-    @ExceptionHandler({DataIntegrityViolationException.class, UserAlreadyExistsException.class})
-    public ResponseEntity<String> handleConflictExceptions(RuntimeException ex) {
+    @ExceptionHandler({
+            DataIntegrityViolationException.class,
+            UserAlreadyExistsException.class,
+            InvalidStatusTransitionException.class
+    })
+    public ResponseEntity<ErrorResponse> handleConflictExceptions(RuntimeException ex) {
         log.error("Error: {}", ex.getMessage());
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -50,15 +55,15 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<String> handleAccessDeniedException(AccessDeniedException ex){
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
         log.error("Error: {}", ex.getMessage());
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(ex.getMessage()));
     }
 
-    @ExceptionHandler({IllegalStateException.class, CreateUserException.class, Exception.class})
-    public ResponseEntity<String> handleGlobalException(Exception ex) {
+    @ExceptionHandler({CreateUserException.class, Exception.class, Exception.class})
+    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
         log.error("Error: {}", ex.getMessage());
-        return new ResponseEntity<>("There was an error on the server. Try again later.", HttpStatus.INTERNAL_SERVER_ERROR);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("There was an error on the server. Try again later."));
     }
 
 }

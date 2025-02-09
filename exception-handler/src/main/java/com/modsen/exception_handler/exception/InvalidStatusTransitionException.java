@@ -1,4 +1,4 @@
-package com.modsen.ride.exception;
+package com.modsen.exception_handler.exception;
 
 public class InvalidStatusTransitionException extends RuntimeException {
     public InvalidStatusTransitionException(String message) {

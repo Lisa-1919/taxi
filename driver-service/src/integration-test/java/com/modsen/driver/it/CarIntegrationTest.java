@@ -16,10 +16,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -49,6 +52,7 @@ public class CarIntegrationTest extends BaseIntegrationTest {
 
         @ParameterizedTest
         @ValueSource(booleans = {true, false})
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         public void getCarById_shouldReturnCar(boolean active) {
             RestAssuredMockMvc.given()
                     .param(TestUtils.ACTIVE_PARAM, active)
@@ -60,6 +64,7 @@ public class CarIntegrationTest extends BaseIntegrationTest {
 
         @ParameterizedTest
         @ValueSource(booleans = {true, false})
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         public void getCarById_shouldReturnNotFound_whenCarDoesNotExist(boolean active) {
             Long carId = TestUtils.NON_EXISTING_ID;
 
@@ -75,6 +80,7 @@ public class CarIntegrationTest extends BaseIntegrationTest {
 
         @ParameterizedTest
         @ValueSource(booleans = {true, false})
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         public void getAllCars_shouldReturnPagedCars(boolean active) {
             RestAssuredMockMvc.given()
                     .param(TestUtils.ACTIVE_PARAM, active)
@@ -95,9 +101,9 @@ public class CarIntegrationTest extends BaseIntegrationTest {
     class AddCar {
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void addCar_shouldReturnCreatedCar() throws Exception {
-
-            RequestCar requestCar = CarTestEntityUtils.createTestRequestCar(TestUtils.EDIT_ID);
+            RequestCar requestCar = CarTestEntityUtils.createTestRequestCar(TestUtils.EDIT_DRIVER_ID);
 
             Integer carId = RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -107,13 +113,13 @@ public class CarIntegrationTest extends BaseIntegrationTest {
                     .then()
                     .statusCode(HttpStatus.CREATED.value())
                     .body("licensePlate", equalTo(requestCar.licensePlate()))
-                    .body("driverId", equalTo(TestUtils.EDIT_ID.intValue()))
+                    .body("driverId", equalTo(TestUtils.EDIT_DRIVER_ID.toString()))
                     .extract()
                     .path("id");
 
             Car savedCar = carRepository.findById(Long.valueOf(carId)).orElseThrow();
             assertThat(savedCar.getLicensePlate()).isEqualTo(requestCar.licensePlate());
-            assertThat(savedCar.getDriver().getId()).isEqualTo(TestUtils.EDIT_ID);
+            assertThat(savedCar.getDriver().getId()).isEqualTo(TestUtils.EDIT_DRIVER_ID);
         }
 
         @Test
@@ -121,8 +127,9 @@ public class CarIntegrationTest extends BaseIntegrationTest {
                 @Sql(scripts = "classpath:/scripts/setup-duplicate-license-plate.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
                 @Sql(scripts = "classpath:/scripts/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
         })
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         public void addCar_shouldReturnBadRequest_whenLicensePlateIsDuplicate() throws Exception {
-            RequestCar requestCar = CarTestEntityUtils.createTestRequestCar(TestUtils.EDIT_ID);
+            RequestCar requestCar = CarTestEntityUtils.createTestRequestCar(TestUtils.EDIT_DRIVER_ID);
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(requestCar)
@@ -135,8 +142,9 @@ public class CarIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         public void addCar_shouldReturnNotFound_whenDriverNotFound() throws Exception {
-            Long driverId = TestUtils.NON_EXISTING_ID;
+            UUID driverId = TestUtils.NON_EXISTING_DRIVER_ID;
             RequestCar requestCar = CarTestEntityUtils.createTestRequestCar(driverId);
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -158,8 +166,9 @@ public class CarIntegrationTest extends BaseIntegrationTest {
     class EditCar {
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void editCar_shouldReturnUpdatedCar() throws Exception {
-            RequestCar requestCar = CarTestEntityUtils.createTestRequestCar(TestUtils.EXISTING_ID);
+            RequestCar requestCar = CarTestEntityUtils.createTestRequestCar(TestUtils.EXISTING_DRIVER_ID);
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -171,18 +180,19 @@ public class CarIntegrationTest extends BaseIntegrationTest {
                     .body("licensePlate", equalTo(requestCar.licensePlate()))
                     .body("mark", equalTo(requestCar.mark()))
                     .body("colour", equalTo(requestCar.colour()))
-                    .body("driverId", equalTo(TestUtils.EXISTING_ID.intValue()));
+                    .body("driverId", equalTo(TestUtils.EXISTING_DRIVER_ID.toString()));
 
             Car updatedCar = carRepository.findById(TestUtils.EXISTING_ID).orElseThrow();
             assertThat(updatedCar.getLicensePlate()).isEqualTo(requestCar.licensePlate());
             assertThat(updatedCar.getMark()).isEqualTo(requestCar.mark());
             assertThat(updatedCar.getColour()).isEqualTo(requestCar.colour());
-            assertThat(updatedCar.getDriver().getId()).isEqualTo(TestUtils.EXISTING_ID);
+            assertThat(updatedCar.getDriver().getId()).isEqualTo(TestUtils.EXISTING_DRIVER_ID);
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void editCar_shouldReturnNotFound_whenCarDoesNotExist() throws Exception {
-            RequestCar requestCar = CarTestEntityUtils.createTestRequestCar(TestUtils.EDIT_ID);
+            RequestCar requestCar = CarTestEntityUtils.createTestRequestCar(TestUtils.EDIT_DRIVER_ID);
             Long carId = TestUtils.NON_EXISTING_ID;
 
             RestAssuredMockMvc.given()
@@ -201,8 +211,9 @@ public class CarIntegrationTest extends BaseIntegrationTest {
                 @Sql(scripts = "classpath:/scripts/setup-duplicate-license-plate.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
                 @Sql(scripts = "classpath:/scripts/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
         })
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void editCar_shouldReturnConflict_whenLicensePlateIsDuplicate() throws Exception {
-            RequestCar requestCar = CarTestEntityUtils.createTestRequestCar(TestUtils.EDIT_ID);
+            RequestCar requestCar = CarTestEntityUtils.createTestRequestCar(TestUtils.EDIT_DRIVER_ID);
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -223,6 +234,7 @@ public class CarIntegrationTest extends BaseIntegrationTest {
     class DeleteCar {
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         public void deleteCar_shouldReturnNoContent() {
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -233,6 +245,7 @@ public class CarIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         public void deleteCar_shouldReturnNotFound_whenCarDoesNotExist() {
             Long carId = TestUtils.NON_EXISTING_ID;
 

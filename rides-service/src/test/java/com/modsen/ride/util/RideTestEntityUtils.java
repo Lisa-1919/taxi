@@ -13,11 +13,12 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 public class RideTestEntityUtils {
     public static final Long DEFAULT_RIDE_ID = 1L;
-    public static final Long DEFAULT_DRIVER_ID = 1L;
-    public static final Long DEFAULT_PASSENGER_ID = 1L;
+    public static final UUID DEFAULT_DRIVER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+    public static final UUID DEFAULT_PASSENGER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
     public static final String DEFAULT_FROM_ADDRESS = "fromAddress";
     public static final String DEFAULT_TO_ADDRESS = "toAddress";
     public static final BigDecimal DEFAULT_PRICE = new BigDecimal("10.0");

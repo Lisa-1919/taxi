@@ -1,5 +1,8 @@
 package com.modsen.ride.unit.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.modsen.exception_handler.exception.GlobalExceptionHandler;
+import com.modsen.ride.config.SecurityConfig;
 import com.modsen.ride.controller.RideController;
 import com.modsen.ride.dto.PagedResponseRideList;
 import com.modsen.ride.dto.RequestChangeStatus;
@@ -9,7 +12,6 @@ import com.modsen.ride.service.RideService;
 import com.modsen.ride.util.ExceptionMessages;
 import com.modsen.ride.util.RideStatuses;
 import com.modsen.ride.util.RideTestEntityUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -17,12 +19,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.any;
@@ -38,6 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(RideController.class)
 @ActiveProfiles("test")
+@Import({GlobalExceptionHandler.class, SecurityConfig.class})
 class RideControllerTest {
 
     @Autowired
@@ -62,6 +68,7 @@ class RideControllerTest {
     @Nested
     class GetRideTests {
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void getRideById_ShouldReturnRide() throws Exception {
             when(rideService.getRideById(rideId))
                     .thenReturn(testResponseRide);
@@ -74,6 +81,7 @@ class RideControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void getRideById_ShouldReturnNotFound() throws Exception {
             String errorMessage = ExceptionMessages.RIDE_NOT_FOUND.format(rideId);
 
@@ -88,6 +96,7 @@ class RideControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void getAllRides_ShouldReturnPagedResponse() throws Exception {
             Pageable pageRequest =  RideTestEntityUtils.createDefaultPageRequest();
             PagedResponseRideList ridePage = RideTestEntityUtils.createPagedResponseRideList(List.of(testResponseRide));
@@ -107,6 +116,7 @@ class RideControllerTest {
     class AddRideTests {
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void addRide_ShouldReturnCreated() throws Exception {
             when(rideService.addRide(any(RequestRide.class)))
                     .thenReturn(testResponseRide);
@@ -120,6 +130,7 @@ class RideControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void addRide_ShouldReturnPassengerNotFound() throws Exception {
             String errorMessage = "Passenger with id '2' not found";
 
@@ -139,6 +150,7 @@ class RideControllerTest {
     class EditRideTests {
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void editRide_ShouldReturnOk() throws Exception {
             when(rideService.editRide(eq(rideId), any(RequestRide.class)))
                     .thenReturn(testResponseRide);
@@ -152,6 +164,7 @@ class RideControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void editRide_ShouldReturnRideNotFound() throws Exception {
             String errorMessage = ExceptionMessages.RIDE_NOT_FOUND.format(rideId);
 
@@ -166,6 +179,7 @@ class RideControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void editRide_ShouldReturnDriverNotFound() throws Exception {
             String errorMessage = "Driver with id '1' not found";
 
@@ -180,6 +194,7 @@ class RideControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void editRide_ShouldReturnPassengerNotFound() throws Exception {
             String errorMessage = "Passenger with id '1' not found";
 
@@ -194,6 +209,7 @@ class RideControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void updateRideStatus_ShouldReturnOk() throws Exception {
             RequestChangeStatus requestChangeStatus = new RequestChangeStatus(RideStatuses.ACCEPTED);
 
@@ -209,6 +225,7 @@ class RideControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void updateRideStatus_ShouldReturnRideNotFound() throws Exception {
             RequestChangeStatus requestChangeStatus = new RequestChangeStatus(RideStatuses.ACCEPTED);
             String errorMessage = ExceptionMessages.RIDE_NOT_FOUND.format(rideId);
@@ -228,8 +245,9 @@ class RideControllerTest {
     class DoesRideExistTests {
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void doesRideExistForDriver_ShouldReturnOk() throws Exception {
-            Long driverId = RideTestEntityUtils.DEFAULT_DRIVER_ID;
+            UUID driverId = RideTestEntityUtils.DEFAULT_DRIVER_ID;
 
             when(rideService.doesRideExistForDriver(rideId, driverId))
                     .thenReturn(true);
@@ -240,8 +258,9 @@ class RideControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void doesRideExistForDriver_ShouldReturnDriverNotFound() throws Exception {
-            Long driverId = RideTestEntityUtils.DEFAULT_DRIVER_ID;
+            UUID driverId = RideTestEntityUtils.DEFAULT_DRIVER_ID;
             String errorMessage = ExceptionMessages.RIDE_NOT_FOUND_FOR_DRIVER.format(rideId, driverId);
 
             doThrow(new EntityNotFoundException(errorMessage))
@@ -253,8 +272,9 @@ class RideControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void doesRideExistForPassenger_ShouldReturnOk() throws Exception {
-            Long passengerId = RideTestEntityUtils.DEFAULT_PASSENGER_ID;
+            UUID passengerId = RideTestEntityUtils.DEFAULT_PASSENGER_ID;
 
             when(rideService.doesRideExistForPassenger(rideId, passengerId))
                     .thenReturn(true);
@@ -265,8 +285,9 @@ class RideControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void doesRideExistForPassenger_ShouldReturnPassengerNotFound() throws Exception {
-            Long passengerId = RideTestEntityUtils.DEFAULT_PASSENGER_ID;
+            UUID passengerId = RideTestEntityUtils.DEFAULT_PASSENGER_ID;
             String errorMessage = ExceptionMessages.RIDE_NOT_FOUND_FOR_PASSENGER.format(rideId, passengerId);
 
             doThrow(new EntityNotFoundException(errorMessage))

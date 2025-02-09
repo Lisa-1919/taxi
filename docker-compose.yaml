@@ -73,7 +73,7 @@ services:
     ports:
       - "8081:8081"
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: ${PROFILE}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
       SPRING_DATASOURCE_URL: jdbc:postgresql://driver-db:5432/driver-service
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
@@ -102,7 +102,7 @@ services:
     ports:
       - "8082:8082"
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: ${PROFILE}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
       SPRING_DATASOURCE_URL: jdbc:postgresql://passenger-db:5432/passenger-service
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
@@ -133,7 +133,7 @@ services:
     ports:
       - "8083:8083"
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: ${PROFILE}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
       SPRING_DATASOURCE_URL: jdbc:postgresql://rides-db:5432/rides-service
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
@@ -163,7 +163,7 @@ services:
     ports:
       - "8084:8084"
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: ${PROFILE}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
       SPRING_DATASOURCE_URL: jdbc:postgresql://rating-db:5432/rating-service
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}

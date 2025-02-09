@@ -14,10 +14,11 @@
     </changeSet>
 
     <include file="db.changelog-master.xml" relativeToChangelogFile="true"/>
-    <include file="v-1.0/db.changelog-v.1.0-e2e.xml" relativeToChangelogFile="true"/>
+    <include file="v-1.1/db.changelog-v.1.1-e2e.xml" relativeToChangelogFile="true"/>
 
-    <changeSet id="e2e-4" author="lisa_simerova">
-        <tagDatabase tag="v.1.0"/>
+    <changeSet id="e2e-7" author="lisa_simerova">
+        <tagDatabase tag="v.1.1"/>
     </changeSet>
+
 
 </databaseChangeLog>

@@ -1,5 +1,6 @@
 package com.modsen.ride.unit.service;
 
+import com.modsen.exception_handler.exception.InvalidStatusTransitionException;
 import com.modsen.ride.client.DriverServiceClient;
 import com.modsen.ride.client.PassengerServiceClient;
 import com.modsen.ride.dto.PagedResponseRideList;
@@ -8,7 +9,6 @@ import com.modsen.ride.dto.RequestRide;
 import com.modsen.ride.dto.ResponseRide;
 import com.modsen.ride.dto.UpdateStatusMessage;
 import com.modsen.ride.entity.Ride;
-import com.modsen.ride.exception.InvalidStatusTransitionException;
 import com.modsen.ride.mapper.RideMapper;
 import com.modsen.ride.repo.RideRepository;
 import com.modsen.ride.service.KafkaProducer;
@@ -30,6 +30,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -292,7 +293,7 @@ class RideServiceImplTest {
     class RideExistsTests {
         @Test
         void doesRideExistForDriverOk() {
-            Long driverId = RideTestEntityUtils.DEFAULT_DRIVER_ID;
+            UUID driverId = RideTestEntityUtils.DEFAULT_DRIVER_ID;
 
             when(rideRepository.existsByIdAndDriverId(rideId, driverId))
                     .thenReturn(true);
@@ -306,7 +307,7 @@ class RideServiceImplTest {
 
         @Test
         void doesRideExistForDriverNotFound() {
-            Long driverId = RideTestEntityUtils.DEFAULT_DRIVER_ID;
+            UUID driverId = RideTestEntityUtils.DEFAULT_DRIVER_ID;
 
             when(rideRepository.existsByIdAndDriverId(rideId, driverId))
                     .thenThrow(new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND_FOR_DRIVER.format(rideId, driverId)));
@@ -318,7 +319,7 @@ class RideServiceImplTest {
 
         @Test
         void doesRideExistForPassengerOk() {
-            Long passengerId = RideTestEntityUtils.DEFAULT_PASSENGER_ID;
+            UUID passengerId = RideTestEntityUtils.DEFAULT_PASSENGER_ID;
 
             when(rideRepository.existsByIdAndPassengerId(rideId, passengerId))
                     .thenReturn(true);
@@ -331,7 +332,7 @@ class RideServiceImplTest {
 
         @Test
         void doesRideExistForPassengerNotFound() {
-            Long passengerId = RideTestEntityUtils.DEFAULT_PASSENGER_ID;
+            UUID passengerId = RideTestEntityUtils.DEFAULT_PASSENGER_ID;
 
             when(rideRepository.existsByIdAndPassengerId(rideId, passengerId))
                     .thenThrow(new EntityNotFoundException(ExceptionMessages.RIDE_NOT_FOUND_FOR_PASSENGER.format(rideId, passengerId)));

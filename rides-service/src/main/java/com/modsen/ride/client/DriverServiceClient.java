@@ -12,6 +12,7 @@ import java.util.UUID;
 
 @FeignClient(
         name = "driver-service",
+        url = "${feign.clients.driver-service.url:}",
         fallback = DriverServiceClientFallback.class,
         configuration = FeignConfig.class
 )

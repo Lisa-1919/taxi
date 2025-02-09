@@ -17,7 +17,7 @@ open class FeignConfig {
     }
 
     @Bean
-    fun requestInterceptor(): RequestInterceptor {
+    open fun requestInterceptor(): RequestInterceptor {
         return RequestInterceptor { requestTemplate: RequestTemplate ->
             val requestAttributes =
                 RequestContextHolder.getRequestAttributes()

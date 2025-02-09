@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
+import java.util.UUID;
 
 public class CarTestEntityUtils {
     public static final Long DEFAULT_CAR_ID = 1L;
@@ -17,7 +18,7 @@ public class CarTestEntityUtils {
     public static final String INVALID_LICENSE_PLATE = "INVALID!";
     public static final String DEFAULT_MARK = "mark";
     public static final String DEFAULT_COLOUR = "colour";
-    public static final Long DEFAULT_DRIVER_ID = 1L;
+    public static final UUID DEFAULT_DRIVER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
     public static final boolean DEFAULT_DELETED_STATUS = false;
 
     public static final String UPDATED_LICENSE_PLATE = "newLicensePlate";
@@ -56,7 +57,7 @@ public class CarTestEntityUtils {
         );
     }
 
-    public static RequestCar createTestRequestCar(Long driverId) {
+    public static RequestCar createTestRequestCar(UUID driverId) {
         return new RequestCar(
                 DEFAULT_LICENSE_PLATE,
                 DEFAULT_MARK,

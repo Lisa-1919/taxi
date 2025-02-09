@@ -186,6 +186,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.github.dasniko</groupId>
+            <artifactId>testcontainers-keycloak</artifactId>
+            <version>3.4.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-suite</artifactId>
             <version>${junit-platform-suite.version}</version>
@@ -217,6 +223,15 @@
             <groupId>com.modsen</groupId>
             <artifactId>exception-handler</artifactId>
             <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.c4-soft.springaddons</groupId>
+            <artifactId>spring-addons-oauth2-test</artifactId>
+            <version>8.1.2</version>
         </dependency>
     </dependencies>
 

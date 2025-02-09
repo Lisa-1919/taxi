@@ -6,9 +6,9 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,10 +24,11 @@ public class DriverSteps {
     private final String baseUri = "http://localhost:8081/";
     private String payload;
 
-    @Given("the driver with ID {int} exists")
-    public void theDriverWithIdExists(int id) {
+    @Given("the driver with ID {string} exists")
+    public void theDriverWithIdExists(String id) {
         RestAssured.given()
                 .baseUri(baseUri)
+                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .get(TestUtils.DRIVER_BY_ID_URL, id)
                 .then()
                 .statusCode(HttpStatus.OK.value());
@@ -37,6 +38,7 @@ public class DriverSteps {
     public void iSendAGetRequestForDriverTo(String endpoint) {
         response = RestAssured.given()
                 .baseUri(baseUri)
+                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .get(endpoint);
     }
 
@@ -54,6 +56,7 @@ public class DriverSteps {
     public void iSendAPostRequestForDriverToWithThePayload(String endpoint) {
         response = RestAssured.given()
                 .baseUri(baseUri)
+                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .body(payload)
                 .post(endpoint);
@@ -62,6 +65,7 @@ public class DriverSteps {
     @When("I send a DELETE request for a driver to {string}")
     public void iSendADeleteRequestForDriverTo(String endpoint) {
         response = RestAssured.given()
+                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .baseUri(baseUri)
                 .delete(endpoint);
     }
@@ -86,10 +90,11 @@ public class DriverSteps {
         response.then().body(key, notNullValue());
     }
 
-    @Then("the driver with ID {int} should no longer exist")
-    public void theDriverWithIdShouldNoLongerExist(int id) {
+    @Then("the driver with ID {string} should no longer exist")
+    public void theDriverWithIdShouldNoLongerExist(String id) {
         RestAssured.given()
                 .baseUri(baseUri)
+                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .get(TestUtils.DRIVER_BY_ID_URL, id)
                 .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
@@ -100,6 +105,7 @@ public class DriverSteps {
         response = RestAssured.given()
                 .baseUri(baseUri)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .body(payload)
                 .put(endpoint);
     }

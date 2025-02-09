@@ -1,13 +1,16 @@
 package com.modsen.driver.unit.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.modsen.driver.config.SecurityConfig;
 import com.modsen.driver.controller.DriverController;
+import com.modsen.driver.dto.CreateDriverRequest;
 import com.modsen.driver.dto.PagedResponseDriverList;
 import com.modsen.driver.dto.RequestDriver;
 import com.modsen.driver.dto.ResponseDriver;
 import com.modsen.driver.service.DriverService;
 import com.modsen.driver.util.ExceptionMessages;
 import com.modsen.driver.utils.DriverTestEntityUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.modsen.exception_handler.exception.GlobalExceptionHandler;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -17,13 +20,16 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.any;
@@ -41,6 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(DriverController.class)
 @ActiveProfiles("test")
+@Import({GlobalExceptionHandler.class, SecurityConfig.class})
 class DriverControllerTest {
 
     @Autowired
@@ -51,21 +58,24 @@ class DriverControllerTest {
     @MockBean
     private DriverService driverService;
 
-    private Long driverId;
+    private UUID driverId;
     private ResponseDriver testResponseDriver;
     private RequestDriver testRequestDriver;
+    private CreateDriverRequest createDriverRequest;
 
     @BeforeEach
     void setUp() {
         driverId = DriverTestEntityUtils.DEFAULT_DRIVER_ID;
         testResponseDriver = DriverTestEntityUtils.createTestResponseDriver();
         testRequestDriver = DriverTestEntityUtils.createTestRequestDriver();
+        createDriverRequest = DriverTestEntityUtils.createDriverRequest();
     }
 
     @Nested
     class GetDriverTests {
         @ParameterizedTest
         @ValueSource(booleans = {true, false})
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void getDriverById_ShouldReturnDriver(boolean active) throws Exception {
             if(active) {
                 when(driverService.getDriverByIdNonDeleted(driverId)).thenReturn(testResponseDriver);
@@ -77,13 +87,14 @@ class DriverControllerTest {
             mockMvc.perform(get("/api/v1/drivers/{id}", driverId)
                             .param("active", String.valueOf(active)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(driverId))
+                    .andExpect(jsonPath("$.id").value(driverId.toString()))
                     .andExpect(jsonPath("$.firstName").value(testResponseDriver.firstName()))
                     .andExpect(jsonPath("$.lastName").value(testResponseDriver.lastName()));
         }
 
         @ParameterizedTest
         @ValueSource(booleans = {true, false})
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void getAllDrivers_ShouldReturnPagedResponse(boolean active) throws Exception {
             PageRequest pageable = PageRequest.of(0, 10);
             PagedResponseDriverList driverPage = new PagedResponseDriverList(List.of(testResponseDriver), 1, 1, 1, 10, true);
@@ -103,6 +114,7 @@ class DriverControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void getAllNonDeletedDrivers_ShouldReturnPagedResponse() throws Exception {
             PageRequest pageable = PageRequest.of(0, 10);
             PagedResponseDriverList driverPage = new PagedResponseDriverList(List.of(testResponseDriver), 1, 1, 1, 10, true);
@@ -119,36 +131,42 @@ class DriverControllerTest {
     class AddDriverTests {
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void addDriver_ShouldCreateDriver() throws Exception {
-            when(driverService.addDriver(any(RequestDriver.class))).thenReturn(testResponseDriver);
+            when(driverService.addDriver(createDriverRequest)).thenReturn(testResponseDriver);
 
             mockMvc.perform(post("/api/v1/drivers")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(testRequestDriver)))
+                            .content(objectMapper.writeValueAsString(createDriverRequest)))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.firstName").value(testResponseDriver.firstName()))
                     .andExpect(jsonPath("$.email").value(testResponseDriver.email()));
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void addDriver_InvalidData_ShouldReturnBadRequest() throws Exception {
-            RequestDriver invalidRequestDriver = new RequestDriver(testRequestDriver.firstName(), testRequestDriver.lastName(), "invalid-email", testRequestDriver.phoneNumber(), testRequestDriver.sex());
+            CreateDriverRequest invalidRequestDriver = DriverTestEntityUtils.invalidCreateRequestDriver();
 
             mockMvc.perform(post("/api/v1/drivers")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(invalidRequestDriver)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(content().string(containsString("Field 'email' Invalid email format. Rejected value: invalid-email;")));
-        }
+                    .andExpect(jsonPath("$.violations").isNotEmpty())
+                    .andExpect(jsonPath("$.violations[?(@.fieldName == 'email')].message")
+                            .value("Invalid email format"))
+                    .andExpect(jsonPath("$.violations[?(@.fieldName == 'phoneNumber')].message")
+                            .value("Invalid phone number format"));        }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void addDriver_DuplicateEmail_ShouldReturnConflict() throws Exception {
-            when(driverService.addDriver(any(RequestDriver.class)))
+            when(driverService.addDriver(createDriverRequest))
                     .thenThrow(new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format("email", testRequestDriver.email())));
 
             mockMvc.perform(post("/api/v1/drivers")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(testRequestDriver)))
+                            .content(objectMapper.writeValueAsString(createDriverRequest)))
                     .andExpect(status().isConflict())
                     .andExpect(content().string(containsString(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format("email", testRequestDriver.email()))));
         }
@@ -158,6 +176,7 @@ class DriverControllerTest {
     class EditDriverTests {
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void editDriver_ShouldUpdateDriverSuccessfully() throws Exception {
             ResponseDriver updatedResponseDriver = DriverTestEntityUtils.createUpdatedResponseDriver();
             when(driverService.editDriver(eq(driverId), any(RequestDriver.class))).thenReturn(updatedResponseDriver);
@@ -171,6 +190,7 @@ class DriverControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void editDriver_InvalidData_ShouldReturnBadRequest() throws Exception {
             RequestDriver invalidRequestDriver = DriverTestEntityUtils.createInvalidRequestDriver();
 
@@ -178,11 +198,15 @@ class DriverControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(invalidRequestDriver)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(content().string(containsString("Field 'email' Invalid email format. Rejected value: " + invalidRequestDriver.email() + ";")))
-                    .andExpect(content().string(containsString("Field 'phoneNumber' Invalid phone number format. Rejected value: " + invalidRequestDriver.phoneNumber() + ";")));
+                    .andExpect(jsonPath("$.violations").isNotEmpty())
+                    .andExpect(jsonPath("$.violations[?(@.fieldName == 'email')].message")
+                            .value("Invalid email format"))
+                    .andExpect(jsonPath("$.violations[?(@.fieldName == 'phoneNumber')].message")
+                            .value("Invalid phone number format"));
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void editDriver_NonExistentDriver_ShouldReturnNotFound() throws Exception {
             when(driverService.editDriver(eq(driverId), any(RequestDriver.class)))
                     .thenThrow(new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
@@ -195,6 +219,7 @@ class DriverControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void editDriver_DuplicateEmail_ShouldReturnConflict() throws Exception {
             when(driverService.editDriver(eq(driverId), any(RequestDriver.class)))
                     .thenThrow(new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format("email", testRequestDriver.email())));
@@ -207,6 +232,7 @@ class DriverControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void editDriver_DuplicatePhoneNumber_ShouldReturnConflict() throws Exception {
             when(driverService.editDriver(eq(driverId), any(RequestDriver.class)))
                     .thenThrow(new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format("phoneNumber", testRequestDriver.phoneNumber())));
@@ -222,6 +248,7 @@ class DriverControllerTest {
     @Nested
     class DeleteDriverTests {
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void deleteDriver_ShouldReturnNoContent() throws Exception {
             doNothing().when(driverService).deleteDriver(driverId);
 
@@ -230,6 +257,7 @@ class DriverControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void deleteDriver_NonExistentDriver_ShouldReturnNotFound() throws Exception {
             doThrow(new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)))
                     .when(driverService).deleteDriver(driverId);
@@ -242,8 +270,9 @@ class DriverControllerTest {
     }
 
     @Nested
-    class DeriverExistTests {
+    class DriverExistTests {
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void doesDriverExist_ShouldReturnTrue() throws Exception {
             when(driverService.doesDriverExist(driverId)).thenReturn(true);
 
@@ -253,6 +282,7 @@ class DriverControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void doesDriverExist_NonExistentDriver_ShouldReturnNotFound() throws Exception {
             when(driverService.doesDriverExist(driverId))
                     .thenThrow(new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
