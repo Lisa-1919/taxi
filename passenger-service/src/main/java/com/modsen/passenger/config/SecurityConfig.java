@@ -39,7 +39,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/passengers").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/passengers/*").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/passengers/*").hasAnyRole("ADMIN", "PASSENGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/passengers/*").authenticated()
                         .requestMatchers("/api/v1/passengers/**").hasAnyRole("ADMIN", "PASSENGER", "DRIVER")
                         .anyRequest().denyAll()
                 )

@@ -8,7 +8,6 @@ import com.modsen.driver.entity.Driver;
 import com.modsen.driver.mapper.DriverMapper;
 import com.modsen.driver.repo.DriverRepository;
 import com.modsen.driver.util.ExceptionMessages;
-import com.modsen.driver.util.JwtTokenUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +15,6 @@ import org.hibernate.Hibernate;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +32,6 @@ public class DriverServiceImpl implements DriverService {
 
     private final DriverRepository driverRepository;
     private final DriverMapper driverMapper;
-    private final JwtTokenUtil jwtTokenUtil;
 
     @Override
     @Transactional
@@ -49,7 +46,6 @@ public class DriverServiceImpl implements DriverService {
     @Override
     @Transactional
     public ResponseDriver editDriver(UUID id, RequestDriver requestDriver) {
-        jwtTokenUtil.validateAccess(id);
         Driver driverFromDB = getOrThrow(id);
 
         if (!driverFromDB.getEmail().equals(requestDriver.email())) {

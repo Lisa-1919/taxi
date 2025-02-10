@@ -16,7 +16,8 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) throws Exception {
         http
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers("/api/v1/account/**").permitAll()
+                        .pathMatchers("/api/v1/account/login", "/api/v1/account/register").permitAll()
+                        .pathMatchers("/api/v1/account/**").authenticated()
                         .pathMatchers(HttpMethod.POST, "/api/v1/passengers").authenticated()
                         .pathMatchers(HttpMethod.POST, "/api/v1/drivers").authenticated()
                         .anyExchange().authenticated()

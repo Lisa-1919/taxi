@@ -8,7 +8,6 @@ import com.modsen.passenger.entity.Passenger;
 import com.modsen.passenger.mapper.PassengerMapper;
 import com.modsen.passenger.repo.PassengerRepository;
 import com.modsen.passenger.util.ExceptionMessages;
-import com.modsen.passenger.util.JwtTokenUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +31,6 @@ public class PassengerServiceImpl implements PassengerService {
 
     private final PassengerRepository passengerRepository;
     private final PassengerMapper passengerMapper;
-    private final JwtTokenUtil jwtTokenUtil;
 
     @Override
     @Transactional
@@ -49,7 +47,6 @@ public class PassengerServiceImpl implements PassengerService {
     @Override
     @Transactional
     public ResponsePassenger editPassenger(UUID id, RequestPassenger requestPassenger) {
-        jwtTokenUtil.validateAccess(id);
         Passenger passengerFromDb = getOrThrow(id);
 
         if (!passengerFromDb.getEmail().equals(requestPassenger.email())){
