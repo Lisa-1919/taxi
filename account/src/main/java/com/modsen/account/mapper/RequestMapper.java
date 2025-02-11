@@ -3,6 +3,9 @@ package com.modsen.account.mapper;
 import com.modsen.account.dto.CreateDriverRequest;
 import com.modsen.account.dto.CreatePassengerRequest;
 import com.modsen.account.dto.RegistrationRequest;
+import com.modsen.account.dto.UpdateDriverRequest;
+import com.modsen.account.dto.UpdatePassengerRequest;
+import com.modsen.account.dto.UpdateUserRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -28,6 +31,25 @@ public class RequestMapper {
                 registrationRequest.lastName(),
                 registrationRequest.email(),
                 registrationRequest.phoneNumber()
+        );
+    }
+
+    public UpdateDriverRequest updateUserRequestToUpdateDriverRequest(UpdateUserRequest updateUserRequest) {
+        return new UpdateDriverRequest(
+                updateUserRequest.firstName(),
+                updateUserRequest.lastName(),
+                updateUserRequest.email(),
+                updateUserRequest.phoneNumber(),
+                updateUserRequest.sex()
+        );
+    }
+
+    public UpdatePassengerRequest updateUserRequestToUpdatePassengerRequest(UpdateUserRequest updateUserRequest) {
+        return new UpdatePassengerRequest(
+                updateUserRequest.firstName(),
+                updateUserRequest.lastName(),
+                updateUserRequest.email(),
+                updateUserRequest.phoneNumber()
         );
     }
 

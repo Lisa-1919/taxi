@@ -2,6 +2,8 @@ package com.modsen.account.service;
 
 import com.modsen.account.dto.AuthenticateRequest;
 import com.modsen.account.dto.RegistrationRequest;
+import com.modsen.account.dto.UpdateUserRequest;
+import com.modsen.account.dto.UpdateUserResponse;
 import com.modsen.account.dto.UserResponse;
 
 import java.util.Map;
@@ -14,5 +16,7 @@ public interface KeycloakService {
     UserResponse createUser(RegistrationRequest userRegistrationRecord) throws Exception;
 
     void deleteUser(UUID userId) throws Exception;
+
+    UpdateUserResponse updateUser(UUID userId, UpdateUserRequest updateUserRequest);
 
 }
