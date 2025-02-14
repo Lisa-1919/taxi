@@ -23,7 +23,10 @@ jobs:
           cache: maven
 
       - name: Build exception-handler module
-        run: mvn --batch-mode clean install -pl exception-handler -am
+        run: |
+          cd exception-handler
+          mvn --batch-mode clean install
+          cd ..
 
       - name: Run Unit Tests
         run: mvn --batch-mode test
