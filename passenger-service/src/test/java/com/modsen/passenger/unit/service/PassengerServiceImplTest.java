@@ -1,5 +1,6 @@
 package com.modsen.passenger.unit.service;
 
+import com.modsen.passenger.dto.CreatePassengerRequest;
 import com.modsen.passenger.dto.PagedResponsePassengerList;
 import com.modsen.passenger.dto.RequestPassenger;
 import com.modsen.passenger.dto.ResponsePassenger;
@@ -26,6 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -50,7 +52,8 @@ class PassengerServiceImplTest {
     private Passenger testPassenger;
     private RequestPassenger testRequestPassenger;
     private ResponsePassenger testResponsePassenger;
-    private Long passengerId;
+    private UUID passengerId;
+    private CreatePassengerRequest createPassengerRequest;
 
     @BeforeEach
     void setUp() {
@@ -58,6 +61,7 @@ class PassengerServiceImplTest {
         testPassenger = PassengerTestEntityUtils.createTestPassenger();
         testRequestPassenger = PassengerTestEntityUtils.createTestRequestPassenger();
         testResponsePassenger = PassengerTestEntityUtils.createTestResponsePassenger();
+        createPassengerRequest = PassengerTestEntityUtils.createPassengerRequest();
     }
 
     @Nested
@@ -65,13 +69,13 @@ class PassengerServiceImplTest {
 
         @Test
         void addPassengerOk() {
-            when(passengerRepository.existsByEmail(testRequestPassenger.email())).thenReturn(false);
-            when(passengerRepository.existsByPhoneNumber(testRequestPassenger.phoneNumber())).thenReturn(false);
-            when(passengerMapper.requestPassengerToPassenger(testRequestPassenger)).thenReturn(testPassenger);
+            when(passengerRepository.existsByEmail(createPassengerRequest.email())).thenReturn(false);
+            when(passengerRepository.existsByPhoneNumber(createPassengerRequest.phoneNumber())).thenReturn(false);
+            when(passengerMapper.createPassengerRequestToPassenger(createPassengerRequest)).thenReturn(testPassenger);
             when(passengerRepository.save(testPassenger)).thenReturn(testPassenger);
             when(passengerMapper.passengerToResponsePassenger(testPassenger)).thenReturn(testResponsePassenger);
 
-            ResponsePassenger result = passengerService.addPassenger(testRequestPassenger);
+            ResponsePassenger result = passengerService.addPassenger(createPassengerRequest);
 
             assertEquals(testResponsePassenger, result);
             verify(passengerRepository).save(testPassenger);
@@ -80,23 +84,23 @@ class PassengerServiceImplTest {
 
         @Test
         void addPassengerDuplicateEmail() {
-            when(passengerRepository.existsByEmail(testRequestPassenger.email())).thenReturn(true);
+            when(passengerRepository.existsByEmail(createPassengerRequest.email())).thenReturn(true);
 
-            assertThrows(DataIntegrityViolationException.class, () -> passengerService.addPassenger(testRequestPassenger));
+            assertThrows(DataIntegrityViolationException.class, () -> passengerService.addPassenger(createPassengerRequest));
 
-            verify(passengerRepository).existsByEmail(testRequestPassenger.email());
+            verify(passengerRepository).existsByEmail(createPassengerRequest.email());
             verifyNoMoreInteractions(passengerRepository, passengerMapper);
         }
 
         @Test
         void addPassengerDuplicatePhoneNumber() {
-            when(passengerRepository.existsByEmail(testRequestPassenger.email())).thenReturn(false);
-            when(passengerRepository.existsByPhoneNumber(testRequestPassenger.phoneNumber())).thenReturn(true);
+            when(passengerRepository.existsByEmail(createPassengerRequest.email())).thenReturn(false);
+            when(passengerRepository.existsByPhoneNumber(createPassengerRequest.phoneNumber())).thenReturn(true);
 
-            assertThrows(DataIntegrityViolationException.class, () -> passengerService.addPassenger(testRequestPassenger));
+            assertThrows(DataIntegrityViolationException.class, () -> passengerService.addPassenger(createPassengerRequest));
 
-            verify(passengerRepository).existsByEmail(testRequestPassenger.email());
-            verify(passengerRepository).existsByPhoneNumber(testRequestPassenger.phoneNumber());
+            verify(passengerRepository).existsByEmail(createPassengerRequest.email());
+            verify(passengerRepository).existsByPhoneNumber(createPassengerRequest.phoneNumber());
             verifyNoMoreInteractions(passengerRepository, passengerMapper);
         }
 
@@ -293,7 +297,7 @@ class PassengerServiceImplTest {
         }
     }
 
-    private void mockPassengerNotFound(Long id) {
+    private void mockPassengerNotFound(UUID id) {
         when(passengerRepository.findPassengerByIdNonDeleted(id))
                 .thenThrow(new EntityNotFoundException(ExceptionMessages.PASSENGER_NOT_FOUND.format(id)));
     }

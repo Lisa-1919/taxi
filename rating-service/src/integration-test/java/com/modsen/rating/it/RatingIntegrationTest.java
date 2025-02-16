@@ -1,14 +1,13 @@
 package com.modsen.rating.it;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.modsen.rating.dto.RequestRate;
 import com.modsen.rating.repo.RateRepository;
+import com.modsen.rating.util.DriverWireMock;
 import com.modsen.rating.util.ExceptionMessages;
+import com.modsen.rating.util.PassengerWireMock;
 import com.modsen.rating.util.RateTestEntityUtils;
+import com.modsen.rating.util.RideWireMock;
 import com.modsen.rating.util.TestUtils;
-import com.modsen.rating.util.WireMockStubs;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -23,13 +22,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -50,7 +49,10 @@ public class RatingIntegrationTest {
     private MockMvc mockMvc;
     @Autowired
     private RateRepository rateRepository;
-    private static WireMockServer wireMockServer;
+
+    private static DriverWireMock driverWireMock;
+    private static PassengerWireMock passengerWireMock;
+    private static RideWireMock rideWireMock;
 
     @Container
     public static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:15")
@@ -68,9 +70,9 @@ public class RatingIntegrationTest {
     @BeforeAll
     static void init() {
         try {
-            wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(7070));
-            wireMockServer.start();
-            WireMock.configureFor("localhost", 7070);
+            driverWireMock = new DriverWireMock(8081);
+            passengerWireMock = new PassengerWireMock(8082);
+            rideWireMock = new RideWireMock(8083);
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
@@ -79,9 +81,9 @@ public class RatingIntegrationTest {
 
     @AfterAll
     static void tearDown() {
-        if (wireMockServer != null && wireMockServer.isRunning()) {
-            wireMockServer.stop();
-        }
+        driverWireMock.stopServer();
+        passengerWireMock.stopServer();
+        rideWireMock.stopServer();
     }
 
     @BeforeEach
@@ -97,8 +99,9 @@ public class RatingIntegrationTest {
     class GetRate {
 
         @Test
+        @WithMockUser(roles = {"PASSENGER"}, username = "passenger@gmail.com")
         public void getRateById_shouldReturnRate() {
-            Long rateId = TestUtils.EXIST_Id;
+            Long rateId = TestUtils.EXIST_ID;
 
             RestAssuredMockMvc.given()
                     .when()
@@ -109,6 +112,7 @@ public class RatingIntegrationTest {
         }
 
         @Test
+        @WithMockUser(roles = {"PASSENGER"}, username = "passenger@gmail.com")
         public void getRateById_shouldReturnNotFound_whenRateDoesNotExist() {
             Long rateId = TestUtils.NON_EXISTING_ID;
 
@@ -121,6 +125,7 @@ public class RatingIntegrationTest {
         }
 
         @Test
+        @WithMockUser(roles = {"PASSENGER"}, username = "passenger@gmail.com")
         public void getRates_shouldReturnPagedResponse() {
             RestAssuredMockMvc.given()
                     .when()
@@ -143,13 +148,14 @@ public class RatingIntegrationTest {
             return Stream.of(
                     Arguments.of("/api/v1/rates/from-passengers", 1, true),
                     Arguments.of("/api/v1/rates/from-drivers", 1, false),
-                    Arguments.of("/api/v1/rates/from-passengers/10", 1, true),
-                    Arguments.of("/api/v1/rates/from-drivers/11", 1, false)
+                    Arguments.of("/api/v1/rates/from-passengers/11111111-0000-0000-0000-111111111111", 1, true),
+                    Arguments.of("/api/v1/rates/from-drivers/11111111-1111-1111-1111-111111111111", 1, false)
             );
         }
 
         @ParameterizedTest
         @MethodSource("provideEndpointsAndResults")
+        @WithMockUser(roles = {"PASSENGER"}, username = "passenger@gmail.com")
         void getRates_shouldReturnPagedResponse(String endpoint, int expectedSize, boolean isPassenger) {
             RestAssuredMockMvc.given()
                     .when()
@@ -166,11 +172,12 @@ public class RatingIntegrationTest {
     class AddRate {
 
         @Test
+        @WithMockUser(roles = {"PASSENGER"}, username = "passenger@gmail.com")
         public void addRate_shouldReturnCreatedRate() {
             RequestRate requestRate = RateTestEntityUtils.INSTANCE.createTestRequestRate();
 
-            WireMockStubs.stubRideExists(requestRate.getRideId(), requestRate.getUserId());
-            WireMockStubs.stubPassengerExists(requestRate.getUserId());
+            rideWireMock.stubRideExists(requestRate.getRideId(), requestRate.getUserId());
+            passengerWireMock.stubPassengerExists(requestRate.getUserId());
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -183,11 +190,12 @@ public class RatingIntegrationTest {
         }
 
         @Test
+        @WithMockUser(roles = {"PASSENGER"}, username = "passenger@gmail.com")
         public void addRate_shouldReturnRideNotFound_whenRideDoesNotExistForPassenger() {
             RequestRate requestRate = RateTestEntityUtils.INSTANCE.createTestRequestRate();
             String message = TestUtils.RIDE_NOT_FOUND_MESSAGE.formatted(requestRate.getRideId());
 
-            WireMockStubs.stubRideNotExists(requestRate.getRideId(), requestRate.getUserId());
+            rideWireMock.stubRideNotExists(requestRate.getRideId(), requestRate.getUserId());
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)

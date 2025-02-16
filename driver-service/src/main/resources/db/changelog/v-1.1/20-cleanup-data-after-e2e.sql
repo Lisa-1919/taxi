@@ -1,0 +1,5 @@
+DELETE FROM driver;
+GO
+
+DELETE FROM car;
+GO

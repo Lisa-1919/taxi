@@ -22,5 +22,11 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Build exception-handler module
+        run: |
+          cd exception-handler
+          mvn --batch-mode clean install
+          cd ..
+
       - name: Run Unit Tests
         run: mvn --batch-mode test

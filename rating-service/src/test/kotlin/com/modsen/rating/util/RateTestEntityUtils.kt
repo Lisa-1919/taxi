@@ -4,6 +4,7 @@ import com.modsen.rating.dto.PagedResponseRateList
 import com.modsen.rating.dto.RequestRate
 import com.modsen.rating.dto.ResponseRate
 import com.modsen.rating.entity.Rate
+import java.util.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 
@@ -12,7 +13,7 @@ object RateTestEntityUtils {
 
     const val DEFAULT_RATE_ID = 1L
     private const val DEFAULT_RIDE_ID = 1L
-    const val DEFAULT_USER_ID = 1L
+    val DEFAULT_USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111")
     private const val DEFAULT_RATING = 5.0
     private const val DEFAULT_COMMENTARY = "some commentary"
 
@@ -24,7 +25,7 @@ object RateTestEntityUtils {
 
     fun createTestRequestRate(
         rideId: Long = DEFAULT_RIDE_ID,
-        userId: Long = DEFAULT_USER_ID,
+        userId: UUID = DEFAULT_USER_ID,
         userType: UserType = UserType.PASSENGER,
         rating: Double = DEFAULT_RATING,
         rideCommentary: String = DEFAULT_COMMENTARY
@@ -58,7 +59,7 @@ object RateTestEntityUtils {
     fun createTestRate(
         id: Long = DEFAULT_RATE_ID,
         rideId: Long = DEFAULT_RIDE_ID,
-        userId: Long = DEFAULT_USER_ID,
+        userId: UUID = DEFAULT_USER_ID,
         userType: UserType = UserType.PASSENGER,
         rating: Double = DEFAULT_RATING,
         rideCommentary: String = DEFAULT_COMMENTARY
@@ -69,7 +70,7 @@ object RateTestEntityUtils {
     fun createTestResponseRate(
         id: Long = DEFAULT_RIDE_ID,
         rideId: Long = DEFAULT_RIDE_ID,
-        userId: Long = DEFAULT_USER_ID,
+        userId: UUID = DEFAULT_USER_ID,
         userType: UserType = UserType.PASSENGER,
         rating: Double = DEFAULT_RATING,
         rideCommentary: String = DEFAULT_COMMENTARY

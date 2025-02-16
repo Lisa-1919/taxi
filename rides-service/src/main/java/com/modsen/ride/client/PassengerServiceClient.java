@@ -12,6 +12,7 @@ import java.util.UUID;
 
 @FeignClient(
         name = "passenger-service",
+        url = "${feign.clients.passenger-service.url:}",
         fallback = PassengerServiceClientFallback.class,
         configuration = FeignConfig.class
 )

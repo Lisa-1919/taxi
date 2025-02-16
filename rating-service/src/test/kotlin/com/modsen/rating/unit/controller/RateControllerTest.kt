@@ -1,5 +1,8 @@
 package com.modsen.rating.unit.controller
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.modsen.exception_handler.exception.GlobalExceptionHandler
+import com.modsen.rating.config.SecurityConfig
 import com.modsen.rating.controller.RateController
 import com.modsen.rating.dto.PagedResponseRateList
 import com.modsen.rating.dto.ResponseRate
@@ -7,7 +10,6 @@ import com.modsen.rating.service.RateService
 import com.modsen.rating.util.ExceptionMessages
 import com.modsen.rating.util.RateTestEntityUtils
 import com.modsen.rating.util.UserType
-import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.persistence.EntityNotFoundException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -17,16 +19,18 @@ import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.Import
 import org.springframework.data.domain.Pageable
 import org.springframework.http.MediaType
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 
-
 @WebMvcTest(RateController::class)
 @ActiveProfiles("test")
+@Import(GlobalExceptionHandler::class, SecurityConfig::class)
 class RateControllerTest {
 
     @Autowired
@@ -49,6 +53,7 @@ class RateControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = ["ROLE_DRIVER"], username = "driver@gmail.com")
         fun getRateById() {
             val responseRate = RateTestEntityUtils.createTestResponseRate(id = rateId)
 
@@ -65,6 +70,7 @@ class RateControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = ["ROLE_DRIVER"], username = "driver@gmail.com")
         fun getRateByIdNotFound() {
             val errorMessage = ExceptionMessages.rateNotFound(rateId)
 
@@ -82,6 +88,7 @@ class RateControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = ["ROLE_DRIVER"], username = "driver@gmail.com")
     fun getAllRates() {
         val responseRate: ResponseRate = RateTestEntityUtils.createTestResponseRate()
         val pageable: Pageable = RateTestEntityUtils.createPageRequest()
@@ -116,6 +123,7 @@ class RateControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = ["ROLE_DRIVER"], username = "driver@gmail.com")
         fun getAllRatesFromPassengers() {
             given(rateService.getAllRatesFromPassengers(pageable)).willReturn(pagedResponse)
 
@@ -133,8 +141,9 @@ class RateControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = ["ROLE_DRIVER"], username = "driver@gmail.com")
         fun getAllRatesByPassengerId() {
-            val passengerId = 1L
+            val passengerId = RateTestEntityUtils.DEFAULT_USER_ID
 
             given(rateService.getAllRatesByPassengerId(passengerId, pageable)).willReturn(pagedResponse)
 
@@ -166,6 +175,7 @@ class RateControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = ["ROLE_DRIVER"], username = "driver@gmail.com")
         fun getAllRatesFromDrivers() {
             given(rateService.getAllRatesFromDrivers(pageable)).willReturn(pagedResponse)
 
@@ -183,8 +193,9 @@ class RateControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = ["ROLE_DRIVER"], username = "driver@gmail.com")
         fun getAllRatesByDriverId() {
-            val driverId = 1L
+            val driverId = RateTestEntityUtils.DEFAULT_USER_ID
 
             given(rateService.getAllRatesByDriverId(driverId, pageable)).willReturn(pagedResponse)
 
@@ -205,6 +216,7 @@ class RateControllerTest {
     @Nested
     inner class AddRateTests {
         @Test
+        @WithMockUser(authorities = ["ROLE_DRIVER"], username = "driver@gmail.com")
         fun addRate() {
             val requestRate = RateTestEntityUtils.createTestRequestRate()
             val responseRate = RateTestEntityUtils.createTestResponseRate()

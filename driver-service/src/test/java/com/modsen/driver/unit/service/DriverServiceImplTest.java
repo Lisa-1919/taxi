@@ -1,5 +1,6 @@
 package com.modsen.driver.unit.service;
 
+import com.modsen.driver.dto.CreateDriverRequest;
 import com.modsen.driver.dto.PagedResponseDriverList;
 import com.modsen.driver.dto.RequestDriver;
 import com.modsen.driver.dto.ResponseDriver;
@@ -26,6 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -50,7 +52,8 @@ class DriverServiceImplTest {
     private Driver testDriver;
     private RequestDriver testRequestDriver;
     private ResponseDriver testResponseDriver;
-    private Long driverId;
+    private UUID driverId;
+    private CreateDriverRequest createDriverRequest;
 
     @BeforeEach
     void setUp() {
@@ -58,6 +61,7 @@ class DriverServiceImplTest {
         testDriver = DriverTestEntityUtils.createTestDriver();
         testRequestDriver = DriverTestEntityUtils.createTestRequestDriver();
         testResponseDriver = DriverTestEntityUtils.createTestResponseDriver();
+        createDriverRequest = DriverTestEntityUtils.createDriverRequest();
     }
 
     @Nested
@@ -65,11 +69,11 @@ class DriverServiceImplTest {
         @Test
         void addDriverOk() {
             mockDriverNonExistence();
-            when(driverMapper.requestDriverToDriver(testRequestDriver)).thenReturn(testDriver);
+            when(driverMapper.createDriverRequestToDriver(createDriverRequest)).thenReturn(testDriver);
             when(driverRepository.save(testDriver)).thenReturn(testDriver);
             when(driverMapper.driverToResponseDriver(testDriver)).thenReturn(testResponseDriver);
 
-            ResponseDriver responseDriver = driverService.addDriver(testRequestDriver);
+            ResponseDriver responseDriver = driverService.addDriver(createDriverRequest);
 
             assertEquals(testResponseDriver, responseDriver);
             verify(driverRepository).save(testDriver);
@@ -78,23 +82,23 @@ class DriverServiceImplTest {
 
         @Test
         void addDriverDuplicateEmail() {
-            when(driverRepository.existsByEmail(testRequestDriver.email())).thenReturn(true);
+            when(driverRepository.existsByEmail(createDriverRequest.email())).thenReturn(true);
 
-            assertThrows(DataIntegrityViolationException.class, () -> driverService.addDriver(testRequestDriver));
+            assertThrows(DataIntegrityViolationException.class, () -> driverService.addDriver(createDriverRequest));
 
-            verify(driverRepository).existsByEmail(testRequestDriver.email());
+            verify(driverRepository).existsByEmail(createDriverRequest.email());
             verifyNoMoreInteractions(driverRepository, driverMapper);
         }
 
         @Test
         void addDriverDuplicatePhoneNumber() {
-            when(driverRepository.existsByEmail(testRequestDriver.email())).thenReturn(false);
-            when(driverRepository.existsByPhoneNumber(testRequestDriver.phoneNumber())).thenReturn(true);
+            when(driverRepository.existsByEmail(createDriverRequest.email())).thenReturn(false);
+            when(driverRepository.existsByPhoneNumber(createDriverRequest.phoneNumber())).thenReturn(true);
 
-            assertThrows(DataIntegrityViolationException.class, () -> driverService.addDriver(testRequestDriver));
+            assertThrows(DataIntegrityViolationException.class, () -> driverService.addDriver(createDriverRequest));
 
-            verify(driverRepository).existsByEmail(testRequestDriver.email());
-            verify(driverRepository).existsByPhoneNumber(testRequestDriver.phoneNumber());
+            verify(driverRepository).existsByEmail(createDriverRequest.email());
+            verify(driverRepository).existsByPhoneNumber(createDriverRequest.phoneNumber());
             verifyNoMoreInteractions(driverMapper, driverRepository);
         }
     }
@@ -116,6 +120,7 @@ class DriverServiceImplTest {
             ResponseDriver responseDriver = driverService.editDriver(driverId, requestDriver);
 
             assertEquals(expectedResponseDriver, responseDriver);
+
             verify(driverMapper).updateDriverFromRequestDriver(eq(requestDriver), eq(existingDriver));
             verify(driverRepository).save(existingDriver);
             verify(driverMapper).driverToResponseDriver(updatedDriver);
@@ -289,7 +294,7 @@ class DriverServiceImplTest {
         when(driverRepository.existsByPhoneNumber(testRequestDriver.phoneNumber())).thenReturn(false);
     }
 
-    private void mockDriverNotFound(Long id) {
+    private void mockDriverNotFound(UUID id) {
         when(driverRepository.findDriverByIdNonDeleted(id))
                 .thenThrow(new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id)));
 

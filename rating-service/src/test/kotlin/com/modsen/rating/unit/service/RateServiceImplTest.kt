@@ -209,14 +209,14 @@ class RateServiceImplTest {
             verify(rateMapper).rateToResponseRate(testRate)
             verifyNoMoreInteractions(rateRepository, rateMapper)
         }
-        private fun getAllRatesByUserTypeMock(userId: Long, userType: UserType){
+        private fun getAllRatesByUserTypeMock(userId: UUID, userType: UserType){
             when (userType) {
                 UserType.DRIVER -> given(rateRepository.getAllRatesByDriverId(userId, pageable)).willReturn(ratePage)
                 UserType.PASSENGER -> given(rateRepository.getAllRatesByPassengerId(userId, pageable)).willReturn(ratePage)
             }
         }
 
-        private fun verifyRepositoryInteractionsByUserType(userId: Long, userType: UserType){
+        private fun verifyRepositoryInteractionsByUserType(userId: UUID, userType: UserType){
             when (userType) {
                 UserType.DRIVER -> verify(rateRepository).getAllRatesByDriverId(userId, pageable)
                 UserType.PASSENGER -> verify(rateRepository).getAllRatesByPassengerId(userId, pageable)
@@ -225,7 +225,7 @@ class RateServiceImplTest {
 
     }
 
-    private fun checkRideExistenceMock(rideId: Long, userId: Long, userType: UserType) {
+    private fun checkRideExistenceMock(rideId: Long, userId: UUID, userType: UserType) {
         when (userType) {
             UserType.DRIVER -> given(
                 rideServiceClient.doesRideExistForDriver(rideId, userId)
@@ -237,7 +237,7 @@ class RateServiceImplTest {
         }
     }
 
-    private fun checkUserExistenceMock(userId: Long, userType: UserType) {
+    private fun checkUserExistenceMock(userId: UUID, userType: UserType) {
         when (userType) {
             UserType.DRIVER -> given(driverServiceClient.doesDriverExist(userId)).willReturn(ResponseEntity.ok(true))
             UserType.PASSENGER -> given(passengerServiceClient.doesPassengerExist(userId)).willReturn(
@@ -246,7 +246,7 @@ class RateServiceImplTest {
         }
     }
 
-    private fun checkUserExistenceMockWithException(userType: UserType, userId: Long) {
+    private fun checkUserExistenceMockWithException(userType: UserType, userId: UUID) {
         when (userType) {
             UserType.DRIVER -> given(driverServiceClient.doesDriverExist(userId)).willThrow(EntityNotFoundException::class.java)
             UserType.PASSENGER -> given(passengerServiceClient.doesPassengerExist(userId)).willThrow(
@@ -255,14 +255,14 @@ class RateServiceImplTest {
         }
     }
 
-    private fun verifyRideExistence(rideId: Long, userId: Long, userType: UserType) {
+    private fun verifyRideExistence(rideId: Long, userId: UUID, userType: UserType) {
         when (userType) {
             UserType.DRIVER -> verify(rideServiceClient).doesRideExistForDriver(rideId, userId)
             UserType.PASSENGER -> verify(rideServiceClient).doesRideExistForPassenger(rideId, userId)
         }
     }
 
-    private fun verifyUserExistence(userId: Long, userType: UserType) {
+    private fun verifyUserExistence(userId: UUID, userType: UserType) {
         when (userType) {
             UserType.DRIVER -> verify(driverServiceClient).doesDriverExist(userId)
             UserType.PASSENGER -> verify(passengerServiceClient).doesPassengerExist(userId)

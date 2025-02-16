@@ -1,7 +1,8 @@
 {
-  "firstName": "mm",
-  "lastName": "mm",
-  "email": "mm@example.com",
-  "phoneNumber": "+000000000001",
+  "id": "11111111-7777-1111-1111-111111111111",
+  "firstName": "new",
+  "lastName": "new",
+  "email": "new@example.com",
+  "phoneNumber": "+375 77 777 77 77",
   "sex": "male"
 }

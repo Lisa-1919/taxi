@@ -6,9 +6,9 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,6 +28,7 @@ public class CarSteps {
     public void theCarWithIdExists(int id) {
         RestAssured.given()
                 .baseUri(baseUri)
+                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .get(TestUtils.CAR_BY_ID_URL, id)
                 .then()
                 .statusCode(HttpStatus.OK.value());
@@ -47,6 +48,7 @@ public class CarSteps {
     public void iSendAGetRequestTo(String endpoint) {
         response = RestAssured.given()
                 .baseUri(baseUri)
+                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .get(endpoint);
     }
 
@@ -55,6 +57,7 @@ public class CarSteps {
         response = RestAssured.given()
                 .baseUri(baseUri)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .body(payload)
                 .post(endpoint);
     }
@@ -64,6 +67,7 @@ public class CarSteps {
         response = RestAssured.given()
                 .baseUri(baseUri)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .body(payload)
                 .put(endpoint);
     }
@@ -72,6 +76,7 @@ public class CarSteps {
     public void iSendADeleteRequestTo(String endpoint) {
         response = RestAssured.given()
                 .baseUri(baseUri)
+                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .delete(endpoint);
     }
 
@@ -94,6 +99,7 @@ public class CarSteps {
     public void theCarWithIdShouldNoLongerExist(int id) {
         RestAssured.given()
                 .baseUri(baseUri)
+                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .get(TestUtils.CAR_BY_ID_URL, id)
                 .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());

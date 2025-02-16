@@ -1,19 +1,17 @@
 package com.modsen.ride.it;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.modsen.ride.dto.RequestChangeStatus;
 import com.modsen.ride.dto.RequestRide;
 import com.modsen.ride.dto.UpdateStatusMessage;
 import com.modsen.ride.entity.Ride;
 import com.modsen.ride.repo.RideRepository;
 import com.modsen.ride.service.KafkaProducer;
+import com.modsen.ride.util.DriverWireMock;
 import com.modsen.ride.util.ExceptionMessages;
+import com.modsen.ride.util.PassengerWireMock;
 import com.modsen.ride.util.RideStatuses;
 import com.modsen.ride.util.RideTestEntityUtils;
 import com.modsen.ride.util.TestUtils;
-import com.modsen.ride.util.WireMockStubs;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -27,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -36,6 +35,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
@@ -52,8 +53,26 @@ public class RideIntegrationTest {
     private RideRepository rideRepository;
     @MockBean
     private KafkaProducer kafkaProducer;
-    private static WireMockServer wireMockServer;
 
+    private static DriverWireMock driverWireMock;
+    private static PassengerWireMock passengerWireMock;
+
+    @BeforeAll
+    static void init() {
+        try {
+            driverWireMock = new DriverWireMock(8081);
+            passengerWireMock = new PassengerWireMock(8082);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @AfterAll
+    static void tearDown() {
+        driverWireMock.stopServer();
+        passengerWireMock.stopServer();
+    }
 
     @Container
     public static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:15")
@@ -69,25 +88,6 @@ public class RideIntegrationTest {
         registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
     }
 
-    @BeforeAll
-    static void init() {
-        try {
-            wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(7070));
-            wireMockServer.start();
-            WireMock.configureFor("localhost", 7070);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
-    }
-
-    @AfterAll
-    static void tearDown() {
-        if (wireMockServer != null && wireMockServer.isRunning()) {
-            wireMockServer.stop();
-        }
-    }
-
     @BeforeEach
     void setup() {
         RestAssuredMockMvc.mockMvc(mockMvc);
@@ -101,6 +101,7 @@ public class RideIntegrationTest {
     class GetRide {
 
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void getRideById_shouldReturnRide() {
             Long rideId = TestUtils.EXIST_ID;
 
@@ -114,6 +115,7 @@ public class RideIntegrationTest {
         }
 
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void getRideById_shouldReturnNotFound_whenRideDoesNotExist() {
             Long rideId = TestUtils.NON_EXISTING_ID;
 
@@ -122,11 +124,12 @@ public class RideIntegrationTest {
                     .get(TestUtils.RIDE_BY_ID_URL, rideId.toString())
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
-                    .contentType(MediaType.TEXT_PLAIN_VALUE)
-                    .body(equalTo(ExceptionMessages.RIDE_NOT_FOUND.format(rideId)));
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .body("message", equalTo(ExceptionMessages.RIDE_NOT_FOUND.format(rideId)));
         }
 
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void getAllRides_shouldReturnPagedRides() {
             RestAssuredMockMvc.given()
                     .when()
@@ -143,10 +146,11 @@ public class RideIntegrationTest {
     })
     class AddRide {
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void addRide_shouldReturnCreatedRide() {
             RequestRide requestRide = RideTestEntityUtils.createTestRequestRide().build();
 
-            WireMockStubs.stubPassengerExists(requestRide.passengerId());
+            passengerWireMock.stubPassengerExists(requestRide.passengerId());
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -159,9 +163,11 @@ public class RideIntegrationTest {
         }
 
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void addRide_shouldReturnPassengerNotFound_whenPassengerDoesNotExistOrIsDeleted() {
-            RequestRide requestRide = RideTestEntityUtils.createTestRequestRide().build();
-            WireMockStubs.stubPassengerNotExists(requestRide.passengerId());
+            RequestRide requestRide = RideTestEntityUtils.createTestRequestRide().driverId(null).build();
+
+            passengerWireMock.stubPassengerNotExists(requestRide.passengerId());
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -170,8 +176,8 @@ public class RideIntegrationTest {
                     .post(TestUtils.RIDE_BASE_URL)
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
-                    .contentType(MediaType.TEXT_PLAIN_VALUE)
-                    .body(equalTo(TestUtils.PASSENGER_NOT_FOUND_MESSAGE.formatted(requestRide.passengerId())));
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .body("message", equalTo(TestUtils.PASSENGER_NOT_FOUND_MESSAGE.formatted(requestRide.passengerId())));
         }
     }
 
@@ -182,24 +188,25 @@ public class RideIntegrationTest {
     })
     class EditRide {
         @Test
+        @WithMockUser(roles = { "DRIVER" }, username = "driver@gmail.com")
         public void editRide_shouldUpdateRide() {
             Long rideId = TestUtils.EDIT_ID;
 
             RequestRide updateRequestRide = RideTestEntityUtils.createTestRequestRide()
-                    .driverId(TestUtils.EDIT_ID)
+                    .driverId(TestUtils.EDIT_DRIVER_ID)
                     .build();
 
-            WireMockStubs.stubDriverExists(updateRequestRide.driverId());
-            WireMockStubs.stubPassengerExists(updateRequestRide.passengerId());
+            driverWireMock.stubDriverExists(updateRequestRide.driverId());
+            passengerWireMock.stubPassengerExists(updateRequestRide.passengerId());
 
             RestAssuredMockMvc.given()
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .contentType(MediaType.APPLICATION_JSON)
                     .body(updateRequestRide)
                     .when()
                     .put(TestUtils.RIDE_BY_ID_URL, rideId.toString())
                     .then()
                     .statusCode(HttpStatus.OK.value())
-                    .body("driverId", equalTo(updateRequestRide.driverId().intValue()))
+                    .body("driverId", equalTo(updateRequestRide.driverId().toString()))
                     .body("rideStatus", equalTo(RideStatuses.ACCEPTED.toString()));
 
             String expectedMessage = TestUtils.UPDATE_RIDE_STATUS_MESSAGE.formatted(rideId, RideStatuses.ACCEPTED);
@@ -208,6 +215,7 @@ public class RideIntegrationTest {
         }
 
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void updateRideStatus_shouldChangeRideStatus() {
             Long rideId = TestUtils.EDIT_ID;
 
@@ -228,6 +236,7 @@ public class RideIntegrationTest {
         }
 
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void updateRideStatus_shouldReturnConflict_whenInvalidStatusTransaction() {
             Long rideId = TestUtils.EDIT_ID;
 
@@ -240,6 +249,7 @@ public class RideIntegrationTest {
                     .put(TestUtils.RIDE_STATUS_URL, rideId.toString())
                     .then()
                     .statusCode(HttpStatus.CONFLICT.value());
+
         }
     }
 
@@ -250,10 +260,11 @@ public class RideIntegrationTest {
     })
     class DoesRideExist {
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void doesRideExistForDriver_shouldReturnOk() {
             Ride ride = rideRepository.findById(TestUtils.EXIST_ID).orElseThrow();
             Long rideId = ride.getId();
-            Long driverId = ride.getDriverId();
+            UUID driverId = ride.getDriverId();
 
             RestAssuredMockMvc.given()
                     .when()
@@ -263,10 +274,11 @@ public class RideIntegrationTest {
         }
 
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void doesRideExistForPassenger_shouldReturnOk() {
             Ride ride = rideRepository.findById(TestUtils.EXIST_ID).orElseThrow();
             Long rideId = ride.getId();
-            Long passengerId = ride.getPassengerId();
+            UUID passengerId = ride.getPassengerId();
 
             RestAssuredMockMvc.given()
                     .when()

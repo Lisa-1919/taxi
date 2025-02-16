@@ -1,5 +1,6 @@
 package com.modsen.ride.service;
 
+import com.modsen.exception_handler.exception.InvalidStatusTransitionException;
 import com.modsen.ride.client.DriverServiceClient;
 import com.modsen.ride.client.PassengerServiceClient;
 import com.modsen.ride.dto.PagedResponseRideList;
@@ -8,7 +9,6 @@ import com.modsen.ride.dto.RequestRide;
 import com.modsen.ride.dto.ResponseRide;
 import com.modsen.ride.dto.UpdateStatusMessage;
 import com.modsen.ride.entity.Ride;
-import com.modsen.ride.exception.InvalidStatusTransitionException;
 import com.modsen.ride.mapper.RideMapper;
 import com.modsen.ride.repo.RideRepository;
 import com.modsen.ride.util.ExceptionMessages;

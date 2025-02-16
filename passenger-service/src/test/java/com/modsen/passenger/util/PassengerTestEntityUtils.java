@@ -1,5 +1,6 @@
 package com.modsen.passenger.util;
 
+import com.modsen.passenger.dto.CreatePassengerRequest;
 import com.modsen.passenger.dto.PagedResponsePassengerList;
 import com.modsen.passenger.dto.RequestPassenger;
 import com.modsen.passenger.dto.ResponsePassenger;
@@ -9,10 +10,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
+import java.util.UUID;
 
 public class PassengerTestEntityUtils {
 
-    public static final Long DEFAULT_PASSENGER_ID = 1L;
+    public static final UUID DEFAULT_PASSENGER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
     public static final String DEFAULT_FIRST_NAME = "John";
     public static final String DEFAULT_LAST_NAME = "Doe";
     public static final String DEFAULT_EMAIL = "john@example.com";
@@ -119,6 +121,26 @@ public class PassengerTestEntityUtils {
                 DEFAULT_TOTAL_ELEMENTS,
                 DEFAULT_TOTAL_PAGES,
                 DEFAULT_LAST_PAGE
+        );
+    }
+
+    public static CreatePassengerRequest createPassengerRequest() {
+        return new CreatePassengerRequest(
+                DEFAULT_PASSENGER_ID,
+                DEFAULT_FIRST_NAME,
+                DEFAULT_LAST_NAME,
+                DEFAULT_EMAIL,
+                DEFAULT_PHONE_NUMBER
+        );
+    }
+
+    public static CreatePassengerRequest createInvalidCreateRequestPassenger() {
+        return new CreatePassengerRequest(
+                DEFAULT_PASSENGER_ID,
+                DEFAULT_FIRST_NAME,
+                DEFAULT_LAST_NAME,
+                INVALID_EMAIL,
+                INVALID_PHONE_NUMBER
         );
     }
 

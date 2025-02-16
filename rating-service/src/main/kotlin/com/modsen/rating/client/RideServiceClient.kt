@@ -1,5 +1,6 @@
 package com.modsen.rating.client
 
+import com.modsen.rating.config.FeignConfig
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
 import io.github.resilience4j.retry.annotation.Retry
 import java.util.UUID
@@ -10,8 +11,9 @@ import org.springframework.web.bind.annotation.PathVariable
 
 @FeignClient(
     name = "rides-service",
+    url = "\${feign.clients.rides-service.url:}",
     fallback = RideServiceClientFallback::class,
-    configuration = [RetrieveMessageErrorDecoder::class]
+    configuration = [FeignConfig::class]
 )
 interface RideServiceClient {
 

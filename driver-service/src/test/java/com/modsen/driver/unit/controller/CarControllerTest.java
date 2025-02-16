@@ -1,5 +1,6 @@
 package com.modsen.driver.unit.controller;
 
+import com.modsen.driver.config.SecurityConfig;
 import com.modsen.driver.controller.CarController;
 import com.modsen.driver.dto.PagedResponseCarList;
 import com.modsen.driver.dto.RequestCar;
@@ -8,6 +9,7 @@ import com.modsen.driver.service.CarService;
 import com.modsen.driver.util.ExceptionMessages;
 import com.modsen.driver.utils.CarTestEntityUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.modsen.exception_handler.exception.GlobalExceptionHandler;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -17,9 +19,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -41,6 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(CarController.class)
 @ActiveProfiles("test")
+@Import({GlobalExceptionHandler.class, SecurityConfig.class})
 class CarControllerTest {
 
     @Autowired
@@ -66,6 +71,7 @@ class CarControllerTest {
     class GetCarTests {
         @ParameterizedTest
         @ValueSource(booleans = {true, false})
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void getCarById_ShouldReturnCar(boolean active) throws Exception {
             if(active) {
                 when(carService.getCarByIdNonDeleted(carId)).thenReturn(testResponseCar);
@@ -83,6 +89,7 @@ class CarControllerTest {
 
         @ParameterizedTest
         @ValueSource(booleans = {true, false})
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void getAllCars_ShouldReturnPagedResponse(boolean active) throws Exception {
             PageRequest pageable = CarTestEntityUtils.createDefaultPageRequest();
             PagedResponseCarList carPage = CarTestEntityUtils.createDefaultPagedResponseCarList(List.of(testResponseCar));
@@ -105,6 +112,7 @@ class CarControllerTest {
     @Nested
     class AddCarTests {
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void addCar_ShouldCreateCarSuccessfully() throws Exception {
             when(carService.addCar(any(RequestCar.class))).thenReturn(testResponseCar);
 
@@ -115,10 +123,11 @@ class CarControllerTest {
                     .andExpect(jsonPath("$.licensePlate").value(testResponseCar.licensePlate()))
                     .andExpect(jsonPath("$.mark").value(testResponseCar.mark()))
                     .andExpect(jsonPath("$.colour").value(testResponseCar.colour()))
-                    .andExpect(jsonPath("$.driverId").value(testResponseCar.driverId()));
+                    .andExpect(jsonPath("$.driverId").value(testResponseCar.driverId().toString()));
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void addCar_InvalidData_ShouldReturnBadRequest() throws Exception {
             RequestCar invalidRequestCar = CarTestEntityUtils.createInvalidRequestCar();
 
@@ -126,12 +135,17 @@ class CarControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(invalidRequestCar)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(content().string(containsString("Field 'licensePlate' Invalid license plate format. Rejected value: " + invalidRequestCar.licensePlate() + ";")))
-                    .andExpect(content().string(containsString("Field 'mark' Mark cannot be null. Rejected value: " + invalidRequestCar.mark() + ";")))
-                    .andExpect(content().string(containsString("Field 'driverId' Driver id cannot be null. Rejected value: " + invalidRequestCar.driverId() + ";")));
+                    .andExpect(jsonPath("$.violations").isNotEmpty())
+                    .andExpect(jsonPath("$.violations[?(@.fieldName == 'licensePlate')].message")
+                            .value("Invalid license plate format"))
+                    .andExpect(jsonPath("$.violations[?(@.fieldName == 'mark')].message")
+                            .value("Mark cannot be null"))
+                    .andExpect(jsonPath("$.violations[?(@.fieldName == 'driverId')].message")
+                            .value("Driver id cannot be null"));
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void addCar_DuplicateLicensePlate_ShouldReturnConflict() throws Exception {
             when(carService.addCar(any(RequestCar.class)))
                     .thenThrow(new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_CAR_ERROR.format("licensePlate", testRequestCar.licensePlate())));
@@ -144,6 +158,7 @@ class CarControllerTest {
         }
 
         @Test
+        @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
         void addCar_NonExistentDriver_ShouldReturnNotFound() throws Exception {
             when(carService.addCar(any(RequestCar.class)))
                     .thenThrow(new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(carId)));
@@ -159,6 +174,7 @@ class CarControllerTest {
         class EditCarTests {
 
             @Test
+            @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
             void editCar_ShouldUpdateCarSuccessfully() throws Exception {
                 when(carService.editCar(eq(carId), any(RequestCar.class))).thenReturn(testResponseCar);
 
@@ -172,6 +188,7 @@ class CarControllerTest {
             }
 
             @Test
+            @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
             void editCar_InvalidData_ShouldReturnBadRequest() throws Exception {
                 RequestCar invalidRequestCar = CarTestEntityUtils.createInvalidRequestCar();
 
@@ -179,12 +196,17 @@ class CarControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(invalidRequestCar)))
                         .andExpect(status().isBadRequest())
-                        .andExpect(content().string(containsString("Field 'licensePlate' Invalid license plate format. Rejected value: " + invalidRequestCar.licensePlate() + ";")))
-                        .andExpect(content().string(containsString("Field 'mark' Mark cannot be null. Rejected value: " + invalidRequestCar.mark() + ";")))
-                        .andExpect(content().string(containsString("Field 'driverId' Driver id cannot be null. Rejected value: " + invalidRequestCar.driverId() + ";")));
+                        .andExpect(jsonPath("$.violations").isNotEmpty())
+                        .andExpect(jsonPath("$.violations[?(@.fieldName == 'licensePlate')].message")
+                                .value("Invalid license plate format"))
+                        .andExpect(jsonPath("$.violations[?(@.fieldName == 'mark')].message")
+                                .value("Mark cannot be null"))
+                        .andExpect(jsonPath("$.violations[?(@.fieldName == 'driverId')].message")
+                                .value("Driver id cannot be null"));
             }
 
             @Test
+            @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
             void editCar_NonExistentCar_ShouldReturnNotFound() throws Exception {
                 when(carService.editCar(eq(carId), any(RequestCar.class)))
                         .thenThrow(new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(carId)));
@@ -197,6 +219,7 @@ class CarControllerTest {
             }
 
             @Test
+            @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
             void editCar_DuplicateLicensePlate_ShouldReturnConflict() throws Exception {
                 when(carService.editCar(eq(carId), any(RequestCar.class)))
                         .thenThrow(new DataIntegrityViolationException(ExceptionMessages.DUPLICATE_CAR_ERROR.format("licensePlate", testRequestCar.licensePlate())));
@@ -212,6 +235,7 @@ class CarControllerTest {
         @Nested
         class DeleteCarTests {
             @Test
+            @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
             void deleteCar_ShouldReturnNoContent() throws Exception {
                 doNothing().when(carService).deleteCar(carId);
 
@@ -220,6 +244,7 @@ class CarControllerTest {
             }
 
             @Test
+            @WithMockUser(authorities = { "ROLE_DRIVER" }, username = "driver@gmail.com")
             void deleteCar_NonExistentCar_ShouldReturnNotFound() throws Exception {
                 doThrow(new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(carId)))
                         .when(carService).deleteCar(carId);

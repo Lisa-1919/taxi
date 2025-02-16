@@ -1,5 +1,6 @@
 package com.modsen.driver.utils;
 
+import com.modsen.driver.dto.CreateDriverRequest;
 import com.modsen.driver.dto.PagedResponseDriverList;
 import com.modsen.driver.dto.RequestDriver;
 import com.modsen.driver.dto.ResponseDriver;
@@ -9,10 +10,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
+import java.util.UUID;
 
 public class DriverTestEntityUtils {
 
-    public static final Long DEFAULT_DRIVER_ID = 1L;
+    public static final UUID DEFAULT_DRIVER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
     public static final String DEFAULT_FIRST_NAME = "John";
     public static final String DEFAULT_LAST_NAME = "Doe";
     public static final String DEFAULT_EMAIL = "john@example.com";
@@ -131,6 +133,28 @@ public class DriverTestEntityUtils {
                 DEFAULT_TOTAL_ELEMENTS,
                 DEFAULT_TOTAL_PAGES,
                 DEFAULT_LAST_PAGE
+        );
+    }
+
+    public static CreateDriverRequest createDriverRequest() {
+        return new CreateDriverRequest(
+                DEFAULT_DRIVER_ID,
+                DEFAULT_FIRST_NAME,
+                DEFAULT_LAST_NAME,
+                DEFAULT_EMAIL,
+                DEFAULT_PHONE_NUMBER,
+                DEFAULT_SEX
+        );
+    }
+
+    public static CreateDriverRequest invalidCreateRequestDriver() {
+        return new CreateDriverRequest(
+                DEFAULT_DRIVER_ID,
+                DEFAULT_FIRST_NAME,
+                DEFAULT_LAST_NAME,
+                INVALID_EMAIL,
+                INVALID_PHONE_NUMBER,
+                DEFAULT_SEX
         );
     }
 

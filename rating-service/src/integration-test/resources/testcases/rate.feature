@@ -16,7 +16,7 @@ Feature: Rate API Endpoints
     And the response body should contain "totalElements"
 
   Scenario: Get all rates for a specific passenger
-    When I send a GET request to "/api/v1/rates/from-passengers/101?page=0&size=10"
+    When I send a GET request to "/api/v1/rates/from-passengers/11111111-1111-1111-1111-111111111111?page=0&size=10"
     Then the response status code should be 200
     And the response body should contain "totalElements"
 

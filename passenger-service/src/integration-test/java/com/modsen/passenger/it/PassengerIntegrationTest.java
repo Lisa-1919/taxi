@@ -1,5 +1,6 @@
 package com.modsen.passenger.it;
 
+import com.modsen.passenger.dto.CreatePassengerRequest;
 import com.modsen.passenger.dto.RequestPassenger;
 import com.modsen.passenger.entity.Passenger;
 import com.modsen.passenger.repo.PassengerRepository;
@@ -17,16 +18,18 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -51,7 +54,7 @@ public class PassengerIntegrationTest {
             .withPassword("WC4ty37xd3");
 
     @DynamicPropertySource
-    public static void configureTestDatabase(DynamicPropertyRegistry registry) {
+    public static void configureTestProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
         registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
         registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
@@ -71,8 +74,9 @@ public class PassengerIntegrationTest {
 
         @ParameterizedTest
         @ValueSource(booleans = {true, false})
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void getPassengerById_shouldReturnPassenger(boolean active) {
-            Long passengerId = TestUtils.EXISTING_ID;
+            UUID passengerId = TestUtils.EXISTING_ID;
 
             RestAssuredMockMvc.given()
                     .log().all()
@@ -81,13 +85,14 @@ public class PassengerIntegrationTest {
                     .get(TestUtils.PASSENGER_BY_ID_URL, passengerId.toString())
                     .then()
                     .statusCode(HttpStatus.OK.value())
-                    .body("id", equalTo(passengerId.intValue()));
+                    .body("id", equalTo(passengerId.toString()));
         }
 
         @ParameterizedTest
         @ValueSource(booleans = {true, false})
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void getPassengerById_shouldReturnNotFound_whenPassengerDoesNotExist(boolean active) {
-            Long passengerId = TestUtils.NON_EXISTING_ID;
+            UUID passengerId = TestUtils.NON_EXISTING_ID;
 
             RestAssuredMockMvc.given()
                     .param(TestUtils.ACTIVE_PARAM, active)
@@ -101,6 +106,7 @@ public class PassengerIntegrationTest {
 
         @ParameterizedTest
         @ValueSource(booleans = {true, false})
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void getAllPassengers_shouldReturnPagedPassengers(boolean active) {
             RestAssuredMockMvc.given()
                     .param(TestUtils.ACTIVE_PARAM, active)
@@ -118,10 +124,11 @@ public class PassengerIntegrationTest {
     class AddPassenger {
 
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void addPassenger_shouldReturnCreatedPassenger() {
-            RequestPassenger requestPassenger = PassengerTestEntityUtils.createTestRequestPassenger();
+            CreatePassengerRequest requestPassenger = PassengerTestEntityUtils.createPassengerRequest();
 
-            Integer passengerId = RestAssuredMockMvc.given()
+            String passengerId = RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(requestPassenger)
                     .when()
@@ -134,18 +141,19 @@ public class PassengerIntegrationTest {
                     .extract()
                     .path("id");
 
-            Passenger savedPassenger = passengerRepository.findById(Long.valueOf(passengerId)).orElseThrow();
+            Passenger savedPassenger = passengerRepository.findById(UUID.fromString(passengerId)).orElseThrow();
             assertThat(savedPassenger.getFirstName()).isEqualTo(requestPassenger.firstName());
             assertThat(savedPassenger.getEmail()).isEqualTo(requestPassenger.email());
         }
 
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void addPassenger_shouldReturnBadRequest() {
-            RequestPassenger requestPassenger = PassengerTestEntityUtils.createInvalidRequestPassenger();
+            CreatePassengerRequest invalidCreateRequestPassenger = PassengerTestEntityUtils.createInvalidCreateRequestPassenger();
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .body(requestPassenger)
+                    .body(invalidCreateRequestPassenger)
                     .when()
                     .post(TestUtils.PASSENGER_BASE_URL)
                     .then()
@@ -154,8 +162,9 @@ public class PassengerIntegrationTest {
 
         @Sql(scripts = "classpath:/scripts/setup-edit-passenger.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void addPassenger_shouldReturnConflict_whenEmailExists() {
-            RequestPassenger requestPassenger = PassengerTestEntityUtils.createTestRequestPassenger();
+            CreatePassengerRequest requestPassenger = PassengerTestEntityUtils.createPassengerRequest();
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -177,8 +186,9 @@ public class PassengerIntegrationTest {
     class EditPassenger {
 
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void editPassenger_shouldReturnUpdatedPassenger() {
-            Long passengerId = TestUtils.EDIT_ID;
+            UUID passengerId = TestUtils.EXISTING_ID;
             RequestPassenger requestPassenger = PassengerTestEntityUtils.createUpdateRequestPassenger();
 
             RestAssuredMockMvc.given()
@@ -198,8 +208,9 @@ public class PassengerIntegrationTest {
         }
 
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void editPassenger_shouldReturnNotFound_whenPassengerDoesNotExist() {
-            Long passengerId = TestUtils.NON_EXISTING_ID;
+            UUID passengerId = TestUtils.NON_EXISTING_ID;
             RequestPassenger requestPassenger = PassengerTestEntityUtils.createUpdateRequestPassenger();
 
             RestAssuredMockMvc.given()
@@ -214,8 +225,9 @@ public class PassengerIntegrationTest {
         }
 
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void editPassenger_shouldReturnBadRequest() {
-            Long passengerId = TestUtils.EXISTING_ID;
+            UUID passengerId = TestUtils.EXISTING_ID;
             RequestPassenger requestPassenger = PassengerTestEntityUtils.createInvalidRequestPassenger();
 
             RestAssuredMockMvc.given()
@@ -236,8 +248,9 @@ public class PassengerIntegrationTest {
     class DeletePassenger {
 
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void deletePassenger_shouldReturnNoContent() {
-            Long passengerId = TestUtils.EXISTING_ID;
+            UUID passengerId = TestUtils.EXISTING_ID;
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -248,8 +261,9 @@ public class PassengerIntegrationTest {
         }
 
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void deletePassenger_shouldReturnNotFound_whenPassengerDoesNotExist() {
-            Long passengerId = TestUtils.NON_EXISTING_ID;
+            UUID passengerId = TestUtils.NON_EXISTING_ID;
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -269,8 +283,9 @@ public class PassengerIntegrationTest {
     })
     class PassengerExists {
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void doesPassengerExist_shouldReturnOk() {
-            Long passengerId = TestUtils.EXISTING_ID;
+            UUID passengerId = TestUtils.EXISTING_ID;
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -281,8 +296,9 @@ public class PassengerIntegrationTest {
         }
 
         @Test
+        @WithMockUser(roles = { "PASSENGER" }, username = "passenger@gmail.com")
         public void doesPassengerExist_shouldReturnNotFound_whenPassengerDoesNotExistOrIsDeleted() {
-            Long passengerId = TestUtils.NON_EXISTING_ID;
+            UUID passengerId = TestUtils.NON_EXISTING_ID;
 
             RestAssuredMockMvc.given()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
