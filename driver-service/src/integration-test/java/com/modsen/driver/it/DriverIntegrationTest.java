@@ -77,7 +77,7 @@ public class DriverIntegrationTest extends BaseIntegrationTest {
                     .get(TestUtils.DRIVER_BY_ID_URL, driverId.toString())
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
-                    .contentType(MediaType.TEXT_PLAIN_VALUE)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(equalTo(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
         }
 
@@ -153,7 +153,7 @@ public class DriverIntegrationTest extends BaseIntegrationTest {
                     .post(TestUtils.DRIVER_BASE_URL)
                     .then()
                     .statusCode(HttpStatus.CONFLICT.value())
-                    .contentType(MediaType.TEXT_PLAIN_VALUE)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(equalTo(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format("email", requestDriver.email())));
         }
     }
@@ -199,7 +199,7 @@ public class DriverIntegrationTest extends BaseIntegrationTest {
                     .put(TestUtils.DRIVER_BY_ID_URL, driverId.toString())
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
-                    .contentType(MediaType.TEXT_PLAIN_VALUE)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(equalTo(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
         }
 
@@ -250,7 +250,7 @@ public class DriverIntegrationTest extends BaseIntegrationTest {
                     .delete(TestUtils.DRIVER_BY_ID_URL, driverId.toString())
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
-                    .contentType(MediaType.TEXT_PLAIN_VALUE)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(equalTo(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
         }
     }
@@ -286,7 +286,7 @@ public class DriverIntegrationTest extends BaseIntegrationTest {
                     .get(TestUtils.DRIVER_EXISTS_URL, String.valueOf(driverId))
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
-                    .contentType(MediaType.TEXT_PLAIN_VALUE)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(equalTo(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
         }
     }

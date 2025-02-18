@@ -74,7 +74,7 @@ public class CarIntegrationTest extends BaseIntegrationTest {
                     .get(TestUtils.CAR_BY_ID_URL, carId.toString())
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
-                    .contentType(MediaType.TEXT_PLAIN_VALUE)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(equalTo(ExceptionMessages.CAR_NOT_FOUND.format(carId)));
         }
 
@@ -137,7 +137,7 @@ public class CarIntegrationTest extends BaseIntegrationTest {
                     .post(TestUtils.CAR_BASE_URL)
                     .then()
                     .statusCode(HttpStatus.CONFLICT.value())
-                    .contentType(MediaType.TEXT_PLAIN_VALUE)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(equalTo(ExceptionMessages.DUPLICATE_CAR_ERROR.format("licensePlate", requestCar.licensePlate())));
         }
 
@@ -153,7 +153,7 @@ public class CarIntegrationTest extends BaseIntegrationTest {
                     .post(TestUtils.CAR_BASE_URL)
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
-                    .contentType(MediaType.TEXT_PLAIN_VALUE)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(equalTo(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
         }
     }
@@ -202,7 +202,7 @@ public class CarIntegrationTest extends BaseIntegrationTest {
                     .put(TestUtils.CAR_BY_ID_URL, carId.toString())
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
-                    .contentType(MediaType.TEXT_PLAIN_VALUE)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(equalTo(ExceptionMessages.CAR_NOT_FOUND.format(carId)));
         }
 
@@ -255,7 +255,7 @@ public class CarIntegrationTest extends BaseIntegrationTest {
                     .delete(TestUtils.CAR_BY_ID_URL, carId.toString())
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
-                    .contentType(MediaType.TEXT_PLAIN_VALUE)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(equalTo(ExceptionMessages.CAR_NOT_FOUND.format(carId)));
         }
     }

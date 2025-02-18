@@ -15,6 +15,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -26,7 +27,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "ride")
-public class Ride {
+public class Ride implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -11,6 +11,10 @@ import com.modsen.passenger.util.ExceptionMessages;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +38,7 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     @Transactional
+    @CachePut(cacheNames = "passenger", key = "#result.id")
     public ResponsePassenger addPassenger(CreatePassengerRequest createPassengerRequest) {
 
         checkUniqueField(EMAIL, createPassengerRequest.email(), passengerRepository::existsByEmail);
@@ -46,14 +51,15 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     @Transactional
+    @CachePut(cacheNames = "passenger", key = "#id")
     public ResponsePassenger editPassenger(UUID id, RequestPassenger requestPassenger) {
         Passenger passengerFromDb = getOrThrow(id);
 
-        if (!passengerFromDb.getEmail().equals(requestPassenger.email())){
+        if (!passengerFromDb.getEmail().equals(requestPassenger.email())) {
             checkUniqueField(EMAIL, requestPassenger.email(), passengerRepository::existsByEmail);
         }
 
-        if (!passengerFromDb.getPhoneNumber().equals(requestPassenger.phoneNumber())){
+        if (!passengerFromDb.getPhoneNumber().equals(requestPassenger.phoneNumber())) {
             checkUniqueField(PHONE_NUMBER, requestPassenger.phoneNumber(), passengerRepository::existsByPhoneNumber);
         }
 
@@ -64,12 +70,14 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "passenger", key = "#id")
     public void deletePassenger(UUID id) {
         Passenger passenger = getOrThrow(id);
         passengerRepository.delete(passenger);
     }
 
     @Override
+    @Cacheable(cacheNames = "passenger", key = "#id")
     public ResponsePassenger getPassengerById(UUID id) {
         Passenger passenger = passengerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.PASSENGER_NOT_FOUND.format(id)));
@@ -98,7 +106,7 @@ public class PassengerServiceImpl implements PassengerService {
     @Override
     public boolean doesPassengerExist(UUID id) {
         boolean exists = passengerRepository.existsByIdAndIsDeletedFalse(id);
-        if(exists) return true;
+        if (exists) return true;
         else throw new EntityNotFoundException(ExceptionMessages.PASSENGER_NOT_FOUND.format(id));
     }
 

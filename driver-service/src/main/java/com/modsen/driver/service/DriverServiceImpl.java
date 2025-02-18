@@ -12,6 +12,11 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +40,7 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     @Transactional
+    @CachePut(cacheNames = "driver", key = "#result.id")
     public ResponseDriver addDriver(CreateDriverRequest createDriverRequest) {
         checkUniqueField(EMAIL, createDriverRequest.email(), driverRepository::existsByEmail);
         checkUniqueField(PHONE_NUMBER, createDriverRequest.phoneNumber(), driverRepository::existsByPhoneNumber);
@@ -45,6 +51,7 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     @Transactional
+    @CachePut(cacheNames = "driver", key = "#id")
     public ResponseDriver editDriver(UUID id, RequestDriver requestDriver) {
         Driver driverFromDB = getOrThrow(id);
 
@@ -64,12 +71,14 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "driver", key = "#id")
     public void deleteDriver(UUID id) {
         Driver driver = getOrThrow(id);
         driverRepository.delete(driver);
     }
 
     @Override
+    @Cacheable(cacheNames = "driver", key = "#id", unless = "#result == null")
     public ResponseDriver getDriverById(UUID id) {
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.DRIVER_NOT_FOUND.format(id)));
@@ -78,6 +87,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
+    @Cacheable(cacheNames = "driver", key = "#id", unless = "#result == null")
     public ResponseDriver getDriverByIdNonDeleted(UUID id) {
         Driver driver = getOrThrow(id);
         if (driver.getCar() != null) {
@@ -100,6 +110,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
+    @Cacheable(cacheNames = "driverExists", key = "#id")
     public boolean doesDriverExist(UUID id) {
         boolean exists = driverRepository.existsByIdAndIsDeletedFalse(id);
         if (exists) return true;
