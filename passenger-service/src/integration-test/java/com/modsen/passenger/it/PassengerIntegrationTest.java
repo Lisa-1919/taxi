@@ -7,6 +7,7 @@ import com.modsen.passenger.repo.PassengerRepository;
 import com.modsen.passenger.util.ExceptionMessages;
 import com.modsen.passenger.util.PassengerTestEntityUtils;
 import com.modsen.passenger.util.TestUtils;
+import com.redis.testcontainers.RedisContainer;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -28,6 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import java.util.UUID;
 
@@ -53,11 +55,17 @@ public class PassengerIntegrationTest {
             .withUsername("postgres")
             .withPassword("WC4ty37xd3");
 
+    @Container
+    public static RedisContainer redisContainer = new RedisContainer(DockerImageName.parse("redis:6.2.6"));
+
     @DynamicPropertySource
     public static void configureTestProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
         registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
         registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+
+        registry.add("spring.redis.host", redisContainer::getHost);
+        registry.add("spring.redis.port", redisContainer::getRedisPort);
     }
 
     @BeforeEach
@@ -100,8 +108,8 @@ public class PassengerIntegrationTest {
                     .get(TestUtils.PASSENGER_BY_ID_URL, String.valueOf(passengerId))
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
-                    .contentType(MediaType.TEXT_PLAIN_VALUE)
-                    .body(equalTo(ExceptionMessages.PASSENGER_NOT_FOUND.format(passengerId)));
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .body("message", equalTo(ExceptionMessages.PASSENGER_NOT_FOUND.format(passengerId)));
         }
 
         @ParameterizedTest
@@ -173,8 +181,8 @@ public class PassengerIntegrationTest {
                     .post(TestUtils.PASSENGER_BASE_URL)
                     .then()
                     .statusCode(HttpStatus.CONFLICT.value())
-                    .contentType(MediaType.TEXT_PLAIN_VALUE)
-                    .body(equalTo(ExceptionMessages.DUPLICATE_PASSENGER_ERROR.format("email", requestPassenger.email())));
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .body("message", equalTo(ExceptionMessages.DUPLICATE_PASSENGER_ERROR.format("email", requestPassenger.email())));
         }
     }
 
@@ -220,8 +228,8 @@ public class PassengerIntegrationTest {
                     .put(TestUtils.PASSENGER_BY_ID_URL, String.valueOf(passengerId))
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
-                    .contentType(MediaType.TEXT_PLAIN_VALUE)
-                    .body(equalTo(ExceptionMessages.PASSENGER_NOT_FOUND.format(passengerId)));
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .body("message", equalTo(ExceptionMessages.PASSENGER_NOT_FOUND.format(passengerId)));
         }
 
         @Test
@@ -271,8 +279,8 @@ public class PassengerIntegrationTest {
                     .delete(TestUtils.PASSENGER_BY_ID_URL, String.valueOf(passengerId))
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
-                    .contentType(MediaType.TEXT_PLAIN_VALUE)
-                    .body(equalTo(ExceptionMessages.PASSENGER_NOT_FOUND.format(passengerId)));
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .body("message", equalTo(ExceptionMessages.PASSENGER_NOT_FOUND.format(passengerId)));
         }
     }
 
@@ -306,8 +314,8 @@ public class PassengerIntegrationTest {
                     .get(TestUtils.PASSENGER_EXISTS_URL, String.valueOf(passengerId))
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
-                    .contentType(MediaType.TEXT_PLAIN_VALUE)
-                    .body(equalTo(ExceptionMessages.PASSENGER_NOT_FOUND.format(passengerId)));
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .body("message", equalTo(ExceptionMessages.PASSENGER_NOT_FOUND.format(passengerId)));
         }
     }
 }
