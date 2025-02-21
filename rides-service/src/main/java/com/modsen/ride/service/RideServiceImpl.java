@@ -16,6 +16,9 @@ import com.modsen.ride.util.RideStatuses;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -53,6 +56,7 @@ public class RideServiceImpl implements RideService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "completedRides", key = "#id")
     public ResponseRide editRide(Long id, RequestRide requestRide) {
 
         doesDriverExist(requestRide.driverId());
@@ -69,6 +73,7 @@ public class RideServiceImpl implements RideService {
 
     @Override
     @Transactional
+    @CachePut(cacheNames = "completedRides", key = "#id", condition = "#requestChangeStatus.newStatus.name() == 'COMPLETED'")
     public ResponseRide updateRideStatus(Long id, RequestChangeStatus requestChangeStatus) {
 
         Ride rideFromDB = getOrThrow(id);
@@ -90,6 +95,7 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
+    @Cacheable(cacheNames = "completedRides", key = "#id", condition = "#result.rideStatus.name() == 'COMPLETED'")
     public ResponseRide getRideById(Long id) {
         Ride ride = getOrThrow(id);
         return rideMapper.rideToResponseRide(ride);

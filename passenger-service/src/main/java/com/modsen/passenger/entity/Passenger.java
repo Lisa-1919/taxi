@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 @NoArgsConstructor
@@ -21,7 +22,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "passenger")
 @SQLDelete(sql = "UPDATE passenger SET is_deleted = true WHERE id = ?")
-public class Passenger {
+public class Passenger implements Serializable {
 
     @Id
     @Column(name = "id")

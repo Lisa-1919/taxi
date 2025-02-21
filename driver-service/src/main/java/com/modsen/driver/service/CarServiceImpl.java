@@ -12,6 +12,10 @@ import com.modsen.driver.util.ExceptionMessages;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +38,10 @@ public class CarServiceImpl implements CarService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "car", key="#result.id"),
+            @CacheEvict(cacheNames = "driver", key = "#requestCar.driverId")
+    })
     public ResponseCar addCar(RequestCar requestCar) {
 
         checkUniqueField(LICENSE_PLATE, requestCar.licensePlate(), carRepository::existsByLicensePlate);
@@ -53,6 +61,10 @@ public class CarServiceImpl implements CarService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "driver", key = "#driver.car.id"),
+            @CacheEvict(cacheNames = "car", key = "#id")
+    })
     public ResponseCar editCar(Long id, RequestCar requestCar) {
         Car carFromDB = getOrThrow(id);
 
@@ -67,12 +79,14 @@ public class CarServiceImpl implements CarService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "car", key = "#id")
     public void deleteCar(Long id) {
         Car car = getOrThrow(id);
         carRepository.delete(car);
     }
 
     @Override
+    @Cacheable(cacheNames = "car", key = "#id", unless = "#result == null")
     public ResponseCar getCarById(Long id) {
         Car car = carRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(ExceptionMessages.CAR_NOT_FOUND.format(id)));

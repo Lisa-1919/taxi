@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import java.io.Serializable
 import java.util.UUID
 
 @Table(name = "rate")
@@ -35,6 +36,9 @@ class Rate(
     @Column(name = "ride_commentary")
     var rideCommentary: String,
 
-    ) {
+    ): Serializable {
+    companion object {
+        private const val serialVersionUID: Long = 1L
+    }
     constructor() : this(0L, UUID.randomUUID(), UserType.PASSENGER,0L, 0.0, "")
 }

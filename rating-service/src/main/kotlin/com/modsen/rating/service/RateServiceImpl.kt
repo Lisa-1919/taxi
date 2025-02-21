@@ -14,6 +14,8 @@ import com.modsen.rating.util.UserType
 import jakarta.persistence.EntityNotFoundException
 import java.util.UUID
 import org.slf4j.LoggerFactory
+import org.springframework.cache.annotation.CachePut
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -29,6 +31,7 @@ open class RateServiceImpl(
 
     private val log = LoggerFactory.getLogger(RateServiceImpl::class.java)
 
+    @CachePut(cacheNames = ["rate"], key = "#result.id")
     override fun addRate(requestRate: RequestRate): ResponseRate {
         isRideExists(requestRate.rideId, requestRate.userId, requestRate.userType)
         isUserExists(requestRate.userId, requestRate.userType)
@@ -39,6 +42,7 @@ open class RateServiceImpl(
         return rateMapper.rateToResponseRate(savedRate)
     }
 
+    @Cacheable(cacheNames = ["rate"], key = "#id")
     override fun getRateById(id: Long): ResponseRate {
         val rate = rateRepository.findById(id)
             .orElseThrow{ EntityNotFoundException(ExceptionMessages.rateNotFound(id)) }

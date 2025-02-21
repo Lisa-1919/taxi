@@ -35,3 +35,4 @@ build/
 /prometheus/
 /grafana/
 /loki-data/
+/redisdata/
