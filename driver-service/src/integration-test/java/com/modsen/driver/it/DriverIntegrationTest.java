@@ -78,7 +78,7 @@ public class DriverIntegrationTest extends BaseIntegrationTest {
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .body(equalTo(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
+                    .body("message", equalTo(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
         }
 
         @ParameterizedTest
@@ -154,7 +154,7 @@ public class DriverIntegrationTest extends BaseIntegrationTest {
                     .then()
                     .statusCode(HttpStatus.CONFLICT.value())
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .body(equalTo(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format("email", requestDriver.email())));
+                    .body("message", equalTo(ExceptionMessages.DUPLICATE_DRIVER_ERROR.format("email", requestDriver.email())));
         }
     }
 
@@ -200,7 +200,7 @@ public class DriverIntegrationTest extends BaseIntegrationTest {
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .body(equalTo(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
+                    .body("message", equalTo(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
         }
 
         @Test
@@ -251,7 +251,7 @@ public class DriverIntegrationTest extends BaseIntegrationTest {
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .body(equalTo(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
+                    .body("message", equalTo(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
         }
     }
 
@@ -287,7 +287,7 @@ public class DriverIntegrationTest extends BaseIntegrationTest {
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .body(equalTo(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
+                    .body("message", equalTo(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
         }
     }
 }

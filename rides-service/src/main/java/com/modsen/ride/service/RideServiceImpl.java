@@ -56,7 +56,6 @@ public class RideServiceImpl implements RideService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "completedRides", key = "#id")
     public ResponseRide editRide(Long id, RequestRide requestRide) {
 
         doesDriverExist(requestRide.driverId());
@@ -73,7 +72,6 @@ public class RideServiceImpl implements RideService {
 
     @Override
     @Transactional
-    @CachePut(cacheNames = "completedRides", key = "#id", condition = "#requestChangeStatus.newStatus.name() == 'COMPLETED'")
     public ResponseRide updateRideStatus(Long id, RequestChangeStatus requestChangeStatus) {
 
         Ride rideFromDB = getOrThrow(id);
@@ -95,7 +93,8 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    @Cacheable(cacheNames = "completedRides", key = "#id", condition = "#result.rideStatus.name() == 'COMPLETED'")
+    @Cacheable(cacheNames = "completedRides", key = "#id",
+            condition = "#result != null and T(com.modsen.ride.util.RideStatuses).COMPLETED.equals(#result.rideStatus)")
     public ResponseRide getRideById(Long id) {
         Ride ride = getOrThrow(id);
         return rideMapper.rideToResponseRide(ride);

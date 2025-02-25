@@ -37,7 +37,7 @@ public class AccountController {
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Validated @RequestBody RegistrationRequest request) throws Exception {
         UserResponse userResponse = keycloakService.createUser(request);
-        return ResponseEntity.ok(userResponse);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
     }
 
     @DeleteMapping("/{userId}")

@@ -12,6 +12,7 @@ import com.modsen.driver.util.ExceptionMessages;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 @Service
@@ -35,6 +37,7 @@ public class CarServiceImpl implements CarService {
     private final CarRepository carRepository;
     private final DriverRepository driverRepository;
     private final CarMapper carMapper;
+    private final CacheManager cacheManager;
 
     @Override
     @Transactional
@@ -62,7 +65,6 @@ public class CarServiceImpl implements CarService {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(cacheNames = "driver", key = "#driver.car.id"),
             @CacheEvict(cacheNames = "car", key = "#id")
     })
     public ResponseCar editCar(Long id, RequestCar requestCar) {
@@ -73,6 +75,10 @@ public class CarServiceImpl implements CarService {
         }
 
         carMapper.updateCarFromRequestCar(requestCar, carFromDB);
+
+        if (carFromDB.getDriver() != null && carFromDB.getDriver().getCar() != null) {
+            Objects.requireNonNull(cacheManager.getCache("driver")).evict(carFromDB.getDriver().getCar().getId());
+        }
 
         return carMapper.carToResponseCar(carRepository.save(carFromDB));
     }

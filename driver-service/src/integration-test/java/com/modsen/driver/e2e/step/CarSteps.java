@@ -21,14 +21,13 @@ import static org.hamcrest.Matchers.notNullValue;
 public class CarSteps {
 
     private Response response;
-    private final String baseUri = "http://localhost:8081/";
+    private final String baseUri = "http://localhost:8765/";
     private String payload;
 
     @Given("the car with ID {int} exists")
     public void theCarWithIdExists(int id) {
-        RestAssured.given()
+        BaseSteps.request
                 .baseUri(baseUri)
-                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .get(TestUtils.CAR_BY_ID_URL, id)
                 .then()
                 .statusCode(HttpStatus.OK.value());
@@ -46,37 +45,33 @@ public class CarSteps {
 
     @When("I send a GET request to {string}")
     public void iSendAGetRequestTo(String endpoint) {
-        response = RestAssured.given()
+        response = BaseSteps.request
                 .baseUri(baseUri)
-                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .get(endpoint);
     }
 
     @When("I send a POST request to {string} with the payload")
     public void iSendAPostRequestToWithThePayload(String endpoint) {
-        response = RestAssured.given()
+        response = BaseSteps.request
                 .baseUri(baseUri)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .body(payload)
                 .post(endpoint);
     }
 
     @When("I send a PUT request to {string} with the payload")
     public void iSendAPutRequestToWithThePayload(String endpoint) {
-        response = RestAssured.given()
+        response = BaseSteps.request
                 .baseUri(baseUri)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .body(payload)
                 .put(endpoint);
     }
 
     @When("I send a DELETE request to {string}")
     public void iSendADeleteRequestTo(String endpoint) {
-        response = RestAssured.given()
+        response = BaseSteps.request
                 .baseUri(baseUri)
-                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .delete(endpoint);
     }
 
@@ -97,9 +92,8 @@ public class CarSteps {
 
     @Then("the car with ID {int} should no longer exist")
     public void theCarWithIdShouldNoLongerExist(int id) {
-        RestAssured.given()
+        BaseSteps.request
                 .baseUri(baseUri)
-                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .get(TestUtils.CAR_BY_ID_URL, id)
                 .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());

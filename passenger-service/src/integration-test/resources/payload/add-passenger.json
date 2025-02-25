@@ -1,7 +1,8 @@
 {
-  "id": "11111111-8888-1111-1111-111111111111",
   "firstName": "John",
   "lastName": "mm",
   "email": "mm@example.com",
-  "phoneNumber": "+000000000001"
+  "phoneNumber": "+000000000001",
+  "role":  "PASSENGER",
+  "password": "test-password"
 }

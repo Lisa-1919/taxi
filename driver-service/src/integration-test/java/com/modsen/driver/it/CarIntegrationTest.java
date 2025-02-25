@@ -14,6 +14,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -75,7 +76,7 @@ public class CarIntegrationTest extends BaseIntegrationTest {
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .body(equalTo(ExceptionMessages.CAR_NOT_FOUND.format(carId)));
+                    .body("message", equalTo(ExceptionMessages.CAR_NOT_FOUND.format(carId)));
         }
 
         @ParameterizedTest
@@ -138,7 +139,7 @@ public class CarIntegrationTest extends BaseIntegrationTest {
                     .then()
                     .statusCode(HttpStatus.CONFLICT.value())
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .body(equalTo(ExceptionMessages.DUPLICATE_CAR_ERROR.format("licensePlate", requestCar.licensePlate())));
+                    .body("message", equalTo(ExceptionMessages.DUPLICATE_CAR_ERROR.format("licensePlate", requestCar.licensePlate())));
         }
 
         @Test
@@ -154,7 +155,7 @@ public class CarIntegrationTest extends BaseIntegrationTest {
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .body(equalTo(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
+                    .body("message", equalTo(ExceptionMessages.DRIVER_NOT_FOUND.format(driverId)));
         }
     }
 
@@ -203,7 +204,7 @@ public class CarIntegrationTest extends BaseIntegrationTest {
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .body(equalTo(ExceptionMessages.CAR_NOT_FOUND.format(carId)));
+                    .body("message", equalTo(ExceptionMessages.CAR_NOT_FOUND.format(carId)));
         }
 
         @Test
@@ -222,7 +223,7 @@ public class CarIntegrationTest extends BaseIntegrationTest {
                     .put(TestUtils.CAR_BY_ID_URL, String.valueOf(TestUtils.EDIT_ID))
                     .then()
                     .statusCode(HttpStatus.CONFLICT.value())
-                    .body(equalTo(ExceptionMessages.DUPLICATE_CAR_ERROR.format("licensePlate", requestCar.licensePlate())));
+                    .body("message", equalTo(ExceptionMessages.DUPLICATE_CAR_ERROR.format("licensePlate", requestCar.licensePlate())));
         }
     }
 
@@ -256,7 +257,7 @@ public class CarIntegrationTest extends BaseIntegrationTest {
                     .then()
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .body(equalTo(ExceptionMessages.CAR_NOT_FOUND.format(carId)));
+                    .body("message", equalTo(ExceptionMessages.CAR_NOT_FOUND.format(carId)));
         }
     }
 }

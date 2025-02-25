@@ -8,6 +8,7 @@ import com.modsen.rating.util.PassengerWireMock;
 import com.modsen.rating.util.RateTestEntityUtils;
 import com.modsen.rating.util.RideWireMock;
 import com.modsen.rating.util.TestUtils;
+import com.redis.testcontainers.RedisContainer;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -32,6 +33,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import java.util.stream.Stream;
 
@@ -60,11 +62,17 @@ public class RatingIntegrationTest {
             .withUsername("postgres")
             .withPassword("WC4ty37xd3");
 
+    @Container
+    public static RedisContainer redisContainer = new RedisContainer(DockerImageName.parse("redis:6.2.6"));
+
     @DynamicPropertySource
     public static void configureTestDatabase(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
         registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
         registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+
+        registry.add("spring.redis.host", redisContainer::getHost);
+        registry.add("spring.redis.port", redisContainer::getRedisPort);
     }
 
     @BeforeAll
