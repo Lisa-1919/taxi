@@ -487,8 +487,8 @@ services:
     build:
       context: ./storage-service
       dockerfile: Dockerfile
-    volumes:
-      - "8086"
+    ports:
+      - "8086:8086"
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
       MINIO_URL: ${MINIO_URL}
@@ -508,11 +508,11 @@ services:
     image: minio/minio:latest
     command: server --console-address ":9001" /data/
     ports:
-      - "9000:9000"
+      - "9003:9003"
       - "9001:9001"
     environment:
       MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: admin
+      MINIO_ROOT_PASSWORD: admin-password
     volumes:
       - minio-storage:/data
     healthcheck:
