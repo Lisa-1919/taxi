@@ -24,6 +24,9 @@ public class GatewayConfiguration {
     @Value("${route.account-service.uri}")
     private String accountServiceUri;
 
+    @Value("${route.storage-service.uri}")
+    private String storageServiceUri;
+
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
@@ -37,6 +40,8 @@ public class GatewayConfiguration {
                         .uri(ridesServiceUri))
                 .route("account-service", r -> r.path("/api/v1/account/**")
                         .uri(accountServiceUri))
+                .route("storage-service", r -> r.path("/api/v1/avatars/**")
+                        .uri(storageServiceUri))
                 .build();
     }
 
