@@ -32,6 +32,7 @@ services:
       RIDES_SERVICE_URL: http://rides-service:8083
       RATING_SERVICE_URL: http://rating-service:8084
       ACCOUNT_SERVICE_URL: http://account-service:8085
+      STORAGE_SERVICE_URL: http://storage-service:8086
     depends_on:
       eureka:
         condition: service_healthy
@@ -481,6 +482,47 @@ services:
     networks:
       - microservices-net
 
+  storage-service:
+    image: storage-service:latest
+    build:
+      context: ./storage-service
+      dockerfile: Dockerfile
+    volumes:
+      - "8086"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
+      MINIO_URL: ${MINIO_URL}
+      MINIO_ACCESS_NAME: ${MINIO_ACCESS_NAME}
+      MINIO_ACCESS_SECRET: ${MINIO_ACCESS_SECRET}
+      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWK_JWKSETURI: ${JWK_SET_URI}
+    depends_on:
+      minio:
+        condition: service_healthy
+      eureka:
+        condition: service_healthy
+    networks:
+      - microservices-net
+
+  minio:
+    image: minio/minio:latest
+    command: server --console-address ":9001" /data/
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: admin
+    volumes:
+      - minio-storage:/data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - microservices-net
+
 networks:
   microservices-net:
   monitoring:
@@ -492,3 +534,4 @@ volumes:
   rating_data:
   keycloak_data:
   redis_data:
+  minio-storage:
