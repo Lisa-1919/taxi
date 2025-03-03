@@ -11,8 +11,8 @@ GO
 
 INSERT INTO driver (id, first_name, last_name, email, phone_number, sex, car_id, is_deleted)
 VALUES
-('11111111-0000-1111-1111-111111111111', 'John', 'Doe', 'testemail@example.com', '+1234567890', 'male', null, false),
-('11111111-1111-1111-1111-111111111111', 'John', 'Doe', 'john@example.com', '+1234567892', 'male', 101, false),
-('11111111-2222-1111-1111-111111111111', 'Dan', 'Li', 'dan@example.com', '+1234567111', 'male', null, false),
+('01394741-947d-42b5-97aa-61536c934a3f', 'John', 'Doe', 'testemail@example.com', '+1234567890', 'male', null, false),
+('4ef35903-b7dc-4865-a893-d115c4a303e5', 'John', 'Doe', 'john@example.com', '+1234567892', 'male', 101, false),
+('e1aac6dd-8630-48f0-bf48-3e26d13525c0', 'Dan', 'Li', 'dan@example.com', '+1234567111', 'male', null, false),
 ('11111111-3333-1111-1111-111111111111', 'Jake', 'Peralta', 'jake@example.com', '+1234567911', 'male', null, false);
 GO
