@@ -1,0 +1,7 @@
+package com.modsen.exception_handler.exception;
+
+public class InvalidFileFormatException extends RuntimeException {
+    public InvalidFileFormatException(String message) {
+        super(message);
+    }
+}
