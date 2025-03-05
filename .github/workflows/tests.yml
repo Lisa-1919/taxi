@@ -28,5 +28,11 @@ jobs:
           mvn --batch-mode clean install
           cd ..
 
+      - name: Build logging-starter module
+        run: |
+          cd logging-starter
+          mvn --batch-mode clean install
+          cd ..
+
       - name: Run Unit Tests
         run: mvn --batch-mode test
