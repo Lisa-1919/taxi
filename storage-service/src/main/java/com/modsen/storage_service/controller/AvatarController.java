@@ -1,5 +1,6 @@
 package com.modsen.storage_service.controller;
 
+import com.modsen.storage_service.dto.ResponseDto;
 import com.modsen.storage_service.dto.UploadAvatarDto;
 import com.modsen.storage_service.service.AvatarService;
 import jakarta.validation.Valid;
@@ -26,9 +27,9 @@ public class AvatarController {
     private final AvatarService avatarService;
 
     @PostMapping
-    public ResponseEntity<?> uploadAvatar(@Valid @ModelAttribute UploadAvatarDto uploadAvatarDto){
-        avatarService.uploadFile(uploadAvatarDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Avatar uploaded successfully");
+    public ResponseEntity<ResponseDto> uploadAvatar(@Valid @ModelAttribute UploadAvatarDto uploadAvatarDto){
+        ResponseDto responseDto = avatarService.uploadFile(uploadAvatarDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     @GetMapping("/{userId}")
@@ -46,8 +47,8 @@ public class AvatarController {
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<String> editAvatar(@PathVariable UUID userId, @ModelAttribute UploadAvatarDto uploadAvatarDto) {
-        avatarService.editAvatar(uploadAvatarDto);
-        return ResponseEntity.ok("Your avatar was successfully edit");
+    public ResponseEntity<ResponseDto> editAvatar(@PathVariable UUID userId, @ModelAttribute UploadAvatarDto uploadAvatarDto) {
+        ResponseDto responseDto = avatarService.editAvatar(uploadAvatarDto);
+        return ResponseEntity.ok(responseDto);
     }
 }

@@ -497,10 +497,18 @@ services:
       MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWK_JWKSETURI: ${JWK_SET_URI}
       ZIPKIN_TRACING_ENDPOINT: ${ZIPKIN_TRACING_ENDPOINT}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://avatar-metadata-db:5432/avatar-metadata
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_REDIS_PORT: ${SPRING_REDIS_PORT}
+      SPRING_REDIS_HOST: ${SPRING_REDIS_HOST}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     depends_on:
       minio:
         condition: service_healthy
       eureka:
+        condition: service_healthy
+      avatar-metadata-db:
         condition: service_healthy
     networks:
       - microservices-net
@@ -525,6 +533,25 @@ services:
     networks:
       - microservices-net
 
+  avatar-metadata-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: avatar-metadata
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+    ports:
+      - "5437:5432"
+    volumes:
+      - avatar_data:/var/lib/postgresql/data
+    networks:
+      - microservices-net
+
 networks:
   microservices-net:
   monitoring:
@@ -537,3 +564,4 @@ volumes:
   keycloak_data:
   redis_data:
   minio-storage:
+  avatar_data:
