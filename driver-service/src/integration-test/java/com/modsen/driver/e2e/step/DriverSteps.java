@@ -15,20 +15,36 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class DriverSteps {
 
     private Response response;
-    private final String baseUri = "http://localhost:8081/";
+    private final String baseUri = "http://localhost:8765/";
     private String payload;
+    private String accessToken;
+
+    @Given("I authenticate as {string} with password {string}")
+    public void iAuthenticateAs(String username, String password) {
+        response = given()
+                .contentType("application/json")
+                .body("{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}")
+                .post(baseUri + "api/v1/account/login");
+
+        response.then().statusCode(200);
+        accessToken = response.jsonPath().getString("access_token");
+        System.out.println(accessToken);
+        assertNotNull(accessToken, "Access token must not be null");
+    }
 
     @Given("the driver with ID {string} exists")
     public void theDriverWithIdExists(String id) {
-        RestAssured.given()
+        given()
                 .baseUri(baseUri)
-                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                 .get(TestUtils.DRIVER_BY_ID_URL, id)
                 .then()
                 .statusCode(HttpStatus.OK.value());
@@ -36,9 +52,9 @@ public class DriverSteps {
 
     @When("I send a GET request for a driver to {string}")
     public void iSendAGetRequestForDriverTo(String endpoint) {
-        response = RestAssured.given()
+        response = given()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                 .baseUri(baseUri)
-                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .get(endpoint);
     }
 
@@ -56,7 +72,6 @@ public class DriverSteps {
     public void iSendAPostRequestForDriverToWithThePayload(String endpoint) {
         response = RestAssured.given()
                 .baseUri(baseUri)
-                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .body(payload)
                 .post(endpoint);
@@ -64,8 +79,8 @@ public class DriverSteps {
 
     @When("I send a DELETE request for a driver to {string}")
     public void iSendADeleteRequestForDriverTo(String endpoint) {
-        response = RestAssured.given()
-                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
+        response = given()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                 .baseUri(baseUri)
                 .delete(endpoint);
     }
@@ -92,9 +107,9 @@ public class DriverSteps {
 
     @Then("the driver with ID {string} should no longer exist")
     public void theDriverWithIdShouldNoLongerExist(String id) {
-        RestAssured.given()
+        given()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                 .baseUri(baseUri)
-                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .get(TestUtils.DRIVER_BY_ID_URL, id)
                 .then()
                 .statusCode(HttpStatus.NOT_FOUND.value());
@@ -102,10 +117,10 @@ public class DriverSteps {
 
     @When("I send a PUT request for a driver to {string} with the payload")
     public void iSendAPutRequestForDriverToWithThePayload(String endpoint) {
-        response = RestAssured.given()
+        response = given()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                 .baseUri(baseUri)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .header(HttpHeaders.AUTHORIZATION, TestUtils.TOKEN)
                 .body(payload)
                 .put(endpoint);
     }

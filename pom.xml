@@ -49,6 +49,8 @@
         <cucumber-junit-platform-engine.version>7.18.1</cucumber-junit-platform-engine.version>
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
         <exception-handler.version>0.0.1-SNAPSHOT</exception-handler.version>
+        <testcontainers-redis.version>2.2.2</testcontainers-redis.version>
+        <logging-starter.version>0.0.1-SNAPSHOT</logging-starter.version>
     </properties>
 
     <dependencyManagement>
@@ -188,6 +190,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.redis</groupId>
+            <artifactId>testcontainers-redis</artifactId>
+            <version>${testcontainers-redis.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-suite</artifactId>
             <version>${junit-platform-suite.version}</version>
@@ -223,6 +231,11 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.modsen</groupId>
+            <artifactId>logging-starter</artifactId>
+            <version>${logging-starter.version}</version>
         </dependency>
     </dependencies>
 

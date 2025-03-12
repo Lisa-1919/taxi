@@ -71,8 +71,8 @@ services:
     build:
       context: ./driver-service
       dockerfile: Dockerfile
-    ports:
-      - "8081:8081"
+    expose:
+      - "8081"
     environment:
       SPRING_PROFILES_ACTIVE: ${PROFILE}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
@@ -105,8 +105,8 @@ services:
     build:
       context: ./passenger-service
       dockerfile: Dockerfile
-    ports:
-      - "8082:8082"
+    expose:
+      - "8082"
     environment:
       SPRING_PROFILES_ACTIVE: ${PROFILE}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
@@ -141,8 +141,8 @@ services:
     build:
       context: ./rides-service
       dockerfile: Dockerfile
-    ports:
-      - "8083:8083"
+    expose:
+      - "8083"
     environment:
       SPRING_PROFILES_ACTIVE: ${PROFILE}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
@@ -176,8 +176,8 @@ services:
     build:
       context: ./rating-service
       dockerfile: Dockerfile
-    ports:
-      - "8084:8084"
+    expose:
+      - "8084"
     environment:
       SPRING_PROFILES_ACTIVE: ${PROFILE}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
@@ -384,6 +384,11 @@ services:
       DB_SCHEMA: public
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL_HOST: keycloak-db
+      KC_DB_URL_DATABASE: keycloak-db
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
       KC_IMPORT: /opt/keycloak/data/import/realm.json
