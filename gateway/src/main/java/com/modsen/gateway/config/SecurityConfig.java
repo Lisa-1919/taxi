@@ -20,6 +20,7 @@ public class SecurityConfig {
                         .pathMatchers("/api/v1/account/**").authenticated()
                         .pathMatchers("/api/v1/rides/**").authenticated()
                         .pathMatchers("/api/v1/rating/**").authenticated()
+                        .pathMatchers("/api/v1/avatars/**").authenticated()
                         .pathMatchers(HttpMethod.POST, "/api/v1/passengers").authenticated()
                         .pathMatchers(HttpMethod.POST, "/api/v1/drivers").authenticated()
                         .anyExchange().authenticated()
