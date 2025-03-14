@@ -18,18 +18,18 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/v1/rates")
-class RateController(
+open class RateController(
     private val rateService: RateService
 ) {
 
     @GetMapping("/{id}")
-    fun getRateById(@PathVariable id: Long): ResponseEntity<ResponseRate> {
+    open fun getRateById(@PathVariable id: Long): ResponseEntity<ResponseRate> {
         val responseRate = rateService.getRateById(id)
         return ResponseEntity.ok(responseRate)
     }
 
     @GetMapping
-    fun getAllRates(
+    open fun getAllRates(
         @PageableDefault(page = 0, size = 10) pageable: Pageable
     ): ResponseEntity<PagedResponseRateList> {
         val responseRateList = rateService.getAllRates(pageable)
@@ -37,7 +37,7 @@ class RateController(
     }
 
     @GetMapping("/from-passengers")
-    fun getAllRatesFromPassengers(
+    open fun getAllRatesFromPassengers(
         @PageableDefault(page = 0, size = 10) pageable: Pageable
     ): ResponseEntity<PagedResponseRateList> {
         val responseRateList = rateService.getAllRatesFromPassengers(pageable)
@@ -45,7 +45,7 @@ class RateController(
     }
 
     @GetMapping("/from-passengers/{passengerId}")
-    fun getAllRatesByPassengerId(
+    open fun getAllRatesByPassengerId(
         @PathVariable passengerId: UUID,
         @PageableDefault(page = 0, size = 10) pageable: Pageable
     ): ResponseEntity<PagedResponseRateList> {
@@ -54,7 +54,7 @@ class RateController(
     }
 
     @GetMapping("/from-drivers")
-    fun getAllRatesFromDrivers(
+    open fun getAllRatesFromDrivers(
         @PageableDefault(page = 0, size = 10) pageable: Pageable
     ): ResponseEntity<PagedResponseRateList> {
         val responseRateList = rateService.getAllRatesFromDrivers(pageable)
@@ -62,7 +62,7 @@ class RateController(
     }
 
     @GetMapping("/from-drivers/{driverId}")
-    fun getAllRatesByDriverId(
+    open fun getAllRatesByDriverId(
         @PathVariable driverId: UUID,
         @PageableDefault(page = 0, size = 10) pageable: Pageable
     ): ResponseEntity<PagedResponseRateList> {
@@ -71,7 +71,7 @@ class RateController(
     }
 
     @PostMapping
-    fun addRate(@RequestBody requestRate: RequestRate): ResponseEntity<ResponseRate> {
+    open fun addRate(@RequestBody requestRate: RequestRate): ResponseEntity<ResponseRate> {
         val responseRate = rateService.addRate(requestRate)
         return ResponseEntity.status(HttpStatus.CREATED).body(responseRate)
     }

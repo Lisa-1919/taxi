@@ -9,6 +9,7 @@ import com.modsen.passenger.util.PassengerTestEntityUtils;
 import com.modsen.passenger.util.TestUtils;
 import com.redis.testcontainers.RedisContainer;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -72,6 +75,14 @@ public class PassengerIntegrationTest {
     public void setUp() {
         RestAssuredMockMvc.mockMvc(mockMvc);
     }
+
+    @AfterAll
+    static void tearDown(@Autowired RedisConnectionFactory redisConnectionFactory) {
+        if (redisConnectionFactory instanceof LettuceConnectionFactory) {
+            ((LettuceConnectionFactory) redisConnectionFactory).destroy();
+        }
+    }
+
 
     @Nested
     @SqlGroup({

@@ -21,6 +21,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -88,10 +90,14 @@ public class RatingIntegrationTest {
     }
 
     @AfterAll
-    static void tearDown() {
+    static void tearDown(@Autowired RedisConnectionFactory redisConnectionFactory) {
         driverWireMock.stopServer();
         passengerWireMock.stopServer();
         rideWireMock.stopServer();
+
+        if (redisConnectionFactory instanceof LettuceConnectionFactory) {
+            ((LettuceConnectionFactory) redisConnectionFactory).destroy();
+        }
     }
 
     @BeforeEach
