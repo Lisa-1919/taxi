@@ -23,6 +23,8 @@ public class SecurityConfig {
                         .pathMatchers("/api/v1/avatars/**").authenticated()
                         .pathMatchers(HttpMethod.POST, "/api/v1/passengers").authenticated()
                         .pathMatchers(HttpMethod.POST, "/api/v1/drivers").authenticated()
+                        .pathMatchers("/swagger-ui.html", "/v3/api-docs/swagger-config",
+                                "/v3/api-docs", "/drivers/v3/api-docs", "/swagger-ui/**", "/webjars/**").permitAll()
                         .anyExchange().authenticated()
                 )
                 .oauth2Login(Customizer.withDefaults())
