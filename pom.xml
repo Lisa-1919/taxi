@@ -51,6 +51,7 @@
         <exception-handler.version>0.0.1-SNAPSHOT</exception-handler.version>
         <testcontainers-redis.version>2.2.2</testcontainers-redis.version>
         <logging-starter.version>0.0.1-SNAPSHOT</logging-starter.version>
+        <springdoc-openapi-starter-webmvc-api.version>2.5.0</springdoc-openapi-starter-webmvc-api.version>
     </properties>
 
     <dependencyManagement>
@@ -111,6 +112,11 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+            <version>${springdoc-openapi-starter-webmvc-api.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

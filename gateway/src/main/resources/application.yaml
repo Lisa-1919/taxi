@@ -1,0 +1,114 @@
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      httpclient:
+        connect-timeout: 20000
+        response-timeout: 7s
+      routes:
+        - id: driver-service
+          uri: lb://driver-service
+          predicates:
+            - Path=/api/v1/drivers/** , /api/v1/cars/** , /driver-service/v3/api-docs
+        - id: passenger-service
+          uri: lb://passenger-service
+          predicates:
+            - Path=/api/v1/passengers/** , /passenger-service/v3/api-docs
+        - id: rating-service
+          uri: lb://rating-service
+          predicates:
+            - Path=/api/v1/rates/** , /rating-service/v3/api-docs
+        - id: rides-service
+          uri: lb://rides-service
+          predicates:
+            - Path=/api/v1/rides/** , /rides-service/v3/api-docs
+        - id: account-service
+          uri: lb://account-service
+          predicates:
+            - Path=/api/v1/account/** , /account-service/v3/api-docs
+        - id: storage-service
+          uri: lb://storage-service
+          predicates:
+            - Path=/api/v1/avatars/** , /storage-service/v3/api-docs
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWK_JWKSETURI}
+      client:
+        provider:
+          keycloak:
+            issuer-uri: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_ISSUER_URI}
+        registration:
+          keycloak:
+            provider: keycloak
+            client-id: auth
+            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET}
+            scope: openid
+            authorization-grant-type: authorization_code
+
+server:
+  port: 8765
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL}
+
+doc.enable-native-support: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  prometheus.metrics.export.enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": true
+  tracing:
+    enabled: true
+    zipkin.tracing.endpoint: ${ZIPKIN_TRACING_ENDPOINT}
+    sampling:
+      probability: 1.0
+
+logging:
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+  include-application-name: false
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+    urls:
+      - url: /v3/api-docs
+        name: API Gateway Service
+        primaryName: API Gateway Service
+      - url: /driver-service/v3/api-docs
+        name: Driver Service
+        primaryName: Driver Service
+      - url: /passenger-service/v3/api-docs
+        name: Passenger Service
+        primaryName: Passenger Service
+      - url: /rating-service/v3/api-docs
+        name: Rating Service
+        primaryName: Rating Service
+      - url: /rides-service/v3/api-docs
+        name: Rides Service
+        primaryName: Rides Service
+      - url: /account-service/v3/api-docs
+        name: Account Service
+        primaryName: Account Service
+      - url: /storage-service/v3/api-docs
+        name: Storage Service
+        primaryName: Storage Service

@@ -27,12 +27,6 @@ services:
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWK_JWKSETURI: ${JWK_SET_URI}
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_ISSUER_URI: ${ISSUER_URI}
       ZIPKIN_TRACING_ENDPOINT: ${ZIPKIN_TRACING_ENDPOINT}
-      DRIVER_SERVICE_URL: http://driver-service:8081
-      PASSENGER_SERVICE_URL: http://passenger-service:8082
-      RIDES_SERVICE_URL: http://rides-service:8083
-      RATING_SERVICE_URL: http://rating-service:8084
-      ACCOUNT_SERVICE_URL: http://account-service:8085
-      STORAGE_SERVICE_URL: http://storage-service:8086
     depends_on:
       eureka:
         condition: service_healthy
@@ -85,6 +79,7 @@ services:
       SPRING_REDIS_PORT: ${SPRING_REDIS_PORT}
       SPRING_REDIS_HOST: ${SPRING_REDIS_HOST}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
+      OPENAPI_SERVICE_URL: ${OPENAPI_SERVICE_URL}
     depends_on:
       eureka:
         condition: service_healthy
@@ -119,6 +114,7 @@ services:
       SPRING_REDIS_PORT: ${SPRING_REDIS_PORT}
       SPRING_REDIS_HOST: ${SPRING_REDIS_HOST}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
+      OPENAPI_SERVICE_URL: ${OPENAPI_SERVICE_URL}
     depends_on:
       eureka:
         condition: service_healthy
@@ -154,6 +150,7 @@ services:
       SPRING_REDIS_PORT: ${SPRING_REDIS_PORT}
       SPRING_REDIS_HOST: ${SPRING_REDIS_HOST}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
+      OPENAPI_SERVICE_URL: ${OPENAPI_SERVICE_URL}
     depends_on:
       eureka:
         condition: service_healthy
@@ -189,6 +186,7 @@ services:
       SPRING_REDIS_PORT: ${SPRING_REDIS_PORT}
       SPRING_REDIS_HOST: ${SPRING_REDIS_HOST}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
+      OPENAPI_SERVICE_URL: ${OPENAPI_SERVICE_URL}
     depends_on:
       eureka:
         condition: service_healthy
@@ -430,8 +428,8 @@ services:
     build:
       context: ./account
       dockerfile: Dockerfile
-    ports:
-      - "8085:8085"
+    expose:
+      - "8085"
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
       AUTH_SERVER_URL: ${AUTH_SERVER_URL}
@@ -439,6 +437,7 @@ services:
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWK_JWKSETURI: ${JWK_SET_URI}
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_ISSUER_URI: ${ISSUER_URI}
       ZIPKIN_TRACING_ENDPOINT: ${ZIPKIN_TRACING_ENDPOINT}
+      OPENAPI_SERVICE_URL: ${OPENAPI_SERVICE_URL}
     depends_on:
       eureka:
         condition: service_healthy
@@ -492,8 +491,8 @@ services:
     build:
       context: ./storage-service
       dockerfile: Dockerfile
-    ports:
-      - "8086:8086"
+    expose:
+      - "8086"
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_SERVER_URL}
       MINIO_URL: ${MINIO_URL}
@@ -508,6 +507,7 @@ services:
       SPRING_REDIS_PORT: ${SPRING_REDIS_PORT}
       SPRING_REDIS_HOST: ${SPRING_REDIS_HOST}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
+      OPENAPI_SERVICE_URL: ${OPENAPI_SERVICE_URL}
     depends_on:
       minio:
         condition: service_healthy

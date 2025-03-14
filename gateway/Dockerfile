@@ -21,8 +21,8 @@ WORKDIR /app
 
 COPY target/gateway-0.0.1-SNAPSHOT.jar /app/gateway.jar
 
-COPY src/main/resources/application.properties /app/config/application.properties
+COPY src/main/resources/application.yaml /app/config/application.yaml
 
 EXPOSE 8765
 
-ENTRYPOINT ["java", "-jar", "/app/gateway.jar", "--spring.config.location=/app/config/application.properties"]
+ENTRYPOINT ["java", "-jar", "/app/gateway.jar", "--spring.config.location=/app/config/application.yaml"]
