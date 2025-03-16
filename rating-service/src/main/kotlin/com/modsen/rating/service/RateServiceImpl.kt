@@ -13,7 +13,6 @@ import com.modsen.rating.util.ExceptionMessages
 import com.modsen.rating.util.UserType
 import jakarta.persistence.EntityNotFoundException
 import java.util.UUID
-import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CachePut
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.domain.Page
@@ -25,11 +24,9 @@ open class RateServiceImpl(
     private val rateRepository: RateRepository,
     private val rateMapper: RateMapper,
     private val rideServiceClient: RideServiceClient,
-    private val passengerServiceClient: com.modsen.rating.client.PassengerServiceClient,
-    private val driverServiceClient: com.modsen.rating.client.DriverServiceClient
+    private val passengerServiceClient: PassengerServiceClient,
+    private val driverServiceClient: DriverServiceClient
 ) : RateService {
-
-    private val log = LoggerFactory.getLogger(RateServiceImpl::class.java)
 
     @CachePut(cacheNames = ["rate"], key = "#result.id")
     override fun addRate(requestRate: RequestRate): ResponseRate {
