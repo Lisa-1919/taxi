@@ -23,7 +23,12 @@ public class SecurityConfig {
                         .pathMatchers("/api/v1/avatars/**").authenticated()
                         .pathMatchers(HttpMethod.POST, "/api/v1/passengers").authenticated()
                         .pathMatchers(HttpMethod.POST, "/api/v1/drivers").authenticated()
-                        .anyExchange().authenticated()
+                        .pathMatchers("/swagger-ui.html", "/v3/api-docs/**",
+                                "/driver-service/v3/api-docs", "/passenger-service/v3/api-docs",
+                                "/rides-service/v3/api-docs", "/rating-service/v3/api-docs",
+                                "/account-service/v3/api-docs", "/storage-service/v3/api-docs",
+                                "/swagger-ui/**", "/webjars/**").permitAll()
+                        .anyExchange().permitAll()
                 )
                 .oauth2Login(Customizer.withDefaults())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults())

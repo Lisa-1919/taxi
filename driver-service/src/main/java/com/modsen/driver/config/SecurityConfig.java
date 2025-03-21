@@ -38,12 +38,13 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/actuator/**", "/driver-service/v3/**", "/driver-service/swagger-ui/**",
+                                "/driver-service/swagger-ui.html", "/driver-service/webjars/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/drivers").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/drivers/*").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/v1/drivers/*").authenticated()
                         .requestMatchers("/api/v1/drivers/**", "/api/v1/cars/**").hasAnyRole("ADMIN", "DRIVER", "PASSENGER")
-                        .anyRequest().denyAll()
+                        .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
