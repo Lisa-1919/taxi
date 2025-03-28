@@ -25,7 +25,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/account/login", "/api/v1/account/register").permitAll()
                         .requestMatchers("/api/v1/account/**").hasAnyRole("ADMIN", "DRIVER", "PASSENGER")
-
+                        .requestMatchers("/actuator/**", "/account-service/v3/**", "/account-service/swagger-ui/**",
+                                "/account-service/swagger-ui.html", "/account-service/webjars/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
